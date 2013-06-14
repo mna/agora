@@ -4,6 +4,8 @@ import (
 	"testing"
 )
 
+// TODO Test conversions too
+
 func TestAdd(t *testing.T) {
 	cases := []struct {
 		x   int

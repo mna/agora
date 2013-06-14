@@ -26,7 +26,7 @@ func (ø Int) String() string {
 
 // Bool returns true if the integer value is non-zero, false otherwise.
 func (ø Int) Bool() bool {
-	return ø != 0
+	return int(ø) != 0
 }
 
 // Add performs the addition of the integer value to another Val value, converted
