@@ -1,13 +1,8 @@
 package runtime
 
 import (
-	"errors"
 	"math"
 	"strconv"
-)
-
-var (
-	ErrInvalidOpNotOnFloat = errors.New("cannot apply Not on a Float value")
 )
 
 // Float is the representation of the Float type. It is equivalent
@@ -70,9 +65,9 @@ func (ø Float) Pow(v Val) Val {
 	return Float(math.Pow(float64(ø), v.Float()))
 }
 
-// Not panics for a float value.
+// Not switches the boolean value of the float and returns a boolean.
 func (ø Float) Not() Val {
-	panic(ErrInvalidOpNotOnFloat)
+	return Bool(!ø.Bool())
 }
 
 // Unm returns the unary minus operation applied to the float value.

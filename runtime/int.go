@@ -65,10 +65,9 @@ func (ø Int) Pow(v Val) Val {
 	return Int(math.Pow(float64(ø), float64(v.Int())))
 }
 
-// Not returns the binary not operation applied to the integer value.
-// It switches all bits of the value.
+// Not switches the boolean value of the integer, and returns a Boolean.
 func (ø Int) Not() Val {
-	return Int(^int(ø))
+	return Bool(!ø.Bool())
 }
 
 // Unm returns the unary minus operation applied to the integer value.

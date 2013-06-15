@@ -15,7 +15,6 @@ var (
 	ErrInvalidOpDivOnNil = errors.New("cannot apply Div on a Nil value")
 	ErrInvalidOpPowOnNil = errors.New("cannot apply Pow on a Nil value")
 	ErrInvalidOpModOnNil = errors.New("cannot apply Mod on a Nil value")
-	ErrInvalidOpNotOnNil = errors.New("cannot apply Not on a Nil value")
 	ErrInvalidOpUnmOnNil = errors.New("cannot apply Unm on a Nil value")
 )
 
@@ -73,9 +72,9 @@ func (ø Nil) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnNil)
 }
 
-// Not is an invalid operation.
+// Not switches the boolean value of nil, and returns a Boolean.
 func (ø Nil) Not() Val {
-	panic(ErrInvalidOpNotOnNil)
+	return Bool(!ø.Bool())
 }
 
 // Unm is an invalid operation.

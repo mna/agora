@@ -98,25 +98,9 @@ func (ø String) Pow(v Val) Val {
 	return String("")
 }
 
-// Not switches the case of each character in the string.
+// Not switches the boolean value of the string, and returns a Boolean.
 func (ø String) Not() Val {
-	s := string(ø)
-	l := len(s)
-	if l == 0 {
-		return ø
-	}
-	b := make([]byte, l)
-	buf := bytes.NewBuffer(b)
-	low := strings.ToLower(s)
-	// TODO : Need to use a Reader.ReadRune
-	for i := 0; i < l; i++ {
-		if low[i] == s[i] {
-			buf.WriteString(strings.ToUpper(string(low[i])))
-		} else {
-			buf.WriteByte(low[i])
-		}
-	}
-	return String(buf.String())
+	return Bool(!ø.Bool())
 }
 
 // Unm reverses the string.
