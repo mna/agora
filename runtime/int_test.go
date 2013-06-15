@@ -6,7 +6,7 @@ import (
 
 // TODO Test conversions too
 
-func TestAdd(t *testing.T) {
+func TestAddInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		y   int
@@ -33,7 +33,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestSub(t *testing.T) {
+func TestSubInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		y   int
@@ -60,7 +60,7 @@ func TestSub(t *testing.T) {
 	}
 }
 
-func TestMul(t *testing.T) {
+func TestMulInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		y   int
@@ -87,7 +87,7 @@ func TestMul(t *testing.T) {
 	}
 }
 
-func TestDiv(t *testing.T) {
+func TestDivInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		y   int
@@ -112,7 +112,7 @@ func TestDiv(t *testing.T) {
 	}
 }
 
-func TestMod(t *testing.T) {
+func TestModInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		y   int
@@ -137,7 +137,7 @@ func TestMod(t *testing.T) {
 	}
 }
 
-func TestPow(t *testing.T) {
+func TestPowInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		y   int
@@ -162,7 +162,7 @@ func TestPow(t *testing.T) {
 	}
 }
 
-func TestNot(t *testing.T) {
+func TestNotInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		exp bool
@@ -182,7 +182,7 @@ func TestNot(t *testing.T) {
 	}
 }
 
-func TestUnm(t *testing.T) {
+func TestUnmInt(t *testing.T) {
 	cases := []struct {
 		x   int
 		exp int
