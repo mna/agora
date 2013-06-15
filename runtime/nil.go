@@ -33,9 +33,9 @@ func (ø Nil) Float() float64 {
 	panic(ErrInvalidConvNilToFloat)
 }
 
-// String is an invalid conversion.
+// String returns the string "nil".
 func (ø Nil) String() string {
-	panic(ErrInvalidConvNilToString)
+	return "nil"
 }
 
 // Bool returns false.
