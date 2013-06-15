@@ -1,0 +1,292 @@
+package runtime
+
+import (
+	"math"
+	"testing"
+)
+
+const (
+	floatCompareBuffer = 1e-9
+)
+
+func TestFloatAsInt(t *testing.T) {
+	cases := []struct {
+		x   float64
+		exp int
+	}{
+		{x: 0.0, exp: 0},
+		{x: 1.0, exp: 1},
+		{x: -1.0, exp: -1},
+		{x: 0.00001, exp: 0},
+		{x: 0.99999, exp: 0},
+		{x: 1.9, exp: 1},
+		{x: 123.456789, exp: 123},
+		{x: -1.987654321, exp: -1},
+		{x: -999.999999, exp: -999},
+	}
+
+	for _, c := range cases {
+		vx := Float(c.x)
+		res := vx.Int()
+		if c.exp != res {
+			t.Errorf("%f as int : expected %d, got %d", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestFloatAsFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		exp float64
+	}{
+		{x: 0.0, exp: 0.0},
+		{x: 1.0, exp: 1.0},
+		{x: -1.0, exp: -1.0},
+		{x: 0.00001, exp: 0.00001},
+		{x: 0.99999, exp: 0.99999},
+		{x: 1.9, exp: 1.9},
+		{x: 123.456789, exp: 123.456789},
+		{x: -1.987654321, exp: -1.987654321},
+		{x: -999.999999, exp: -999.999999},
+	}
+
+	for _, c := range cases {
+		vx := Float(c.x)
+		res := vx.Float()
+		if c.exp != res {
+			t.Errorf("%f as float : expected %f, got %f", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestFloatAsString(t *testing.T) {
+	cases := []struct {
+		x   float64
+		exp string
+	}{
+		{x: 0.0, exp: "0"},
+		{x: 1.0, exp: "1"},
+		{x: -1.0, exp: "-1"},
+		{x: 0.00001, exp: "0.00001"},
+		{x: 0.99999, exp: "0.99999"},
+		{x: 1.9, exp: "1.9"},
+		{x: 123.456789, exp: "123.456789"},
+		{x: -1.987654321, exp: "-1.987654321"},
+		{x: -999.999999, exp: "-999.999999"},
+	}
+
+	for _, c := range cases {
+		vx := Float(c.x)
+		res := vx.String()
+		if c.exp != res {
+			t.Errorf("%f as string : expected %s, got %s", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestFloatAsBool(t *testing.T) {
+	cases := []struct {
+		x   float64
+		exp bool
+	}{
+		{x: 0.0, exp: false},
+		{x: 1.0, exp: true},
+		{x: -1.0, exp: true},
+		{x: 0.00001, exp: true},
+		{x: 0.99999, exp: true},
+		{x: 1.9, exp: true},
+		{x: 123.456789, exp: true},
+		{x: -1.987654321, exp: true},
+		{x: -999.999999, exp: true},
+	}
+
+	for _, c := range cases {
+		vx := Float(c.x)
+		res := vx.Bool()
+		if c.exp != res {
+			t.Errorf("%f as bool : expected %v, got %v", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestAddFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		y   float64
+		exp float64
+	}{
+		{x: 0.0, y: 0.0, exp: 0.0},
+		{x: 1.0, y: 0.0, exp: 1.0},
+		{x: 0.0, y: 1.0, exp: 1.0},
+		{x: 1.0, y: 1.0, exp: 2.0},
+		{x: 1.1, y: 0.9, exp: 2.0},
+		{x: -10.90, y: 1.1, exp: -9.8},
+		{x: 10.123, y: 9.456, exp: 19.579},
+	}
+
+	for _, c := range cases {
+		vx, vy := Float(c.x), Float(c.y)
+		res := vx.Add(vy)
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("%f + %f : expected %f, got %f", c.x, c.y, c.exp, res.Float())
+		}
+	}
+}
+
+func TestSubFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		y   float64
+		exp float64
+	}{
+		{x: 0.0, y: 0.0, exp: 0.0},
+		{x: 1.0, y: 0.0, exp: 1.0},
+		{x: 0.0, y: 1.0, exp: -1.0},
+		{x: 1.0, y: 1.0, exp: 0.0},
+		{x: 1.1, y: 0.9, exp: 0.2},
+		{x: -10.90, y: 1.1, exp: -12.0},
+		{x: 10.123, y: 9.456, exp: 0.667},
+	}
+
+	for _, c := range cases {
+		vx, vy := Float(c.x), Float(c.y)
+		res := vx.Sub(vy)
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("%f - %f : expected %f, got %f", c.x, c.y, c.exp, fres)
+		}
+	}
+}
+
+func TestMulFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		y   float64
+		exp float64
+	}{
+		{x: 0.0, y: 0.0, exp: 0.0},
+		{x: 1.0, y: 0.0, exp: 0.0},
+		{x: 0.0, y: 1.0, exp: 0.0},
+		{x: 1.0, y: 1.0, exp: 1.0},
+		{x: 1.1, y: 0.9, exp: 0.99},
+		{x: -10.90, y: 1.1, exp: -11.99},
+		{x: 10.123, y: 9.456, exp: 95.723088},
+	}
+
+	for _, c := range cases {
+		vx, vy := Float(c.x), Float(c.y)
+		res := vx.Mul(vy)
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("%f * %f : expected %f, got %f", c.x, c.y, c.exp, fres)
+		}
+	}
+}
+
+func TestDivFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		y   float64
+		exp float64
+	}{
+		{x: 0.0, y: 1.0, exp: 0.0},
+		{x: 1.0, y: 1.0, exp: 1.0},
+		{x: 1.1, y: 0.9, exp: 1.222222222},
+		{x: -10.90, y: 1.1, exp: -9.909090909},
+		{x: 10.123, y: 9.456, exp: 1.070537225},
+	}
+
+	for _, c := range cases {
+		vx, vy := Float(c.x), Float(c.y)
+		res := vx.Div(vy)
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("%f / %f : expected %f, got %f", c.x, c.y, c.exp, fres)
+		}
+	}
+}
+
+func TestModFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		y   float64
+		exp float64
+	}{
+		{x: 0.0, y: 1.0, exp: 0.0},
+		{x: 1.0, y: 1.0, exp: 0.0},
+		{x: 1.1, y: 0.9, exp: 0.2},
+		{x: -10.90, y: 1.1, exp: -1.0},
+		{x: 10.123, y: 9.456, exp: 0.667},
+	}
+
+	for _, c := range cases {
+		vx, vy := Float(c.x), Float(c.y)
+		res := vx.Mod(vy)
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("%f %% %f : expected %f, got %f", c.x, c.y, c.exp, fres)
+		}
+	}
+}
+
+func TestPowFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		y   float64
+		exp float64
+	}{
+		{x: 0.0, y: 0.0, exp: 1.0},
+		{x: 1.0, y: 0.0, exp: 1.0},
+		{x: 0.0, y: 1.0, exp: 0.0},
+		{x: 1.0, y: 1.0, exp: 1.0},
+		{x: 1.1, y: 0.9, exp: 1.089565684},
+		{x: -10.90, y: 1.1, exp: -13.841053513},
+		{x: 10.123, y: 9.456, exp: 3207776811.65194},
+	}
+
+	for _, c := range cases {
+		vx, vy := Float(c.x), Float(c.y)
+		res := vx.Pow(vy)
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("%f ^ %f : expected %f, got %f", c.x, c.y, c.exp, fres)
+		}
+	}
+}
+
+func TestNotFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		exp bool
+	}{
+		{x: 0.0, exp: true},
+		{x: 1.0, exp: false},
+		{x: 1.1, exp: false},
+		{x: -10.90, exp: false},
+		{x: 10.123, exp: false},
+	}
+
+	for _, c := range cases {
+		vx := Float(c.x)
+		res := vx.Not()
+		if res.Bool() != c.exp {
+			t.Errorf("!%f : expected %v, got %v", c.x, c.exp, res.Bool())
+		}
+	}
+}
+
+func TestUnmFloat(t *testing.T) {
+	cases := []struct {
+		x   float64
+		exp float64
+	}{
+		{x: 0.0, exp: 0.0},
+		{x: 1.0, exp: -1.0},
+		{x: 1.1, exp: -1.1},
+		{x: -10.90, exp: 10.90},
+		{x: 10.123, exp: -10.123},
+	}
+
+	for _, c := range cases {
+		vx := Float(c.x)
+		res := vx.Unm()
+		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
+			t.Errorf("-%f : expected %f, got %f", c.x, c.exp, fres)
+		}
+	}
+}

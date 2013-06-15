@@ -11,7 +11,7 @@ type Float float64
 
 // Int returns the integer part of the float value.
 func (ø Float) Int() int {
-	return int(ø)
+	return int(math.Trunc(float64(ø)))
 }
 
 // Float returns the float value itself.
