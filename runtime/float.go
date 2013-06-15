@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrNotOnFloat = errors.New("cannot apply Not on a Float value")
+	ErrInvalidOpNotOnFloat = errors.New("cannot apply Not on a Float value")
 )
 
 // Float is the representation of the Float type. It is equivalent
@@ -72,7 +72,7 @@ func (ø Float) Pow(v Val) Val {
 
 // Not panics for a float value.
 func (ø Float) Not() Val {
-	panic(ErrNotOnFloat)
+	panic(ErrInvalidOpNotOnFloat)
 }
 
 // Unm returns the unary minus operation applied to the float value.
