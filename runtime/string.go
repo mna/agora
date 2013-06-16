@@ -1,16 +1,17 @@
 package runtime
 
 import (
-	"bytes"
 	"errors"
 	"strconv"
 	"strings"
 )
 
 var (
+	ErrInvalidOpSubOnString = errors.New("cannot apply Sub on a String value")
 	ErrInvalidOpDivOnString = errors.New("cannot apply Div on a String value")
 	ErrInvalidOpPowOnString = errors.New("cannot apply Pow on a String value")
 	ErrInvalidOpModOnString = errors.New("cannot apply Mod on a String value")
+	ErrInvalidOpUnmOnString = errors.New("cannot apply Unm on a String value")
 )
 
 // String is the representation of the String type. It is equivalent
@@ -64,21 +65,9 @@ func (ø String) Add(v Val) Val {
 	return String(string(ø) + v.String())
 }
 
-// Sub removes Int characters from the string if the value is not a string,
-// or it removes the character set of the value if it is a string.
+// Sub is an invalid operation.
 func (ø String) Sub(v Val) Val {
-	switch x := v.(type) {
-	case String:
-		return String(strings.Map(func(r rune) rune {
-			if ix := strings.IndexRune(string(x), r); ix >= 0 {
-				return rune(-1)
-			}
-			return r
-		}, string(ø)))
-	default:
-		s := string(ø)
-		return String(s[:len(s)-v.Int()])
-	}
+	panic(ErrInvalidOpSubOnString)
 }
 
 // Mul repeats n number of times the string, n being the
@@ -107,18 +96,7 @@ func (ø String) Not() Val {
 	return Bool(!ø.Bool())
 }
 
-// Unm reverses the string.
+// Unm is an invalid operation.
 func (ø String) Unm() Val {
-	s := string(ø)
-	l := len(s)
-	if l == 0 {
-		return ø
-	}
-	// TODO : Need to use a Reader.ReadRune
-	b := make([]byte, l)
-	buf := bytes.NewBuffer(b)
-	for i := l; i > 0; i-- {
-		buf.WriteByte(s[i-1])
-	}
-	return String(buf.String())
+	panic(ErrInvalidOpUnmOnString)
 }

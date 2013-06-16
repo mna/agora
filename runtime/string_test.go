@@ -121,6 +121,83 @@ func TestStringAsBool(t *testing.T) {
 	}
 }
 
+func TestAddString(t *testing.T) {
+	cases := []struct {
+		x   string
+		y   string
+		exp string
+	}{
+		{x: "", y: "", exp: ""},
+		{x: " ", y: "", exp: " "},
+		{x: "", y: " ", exp: " "},
+		{x: " ", y: " ", exp: "  "},
+		{x: "abc", y: "def", exp: "abcdef"},
+		{x: "abc\ndef\t", y: "ghi\njkl\x00m", exp: "abc\ndef\tghi\njkl\x00m"},
+	}
+
+	for _, c := range cases {
+		vx, vy := String(c.x), String(c.y)
+		res := vx.Add(vy)
+		if sres := res.String(); c.exp != sres {
+			t.Errorf("%s + %s : expected %s, got %s", c.x, c.y, c.exp, sres)
+		}
+	}
+}
+
+func TestMulString(t *testing.T) {
+	cases := []struct {
+		x   string
+		y   int
+		exp string
+		p   bool
+	}{
+		{x: "", y: 4, exp: ""},
+		{x: " ", y: 2, exp: "  "},
+		{x: "", y: 0, exp: ""},
+		{x: " ", y: 0, exp: ""},
+		{x: "abc", y: 1, exp: "abc"},
+		{x: "abc", y: 3, exp: "abcabcabc"},
+		{x: "abc", y: -1, exp: "", p: true},
+	}
+
+	assert := func(x string) {
+		if err := recover(); err == nil {
+			t.Errorf("%s : expected error, got none", x)
+		}
+	}
+	for _, c := range cases {
+		func() {
+			if c.p {
+				defer assert(c.x)
+			}
+			vx, vy := String(c.x), Int(c.y)
+			res := vx.Mul(vy)
+			if sres := res.String(); c.exp != sres {
+				t.Errorf("%s * %d : expected %s, got %s", c.x, c.y, c.exp, sres)
+			}
+		}()
+	}
+}
+func TestNotString(t *testing.T) {
+	cases := []struct {
+		x   string
+		exp bool
+	}{
+		{x: "", exp: true},
+		{x: " ", exp: false},
+		{x: "abc", exp: false},
+		{x: "\n", exp: false},
+	}
+
+	for _, c := range cases {
+		vx := String(c.x)
+		res := vx.Not()
+		if bres := res.Bool(); c.exp != bres {
+			t.Errorf("!%s : expected %v, got %v", c.x, c.exp, bres)
+		}
+	}
+}
+
 func TestInvalidOpString(t *testing.T) {
 	assert := func(exp error) {
 		if err := recover(); err != exp {
@@ -129,6 +206,11 @@ func TestInvalidOpString(t *testing.T) {
 	}
 
 	s := String("test")
+	func() {
+		defer assert(ErrInvalidOpSubOnString)
+		s.Sub(String(""))
+		panic(nil)
+	}()
 	func() {
 		defer assert(ErrInvalidOpDivOnString)
 		s.Div(String(""))
@@ -142,6 +224,11 @@ func TestInvalidOpString(t *testing.T) {
 	func() {
 		defer assert(ErrInvalidOpPowOnString)
 		s.Pow(String(""))
+		panic(nil)
+	}()
+	func() {
+		defer assert(ErrInvalidOpUnmOnString)
+		s.Unm()
 		panic(nil)
 	}()
 }
