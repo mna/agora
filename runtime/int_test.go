@@ -4,7 +4,89 @@ import (
 	"testing"
 )
 
-// TODO Test conversions too
+func TestIntAsInt(t *testing.T) {
+	cases := []struct {
+		x   int
+		exp int
+	}{
+		{x: 0, exp: 0},
+		{x: 1, exp: 1},
+		{x: -1, exp: -1},
+		{x: 123, exp: 123},
+		{x: -999, exp: -999},
+	}
+
+	for _, c := range cases {
+		vx := Int(c.x)
+		res := vx.Int()
+		if c.exp != res {
+			t.Errorf("%d as int : expected %d, got %d", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestIntAsFloat(t *testing.T) {
+	cases := []struct {
+		x   int
+		exp float64
+	}{
+		{x: 0, exp: 0.0},
+		{x: 1, exp: 1.0},
+		{x: -1, exp: -1.0},
+		{x: 123, exp: 123.0},
+		{x: -999, exp: -999.0},
+	}
+
+	for _, c := range cases {
+		vx := Int(c.x)
+		res := vx.Float()
+		if c.exp != res {
+			t.Errorf("%d as float : expected %f, got %f", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestIntAsString(t *testing.T) {
+	cases := []struct {
+		x   int
+		exp string
+	}{
+		{x: 0, exp: "0"},
+		{x: 1, exp: "1"},
+		{x: -1, exp: "-1"},
+		{x: 123, exp: "123"},
+		{x: -999, exp: "-999"},
+	}
+
+	for _, c := range cases {
+		vx := Int(c.x)
+		res := vx.String()
+		if c.exp != res {
+			t.Errorf("%d as string : expected %s, got %s", c.x, c.exp, res)
+		}
+	}
+}
+
+func TestIntAsBool(t *testing.T) {
+	cases := []struct {
+		x   int
+		exp bool
+	}{
+		{x: 0, exp: false},
+		{x: 1, exp: true},
+		{x: -1, exp: true},
+		{x: 123, exp: true},
+		{x: -999, exp: true},
+	}
+
+	for _, c := range cases {
+		vx := Int(c.x)
+		res := vx.Bool()
+		if c.exp != res {
+			t.Errorf("%d as bool : expected %v, got %v", c.x, c.exp, res)
+		}
+	}
+}
 
 func TestAddInt(t *testing.T) {
 	cases := []struct {

@@ -4,10 +4,16 @@ import (
 	"errors"
 )
 
+const (
+	NilString = "nil"
+)
+
 var (
-	ErrInvalidConvNilToInt    = errors.New("cannot convert Nil to Int")
-	ErrInvalidConvNilToFloat  = errors.New("cannot convert Nil to Float")
-	ErrInvalidConvNilToString = errors.New("cannot convert Nil to String")
+	// The one and only Nil instance
+	Nil = &null{}
+
+	ErrInvalidConvNilToInt   = errors.New("cannot convert Nil to Int")
+	ErrInvalidConvNilToFloat = errors.New("cannot convert Nil to Float")
 
 	ErrInvalidOpAddOnNil = errors.New("cannot apply Add on a Nil value")
 	ErrInvalidOpSubOnNil = errors.New("cannot apply Sub on a Nil value")
@@ -18,66 +24,66 @@ var (
 	ErrInvalidOpUnmOnNil = errors.New("cannot apply Unm on a Nil value")
 )
 
-// Nil is the representation of the null type. It is semantically equivalent
+// Null is the representation of the null type. It is semantically equivalent
 // to Go's nil value, but it is represented as a struct.
-type Nil struct{}
+type null struct{}
 
 // Int is an invalid conversion.
-func (ø Nil) Int() int {
+func (ø null) Int() int {
 	panic(ErrInvalidConvNilToInt)
 }
 
 // Float is an invalid conversion.
-func (ø Nil) Float() float64 {
+func (ø null) Float() float64 {
 	panic(ErrInvalidConvNilToFloat)
 }
 
 // String returns the string "nil".
-func (ø Nil) String() string {
-	return "nil"
+func (ø null) String() string {
+	return NilString
 }
 
 // Bool returns false.
-func (ø Nil) Bool() bool {
+func (ø null) Bool() bool {
 	return false
 }
 
 // Add is an invalid operation.
-func (ø Nil) Add(v Val) Val {
+func (ø null) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnNil)
 }
 
 // Sub is an invalid operation.
-func (ø Nil) Sub(v Val) Val {
+func (ø null) Sub(v Val) Val {
 	panic(ErrInvalidOpSubOnNil)
 }
 
 // Mul is an invalid operation.
-func (ø Nil) Mul(v Val) Val {
+func (ø null) Mul(v Val) Val {
 	panic(ErrInvalidOpMulOnNil)
 }
 
 // Div is an invalid operation.
-func (ø Nil) Div(v Val) Val {
+func (ø null) Div(v Val) Val {
 	panic(ErrInvalidOpDivOnNil)
 }
 
 // Mod is an invalid operation.
-func (ø Nil) Mod(v Val) Val {
+func (ø null) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnNil)
 }
 
 // Pow is an invalid operation.
-func (ø Nil) Pow(v Val) Val {
+func (ø null) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnNil)
 }
 
 // Not switches the boolean value of nil, and returns a Boolean.
-func (ø Nil) Not() Val {
+func (ø null) Not() Val {
 	return Bool(!ø.Bool())
 }
 
 // Unm is an invalid operation.
-func (ø Nil) Unm() Val {
+func (ø null) Unm() Val {
 	panic(ErrInvalidOpUnmOnNil)
 }
