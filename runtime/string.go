@@ -2,8 +2,15 @@ package runtime
 
 import (
 	"bytes"
+	"errors"
 	"strconv"
 	"strings"
+)
+
+var (
+	ErrInvalidOpDivOnString = errors.New("cannot apply Div on a String value")
+	ErrInvalidOpPowOnString = errors.New("cannot apply Pow on a String value")
+	ErrInvalidOpModOnString = errors.New("cannot apply Mod on a String value")
 )
 
 // String is the representation of the String type. It is equivalent
@@ -80,22 +87,19 @@ func (ø String) Mul(v Val) Val {
 	return String(strings.Repeat(string(ø), v.Int()))
 }
 
-// Div splits the string in n number of substrings, n being the value
-// converted to an integer. TODO : Div by a string, splits at each chararacter in the set?
+// Div is an invalid operation.
 func (ø String) Div(v Val) Val {
-	return String("")
+	panic(ErrInvalidOpDivOnString)
 }
 
-// Mod returns the modulo (remainder) of the division of the float value by
-// another Val value, converted to a float.
+// Mod is an invalid operation.
 func (ø String) Mod(v Val) Val {
-	return String("")
+	panic(ErrInvalidOpModOnString)
 }
 
-// Pow returns the float raised at the power of the other Val value, converted
-// to a float.
+// Pow is an invalid operation.
 func (ø String) Pow(v Val) Val {
-	return String("")
+	panic(ErrInvalidOpPowOnString)
 }
 
 // Not switches the boolean value of the string, and returns a Boolean.
