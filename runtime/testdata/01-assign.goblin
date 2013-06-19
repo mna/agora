@@ -1,0 +1,18 @@
+[f]
+1
+
+01-assign.goblin
+0
+0
+[v]
+a
+01-assign.goblin
+0
+0
+[k]
+i5
+[i]
+PUSH K 0
+POP V 0
+PUSH V 0
+RET

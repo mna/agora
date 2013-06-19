@@ -7,6 +7,7 @@ const (
 	OP_RET Opcode = iota
 	OP_PUSH
 	OP_POP
+	OP_INVL Opcode = 0xFF
 )
 
 var (
@@ -22,6 +23,14 @@ var (
 		"POP":  OP_POP,
 	}
 )
+
+func NewOpcode(nm string) Opcode {
+	o, ok := OpLookup[nm]
+	if !ok {
+		return OP_INVL
+	}
+	return o
+}
 
 func (ø Opcode) String() string {
 	return OpNames[ø]

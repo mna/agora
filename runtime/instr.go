@@ -5,7 +5,28 @@ type Table byte
 const (
 	TBL_K Table = iota
 	TBL_V
+	TBL_INVL Table = 0xFF
 )
+
+var (
+	TableNames = [...]string{
+		TBL_K: "K",
+		TBL_V: "V",
+	}
+
+	TableLookup = map[string]Table{
+		"K": TBL_K,
+		"V": TBL_V,
+	}
+)
+
+func NewTable(nm string) Table {
+	t, ok := TableLookup[nm]
+	if !ok {
+		return TBL_INVL
+	}
+	return t
+}
 
 // A bytecode instruction is a sequence of 64 bits arranged like this (a single letter=a byte):
 // `oabbbbbb`
@@ -16,6 +37,10 @@ const (
 // b: represents the index of the data in the relevant table (K or V), on 6 bytes.
 //    Gives a possibility of 2^48 items in each table.
 type Instr uint64
+
+func NewInstr(op Opcode, tbl Table, ix uint64) Instr {
+	return Instr(uint64(op)<<56 | uint64(tbl)<<48 | ix)
+}
 
 func (ø Instr) Opcode() Opcode {
 	return Opcode(ø >> 56)
