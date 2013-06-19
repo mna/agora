@@ -1,0 +1,51 @@
+import "other.goblin"
+
+func sum(step, loops) {
+	a := 0
+	for i := range loops { // for 0..loops-1
+		a += step + i // why not, add the step + the index, for fun
+	}
+	return a
+}
+
+sum(3, 10)
+other.compute(9) // let's pretend it's defined in other.goblin
+
+/**
+Test translation to VM bytecode:
+
+Namespace:
+==========
+
+Can be userland (`import "name"`) or built-in/stdlib (`import "io"`). It is possible that the built-in is not available, if the host did not register the particular stdlib package. The stdlib is checked first, then the userland package, in the current directory first.
+
+Scope:
+======
+FTable = [
+	0: <sum prototype>,
+]
+
+KTable = [
+	0: "sum",
+	1: 3,
+	2: 10,
+]
+
+Function Scope (sum):
+=====================
+
+KTable = [
+	3: "step",
+	4: "loops",
+	5: "a",
+	6: "i",
+]
+
+VTable = [ 	// Values shown are at the moment of the call
+	"step": 3,
+	"loops": 10,
+	"a": 0,
+	"i": 0,
+]
+
+**/
