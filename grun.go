@@ -25,8 +25,15 @@ func main() {
 	if len(fps) == 0 {
 		panic("no function in specified file")
 	}
+	// Print the function prototypes
 	spew.Dump(fps)
+
+	// Execute the program
 	fn := runtime.NewFunc(fps[0])
 	ret := fn.Run()
+
+	// Print the resulting stack and variables
+	spew.Dump(fn)
+
 	fmt.Printf("PASS - %v", ret)
 }

@@ -7,20 +7,44 @@ const (
 	OP_RET Opcode = iota
 	OP_PUSH
 	OP_POP
+	OP_ADD
+	OP_SUB
+	OP_MUL
+	OP_DIV
+	OP_MOD
+	OP_POW
+	OP_NOT
+	OP_UNM
 	OP_INVL Opcode = 0xFF
 )
 
 var (
 	OpNames = [...]string{
-		OP_RET:  "RET",
+		OP_RET:  "RET ",
 		OP_PUSH: "PUSH",
-		OP_POP:  "POP",
+		OP_POP:  "POP ",
+		OP_ADD:  "ADD ",
+		OP_SUB:  "SUB ",
+		OP_MUL:  "MUL ",
+		OP_DIV:  "DIV ",
+		OP_MOD:  "MOD ",
+		OP_POW:  "POW ",
+		OP_NOT:  "NOT ",
+		OP_UNM:  "UNM ",
 	}
 
 	OpLookup = map[string]Opcode{
 		"RET":  OP_RET,
 		"PUSH": OP_PUSH,
 		"POP":  OP_POP,
+		"ADD":  OP_ADD,
+		"SUB":  OP_SUB,
+		"MUL":  OP_MUL,
+		"DIV":  OP_DIV,
+		"MOD":  OP_MOD,
+		"POW":  OP_POW,
+		"NOT":  OP_NOT,
+		"UNM":  OP_UNM,
 	}
 )
 

@@ -35,15 +35,15 @@ func loadInstrs(s *bufio.Scanner, p *FuncProto) {
 		l := len(parts)
 		var (
 			op  Opcode
-			tbl Table
+			flg Flag
 			ix  int
 		)
 		op = NewOpcode(parts[0])
 		if l > 1 {
-			tbl = NewTable(parts[1])
+			flg = NewFlag(parts[1])
 			ix, _ = strconv.Atoi(parts[2])
 		}
-		p.Code = append(p.Code, NewInstr(op, tbl, uint64(ix)))
+		p.Code = append(p.Code, NewInstr(op, flg, uint64(ix)))
 	}
 }
 

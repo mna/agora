@@ -58,24 +58,24 @@ func (ø *Func) pop() Val {
 	return v
 }
 
-func (ø *Func) getVal(tbl Table, ix uint64) Val {
-	switch tbl {
-	case TBL_K:
+func (ø *Func) getVal(flg Flag, ix uint64) Val {
+	switch flg {
+	case FLG_K:
 		return ø.KTable[ix]
-	case TBL_V:
+	case FLG_V:
 		return ø.vars[ix]
+	case FLG_N:
+		return Nil
 	}
-	panic(fmt.Sprintf("Func.getVal() - unknown tbl value %d", tbl))
+	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
 
-func (ø *Func) setVal(tbl Table, ix uint64, v Val) {
-	switch tbl {
-	case TBL_K:
-		panic("Func.setVal() - invalid set value on KTable")
-	case TBL_V:
+func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
+	switch flg {
+	case FLG_V:
 		ø.vars[ix] = v
 	default:
-		panic(fmt.Sprintf("Func.setVal() - unknown tbl value %d", tbl))
+		panic(fmt.Sprintf("Func.setVal() - invalid flag value %d", flg))
 	}
 }
 
@@ -84,19 +84,51 @@ func (ø *Func) Run() Val {
 		// Get the instruction to process
 		i := ø.Code[ø.pc]
 		// Decode the instruction
-		op, tbl, ix := i.Opcode(), i.Table(), i.Index()
+		op, flg, ix := i.Opcode(), i.Flag(), i.Index()
+		// Increment the PC, if a jump requires a different PC delta, it will set it explicitly
+		ø.pc++
 		switch op {
 		case OP_RET:
 			// End this function call, return the value on top of the stack
 			return ø.pop()
 
 		case OP_PUSH:
-			ø.push(ø.getVal(tbl, ix))
-			ø.pc++
+			ø.push(ø.getVal(flg, ix))
 
 		case OP_POP:
-			ø.setVal(tbl, ix, ø.pop())
-			ø.pc++
+			ø.setVal(flg, ix, ø.pop())
+
+		case OP_ADD:
+			y, x := ø.pop(), ø.pop()
+			ø.push(x.Add(y))
+
+		case OP_SUB:
+			y, x := ø.pop(), ø.pop()
+			ø.push(x.Sub(y))
+
+		case OP_MUL:
+			y, x := ø.pop(), ø.pop()
+			ø.push(x.Mul(y))
+
+		case OP_DIV:
+			y, x := ø.pop(), ø.pop()
+			ø.push(x.Div(y))
+
+		case OP_MOD:
+			y, x := ø.pop(), ø.pop()
+			ø.push(x.Mod(y))
+
+		case OP_POW:
+			y, x := ø.pop(), ø.pop()
+			ø.push(x.Pow(y))
+
+		case OP_NOT:
+			x := ø.pop()
+			ø.push(x.Not())
+
+		case OP_UNM:
+			x := ø.pop()
+			ø.push(x.Unm())
 		}
 	}
 }
