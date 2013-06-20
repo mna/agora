@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/PuerkitoBio/goblin/compiler"
 	"github.com/PuerkitoBio/goblin/runtime"
 	"github.com/davecgh/go-spew/spew"
-	"os"
 )
 
 func main() {
@@ -20,7 +22,7 @@ func main() {
 	defer fr.Close()
 
 	// Assemble the file
-	ctx := runtime.Asm(fr)
+	ctx := compiler.Asm(fr)
 	// Run the function at index 0 (the main)
 	if len(ctx.Protos) == 0 {
 		panic("no function in specified file")

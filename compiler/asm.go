@@ -1,24 +1,26 @@
-package runtime
+package compiler
 
 import (
 	"bufio"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/PuerkitoBio/goblin/runtime"
 )
 
 var (
 	s *bufio.Scanner
-	m map[string]func(*FuncProto)
+	m map[string]func(*runtime.FuncProto)
 )
 
-func Asm(r io.Reader) *Ctx {
-	ctx := &Ctx{}
+func Asm(r io.Reader) *runtime.Ctx {
+	ctx := &runtime.Ctx{}
 	s = bufio.NewScanner(r)
 
-	m = map[string]func(*FuncProto){
-		"[f]": func(_ *FuncProto) {
-			p := &FuncProto{}
+	m = map[string]func(*runtime.FuncProto){
+		"[f]": func(_ *runtime.FuncProto) {
+			p := &runtime.FuncProto{}
 			i := 0
 			for s.Scan() {
 				switch i {
@@ -50,7 +52,7 @@ func Asm(r io.Reader) *Ctx {
 			}
 		},
 
-		"[k]": func(p *FuncProto) {
+		"[k]": func(p *runtime.FuncProto) {
 			for s.Scan() {
 				line := strings.TrimSpace(s.Text())
 				if f, ok := m[line]; ok {
@@ -61,21 +63,21 @@ func Asm(r io.Reader) *Ctx {
 				switch line[0] {
 				case 'i':
 					// Integer
-					i := String(line[1:]).Int()
-					p.KTable = append(p.KTable, Int(i))
+					i := runtime.String(line[1:]).Int()
+					p.KTable = append(p.KTable, runtime.Int(i))
 				case 'f':
 					// Float
-					f := String(line[1:]).Float()
-					p.KTable = append(p.KTable, Float(f))
+					f := runtime.String(line[1:]).Float()
+					p.KTable = append(p.KTable, runtime.Float(f))
 				case 's':
 					// String
-					p.KTable = append(p.KTable, String(line[1:]))
+					p.KTable = append(p.KTable, runtime.String(line[1:]))
 				case 'b':
 					// Boolean
-					p.KTable = append(p.KTable, Bool(line[1] == 1))
+					p.KTable = append(p.KTable, runtime.Bool(line[1] == 1))
 				case 'n':
 					// Nil
-					p.KTable = append(p.KTable, Nil)
+					p.KTable = append(p.KTable, runtime.Nil)
 				default:
 					panic("invalid constant value type")
 				}
@@ -83,8 +85,8 @@ func Asm(r io.Reader) *Ctx {
 			panic("missing instructions section [i]")
 		},
 
-		"[v]": func(p *FuncProto) {
-			var v Var
+		"[v]": func(p *runtime.FuncProto) {
+			var v runtime.Var
 			i := 0
 			for s.Scan() {
 				line := strings.TrimSpace(s.Text())
@@ -95,7 +97,7 @@ func Asm(r io.Reader) *Ctx {
 				switch i {
 				case 0:
 					// Var name
-					v = Var{}
+					v = runtime.Var{}
 					v.Name = s.Text()
 				case 1:
 					// Var file
@@ -114,7 +116,7 @@ func Asm(r io.Reader) *Ctx {
 			panic("missing constant section [k]")
 		},
 
-		"[i]": func(p *FuncProto) {
+		"[i]": func(p *runtime.FuncProto) {
 			for s.Scan() {
 				line := strings.TrimSpace(s.Text())
 				if f, ok := m[line]; ok {
@@ -124,16 +126,16 @@ func Asm(r io.Reader) *Ctx {
 				parts := strings.Fields(line)
 				l := len(parts)
 				var (
-					op  Opcode
-					flg Flag
-					ix  int
+					op  runtime.Opcode
+					flg runtime.Flag
+					ix  int64
 				)
-				op = NewOpcode(parts[0])
+				op = runtime.NewOpcode(parts[0])
 				if l > 1 {
-					flg = NewFlag(parts[1])
-					ix, _ = strconv.Atoi(parts[2])
+					flg = runtime.NewFlag(parts[1])
+					ix, _ = strconv.ParseInt(parts[2], 10, 64)
 				}
-				p.Code = append(p.Code, NewInstr(op, flg, uint64(ix)))
+				p.Code = append(p.Code, runtime.NewInstr(op, flg, uint64(ix)))
 			}
 		},
 	}
