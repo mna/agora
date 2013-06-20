@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Asm(r io.Reader) []*FuncProto {
+func Asm(r io.Reader) *Ctx {
 	var p *FuncProto
 	var fps []*FuncProto
 
@@ -25,7 +25,7 @@ func Asm(r io.Reader) []*FuncProto {
 		}
 	}
 	fps = append(fps, p)
-	return fps
+	return &Ctx{fps}
 }
 
 func loadInstrs(s *bufio.Scanner, p *FuncProto) {

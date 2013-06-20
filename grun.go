@@ -20,16 +20,16 @@ func main() {
 	defer fr.Close()
 
 	// Assemble the file
-	fps := runtime.Asm(fr)
+	ctx := runtime.Asm(fr)
 	// Run the function at index 0 (the main)
-	if len(fps) == 0 {
+	if len(ctx.Protos) == 0 {
 		panic("no function in specified file")
 	}
 	// Print the function prototypes
-	spew.Dump(fps)
+	spew.Dump(ctx)
 
 	// Execute the program
-	fn := runtime.NewFunc(fps[0])
+	fn := runtime.NewFunc(ctx, ctx.Protos[0])
 	ret := fn.Run()
 
 	// Print the resulting stack and variables

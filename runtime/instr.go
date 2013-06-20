@@ -8,9 +8,11 @@ type Flag byte
 
 const (
 	FLG__    Flag = iota // Ignored
-	FLG_K                // Constant
-	FLG_V                // Variable
-	FLG_N                // Nil
+	FLG_K                // Constant table index
+	FLG_V                // Variable table index
+	FLG_N                // Nil value
+	FLG_F                // Function prototype index
+	FLG_A                // Args count
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
@@ -20,6 +22,8 @@ var (
 		FLG_K: "K",
 		FLG_V: "V",
 		FLG_N: "N",
+		FLG_F: "F",
+		FLG_A: "A",
 	}
 
 	FlagLookup = map[string]Flag{
@@ -27,6 +31,8 @@ var (
 		"K": FLG_K,
 		"V": FLG_V,
 		"N": FLG_N,
+		"F": FLG_F,
+		"A": FLG_A,
 	}
 )
 

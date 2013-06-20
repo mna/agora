@@ -1,7 +1,22 @@
 package runtime
 
 import (
+	"errors"
 	"fmt"
+)
+
+var (
+	ErrInvalidConvFuncToInt    = errors.New("cannot convert Func to Int")
+	ErrInvalidConvFuncToFloat  = errors.New("cannot convert Func to Float")
+	ErrInvalidConvFuncToString = errors.New("cannot convert Func to String")
+
+	ErrInvalidOpAddOnFunc = errors.New("cannot apply Add on a Func value")
+	ErrInvalidOpSubOnFunc = errors.New("cannot apply Sub on a Func value")
+	ErrInvalidOpMulOnFunc = errors.New("cannot apply Mul on a Func value")
+	ErrInvalidOpDivOnFunc = errors.New("cannot apply Div on a Func value")
+	ErrInvalidOpPowOnFunc = errors.New("cannot apply Pow on a Func value")
+	ErrInvalidOpModOnFunc = errors.New("cannot apply Mod on a Func value")
+	ErrInvalidOpUnmOnFunc = errors.New("cannot apply Unm on a Func value")
 )
 
 type debug struct {
@@ -23,7 +38,16 @@ type FuncProto struct {
 	debug
 }
 
-func NewFunc(proto *FuncProto) *Func {
+type Func struct {
+	*FuncProto
+	ctx   *Ctx
+	pc    int
+	vars  []Val
+	stack []Val
+	sp    int
+}
+
+func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
 	// Initialize all variables to the goblin Nil (not Go's nil interface)
 	vars := make([]Val, len(proto.VTable))
 	for i, _ := range vars {
@@ -31,6 +55,7 @@ func NewFunc(proto *FuncProto) *Func {
 	}
 	return &Func{
 		proto,
+		ctx,
 		0,
 		vars,
 		make([]Val, proto.StackSz),
@@ -38,12 +63,64 @@ func NewFunc(proto *FuncProto) *Func {
 	}
 }
 
-type Func struct {
-	*FuncProto
-	pc    int
-	vars  []Val
-	stack []Val
-	sp    int
+// Int is an invalid conversion.
+func (ø Func) Int() int {
+	panic(ErrInvalidConvFuncToInt)
+}
+
+// Float is an invalid conversion.
+func (ø Func) Float() float64 {
+	panic(ErrInvalidConvFuncToFloat)
+}
+
+// String is an invalid conversion.
+func (ø Func) String() string {
+	panic(ErrInvalidConvFuncToString)
+}
+
+// Bool returns true.
+func (ø Func) Bool() bool {
+	return true
+}
+
+// Add is an invalid operation.
+func (ø Func) Add(v Val) Val {
+	panic(ErrInvalidOpAddOnFunc)
+}
+
+// Sub is an invalid operation.
+func (ø Func) Sub(v Val) Val {
+	panic(ErrInvalidOpSubOnFunc)
+}
+
+// Mul is an invalid operation.
+func (ø Func) Mul(v Val) Val {
+	panic(ErrInvalidOpMulOnFunc)
+}
+
+// Div is an invalid operation.
+func (ø Func) Div(v Val) Val {
+	panic(ErrInvalidOpDivOnFunc)
+}
+
+// Mod is an invalid operation.
+func (ø Func) Mod(v Val) Val {
+	panic(ErrInvalidOpModOnFunc)
+}
+
+// Pow is an invalid operation.
+func (ø Func) Pow(v Val) Val {
+	panic(ErrInvalidOpPowOnFunc)
+}
+
+// Not switches the boolean value of func, and returns a Boolean.
+func (ø Func) Not() Val {
+	return Bool(!ø.Bool())
+}
+
+// Unm is an invalid operation.
+func (ø Func) Unm() Val {
+	panic(ErrInvalidOpUnmOnFunc)
 }
 
 func (ø *Func) push(v Val) {
@@ -66,6 +143,8 @@ func (ø *Func) getVal(flg Flag, ix uint64) Val {
 		return ø.vars[ix]
 	case FLG_N:
 		return Nil
+	case FLG_F:
+		return NewFunc(ø.ctx, ø.ctx.Protos[ix])
 	}
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
@@ -79,7 +158,7 @@ func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
 	}
 }
 
-func (ø *Func) Run() Val {
+func (ø *Func) Run(args ...Val) Val {
 	for {
 		// Get the instruction to process
 		i := ø.Code[ø.pc]
@@ -129,6 +208,19 @@ func (ø *Func) Run() Val {
 		case OP_UNM:
 			x := ø.pop()
 			ø.push(x.Unm())
+
+		case OP_CALL:
+			// ix is the number of args
+			// Pop the function itself, ensure it is a function
+			x := ø.pop()
+			fn := x.(Func)
+			// Pop the arguments in reverse order
+			args := make([]Val, ix)
+			for j := ix; j > 0; j-- {
+				args[j-1] = ø.pop()
+			}
+			// Call the function, and store the return value on the stack
+			ø.push(fn.Run(args...))
 		}
 	}
 }

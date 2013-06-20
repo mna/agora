@@ -1,0 +1,44 @@
+//
+// func Add(x, y) {
+//   return x + y
+// }
+//  
+// return Add(4, "198")
+//
+[f]
+3
+
+03-callfunc.goblin
+0
+4
+[v]
+[k]
+i4
+s198
+[i]
+PUSH K 0
+PUSH K 1
+PUSH F 1
+CALL A 2
+RET
+[f]
+2
+Add
+03-callfunc.goblin
+0
+2
+[v]
+x
+03-callfunc.goblin
+0
+2
+y
+03-callfunc.goblin
+0
+2
+[k]
+[i]
+PUSH V 0
+PUSH V 1
+ADD
+RET
