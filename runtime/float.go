@@ -29,6 +29,16 @@ func (ø Float) Bool() bool {
 	return float64(ø) != 0
 }
 
+func (ø Float) Cmp(v Val) int {
+	if f := v.Float(); float64(ø) > f {
+		return 1
+	} else if float64(ø) < f {
+		return -1
+	} else {
+		return 0
+	}
+}
+
 // Add performs the addition of the float value to another Val value, converted
 // to a float.
 func (ø Float) Add(v Val) Val {

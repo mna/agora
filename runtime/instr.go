@@ -13,6 +13,7 @@ const (
 	FLG_N                // Nil value
 	FLG_F                // Function prototype index
 	FLG_A                // Args count
+	FLG_J                // Jump over n instructions
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
@@ -24,6 +25,7 @@ var (
 		FLG_N: "N",
 		FLG_F: "F",
 		FLG_A: "A",
+		FLG_J: "J",
 	}
 
 	FlagLookup = map[string]Flag{
@@ -33,6 +35,7 @@ var (
 		"N": FLG_N,
 		"F": FLG_F,
 		"A": FLG_A,
+		"J": FLG_J,
 	}
 )
 

@@ -48,6 +48,13 @@ func (ø null) Bool() bool {
 	return false
 }
 
+func (ø null) Cmp(v Val) int {
+	if v == Nil {
+		return 0
+	}
+	return -1
+}
+
 // Add is an invalid operation.
 func (ø null) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnNil)

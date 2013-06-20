@@ -52,6 +52,16 @@ func (ø String) Bool() bool {
 	return len(string(ø)) > 0
 }
 
+func (ø String) Cmp(v Val) int {
+	if s := v.String(); string(ø) > s {
+		return 1
+	} else if string(ø) < s {
+		return -1
+	} else {
+		return 0
+	}
+}
+
 // Add performs the concatenation of the string with the supplied value,
 // converted to a string.
 func (ø String) Add(v Val) Val {

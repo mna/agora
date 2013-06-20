@@ -66,62 +66,71 @@ func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
 }
 
 // Int is an invalid conversion.
-func (ø Func) Int() int {
+func (ø *Func) Int() int {
 	panic(ErrInvalidConvFuncToInt)
 }
 
 // Float is an invalid conversion.
-func (ø Func) Float() float64 {
+func (ø *Func) Float() float64 {
 	panic(ErrInvalidConvFuncToFloat)
 }
 
 // String is an invalid conversion.
-func (ø Func) String() string {
+func (ø *Func) String() string {
 	panic(ErrInvalidConvFuncToString)
 }
 
 // Bool returns true.
-func (ø Func) Bool() bool {
+func (ø *Func) Bool() bool {
 	return true
 }
 
+func (ø *Func) Cmp(v Val) int {
+	if ø == v {
+		// Point to same function
+		return 0
+	}
+	// Otherwise, always return -1 (no rational way to compare 2 functions)
+	return -1
+}
+
 // Add is an invalid operation.
-func (ø Func) Add(v Val) Val {
+func (ø *Func) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnFunc)
 }
 
 // Sub is an invalid operation.
-func (ø Func) Sub(v Val) Val {
+func (ø *Func) Sub(v Val) Val {
 	panic(ErrInvalidOpSubOnFunc)
 }
 
 // Mul is an invalid operation.
-func (ø Func) Mul(v Val) Val {
+func (ø *Func) Mul(v Val) Val {
 	panic(ErrInvalidOpMulOnFunc)
 }
 
 // Div is an invalid operation.
-func (ø Func) Div(v Val) Val {
+func (ø *Func) Div(v Val) Val {
 	panic(ErrInvalidOpDivOnFunc)
 }
 
 // Mod is an invalid operation.
-func (ø Func) Mod(v Val) Val {
+func (ø *Func) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnFunc)
 }
 
 // Pow is an invalid operation.
-func (ø Func) Pow(v Val) Val {
+func (ø *Func) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnFunc)
 }
 
 // Not switches the boolean value of func, and returns a Boolean.
-func (ø Func) Not() Val {
+func (ø *Func) Not() Val {
 	return Bool(!ø.Bool())
 }
 
 // Unm is an invalid operation.
-func (ø Func) Unm() Val {
+func (ø *Func) Unm() Val {
 	panic(ErrInvalidOpUnmOnFunc)
 }
 
@@ -229,6 +238,17 @@ func (ø *Func) Run(args ...Val) Val {
 			}
 			// Call the function, and store the return value on the stack
 			ø.push(fn.Run(args...))
+
+		case OP_LT:
+			y, x := ø.pop(), ø.pop()
+			cmp := x.Cmp(y)
+			ø.push(Bool(cmp == -1))
+
+		case OP_TEST:
+			if !ø.pop().Bool() {
+				// Do the jump over ix instructions
+				ø.pc += int(ix)
+			}
 		}
 	}
 }

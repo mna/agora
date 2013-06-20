@@ -47,6 +47,19 @@ func (ø Bool) Bool() bool {
 	return bool(ø)
 }
 
+// Cmp compares two values as booleans.
+func (ø Bool) Cmp(v Val) int {
+	if bool(ø) == v.Bool() {
+		return 0
+	} else if bool(ø) {
+		// If it is true, other is necessarily false, so this one is greater
+		return 1
+	} else {
+		// Necessarily smaller
+		return -1
+	}
+}
+
 // Add is an invalid operation.
 func (ø Bool) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnBool)

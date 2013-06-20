@@ -1,0 +1,59 @@
+//
+// func Fib(n) {
+//   if n < 2 {
+//     return 1
+//   }
+//   return Fib(n-1) + Fib(n-2)
+// }
+//  
+// return Fib(3)
+//
+[f]
+2
+0
+
+04-fib.goblin
+0
+7
+[v]
+[k]
+i30
+[i]
+PUSH K 0
+PUSH F 1
+CALL A 1
+RET
+[f]
+3
+1
+Fib
+04-fib.goblin
+0
+5
+[v]
+n
+04-fib.goblin
+0
+5
+[k]
+i2
+i1
+[i]
+PUSH V 0
+PUSH K 0
+LT
+TEST J 2 // Jump over next instr if true OR use this to know how/what to test (AND n bool values, or OR n bool values)?
+PUSH K 1 // Here test was true, put 1 on stack and return
+RET
+PUSH V 0 // Here test was false
+PUSH K 1
+SUB
+PUSH F 1
+CALL A 1 // Fib(n-1), the return value will replace the F and A
+PUSH V 0
+PUSH K 0
+SUB
+PUSH F 1
+CALL A 1 // Fib(n-2)
+ADD
+RET

@@ -29,6 +29,16 @@ func (ø Int) Bool() bool {
 	return int(ø) != 0
 }
 
+func (ø Int) Cmp(v Val) int {
+	if i := v.Int(); int(ø) > i {
+		return 1
+	} else if int(ø) < i {
+		return -1
+	} else {
+		return 0
+	}
+}
+
 // Add performs the addition of the integer value to another Val value, converted
 // to an int.
 func (ø Int) Add(v Val) Val {
