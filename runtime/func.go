@@ -3,6 +3,7 @@ package runtime
 import (
 	"errors"
 	"fmt"
+	"math"
 )
 
 var (
@@ -32,6 +33,7 @@ type Var struct {
 
 type FuncProto struct {
 	StackSz int
+	ExpArgs int
 	KTable  []Val
 	VTable  []Var
 	Code    []Instr
@@ -159,6 +161,12 @@ func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
 }
 
 func (ø *Func) Run(args ...Val) Val {
+	// Set the args values (already initialized to Nil in func constructor, so
+	// just set if a value is received).
+	cnt := int(math.Min(float64(len(args)), float64(ø.ExpArgs)))
+	for j := 0; j < cnt; j++ {
+		ø.vars[j] = args[j]
+	}
 	for {
 		// Get the instruction to process
 		i := ø.Code[ø.pc]
@@ -213,7 +221,7 @@ func (ø *Func) Run(args ...Val) Val {
 			// ix is the number of args
 			// Pop the function itself, ensure it is a function
 			x := ø.pop()
-			fn := x.(Func)
+			fn := x.(*Func)
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
