@@ -32,7 +32,7 @@ func main() {
 
 	// Execute the program
 	fn := runtime.NewFunc(ctx, ctx.Protos[0])
-	ret := fn.Run()
+	ret := fn.Call()
 
 	// Print the resulting stack and variables
 	spew.Dump(fn)

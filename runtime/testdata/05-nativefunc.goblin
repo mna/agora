@@ -1,0 +1,26 @@
+//
+// import "fmt"
+//  
+// fmt.Println("Hello ", "world")
+//
+[f]
+3
+0
+
+05-nativefunc.goblin
+0
+2
+[v]
+[k]
+sHello 
+sworld
+[i]
+PUSH K 0
+PUSH K 1
+PUSH F 1
+CALL A 2
+PUSH N 0
+RET
+[f]
+true
+fmt.Println

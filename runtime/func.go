@@ -7,6 +7,8 @@ import (
 )
 
 var (
+	ErrNativeFuncNotFound = errors.New("native function not found")
+
 	ErrInvalidConvFuncToInt    = errors.New("cannot convert Func to Int")
 	ErrInvalidConvFuncToFloat  = errors.New("cannot convert Func to Float")
 	ErrInvalidConvFuncToString = errors.New("cannot convert Func to String")
@@ -32,11 +34,13 @@ type Var struct {
 }
 
 type FuncProto struct {
-	StackSz int
-	ExpArgs int
-	KTable  []Val
-	VTable  []Var
-	Code    []Instr
+	Native     bool
+	NativeName string
+	StackSz    int
+	ExpArgs    int
+	KTable     []Val
+	VTable     []Var
+	Code       []Instr
 	debug
 }
 
@@ -169,7 +173,19 @@ func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
 	}
 }
 
-func (ø *Func) Run(args ...Val) Val {
+func (ø *Func) Call(args ...Val) Val {
+	if ø.Native {
+		f, ok := ø.ctx.nTable[ø.NativeName]
+		if !ok {
+			panic(ErrNativeFuncNotFound)
+		}
+		return f(args...)
+	} else {
+		return ø.callVM(args...)
+	}
+}
+
+func (ø *Func) callVM(args ...Val) Val {
 	// Set the args values (already initialized to Nil in func constructor, so
 	// just set if a value is received).
 	cnt := int(math.Min(float64(len(args)), float64(ø.ExpArgs)))
@@ -237,7 +253,7 @@ func (ø *Func) Run(args ...Val) Val {
 				args[j-1] = ø.pop()
 			}
 			// Call the function, and store the return value on the stack
-			ø.push(fn.Run(args...))
+			ø.push(fn.Call(args...))
 
 		case OP_LT:
 			y, x := ø.pop(), ø.pop()

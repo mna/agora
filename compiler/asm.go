@@ -15,7 +15,7 @@ var (
 )
 
 func Asm(r io.Reader) *runtime.Ctx {
-	ctx := &runtime.Ctx{}
+	ctx := runtime.NewCtx()
 	s = bufio.NewScanner(r)
 
 	m = map[string]func(*runtime.FuncProto){
@@ -25,14 +25,24 @@ func Asm(r io.Reader) *runtime.Ctx {
 			for s.Scan() {
 				switch i {
 				case 0:
-					// Stack size
-					p.StackSz, _ = strconv.Atoi(s.Text())
+					if s.Text() == "true" {
+						p.Native = true
+						i++
+					} else {
+						// Stack size
+						p.StackSz, _ = strconv.Atoi(s.Text())
+					}
 				case 1:
 					// Expected args count
 					p.ExpArgs, _ = strconv.Atoi(s.Text())
 				case 2:
-					// Func name
-					p.Name = s.Text()
+					if p.Native {
+						p.NativeName = s.Text()
+						i = 5
+					} else {
+						// Func name
+						p.Name = s.Text()
+					}
 				case 3:
 					// File name
 					p.File = s.Text()
