@@ -29,6 +29,10 @@ func (ø Float) Bool() bool {
 	return float64(ø) != 0
 }
 
+func (ø Float) Native() interface{} {
+	return float64(ø)
+}
+
 func (ø Float) Cmp(v Val) int {
 	if f := v.Float(); float64(ø) > f {
 		return 1

@@ -34,7 +34,7 @@ type Var struct {
 }
 
 type FuncProto struct {
-	Native     bool
+	IsNative   bool
 	NativeName string
 	StackSz    int
 	ExpArgs    int
@@ -87,6 +87,11 @@ func (ø *Func) String() string {
 // Bool returns true.
 func (ø *Func) Bool() bool {
 	return true
+}
+
+func (ø *Func) Native() interface{} {
+	// TODO : Is this a good idea?
+	return ø.Call
 }
 
 func (ø *Func) Cmp(v Val) int {
@@ -174,7 +179,7 @@ func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
 }
 
 func (ø *Func) Call(args ...Val) Val {
-	if ø.Native {
+	if ø.IsNative {
 		f, ok := ø.ctx.nTable[ø.NativeName]
 		if !ok {
 			panic(ErrNativeFuncNotFound)

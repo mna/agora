@@ -47,6 +47,10 @@ func (ø Bool) Bool() bool {
 	return bool(ø)
 }
 
+func (ø Bool) Native() interface{} {
+	return bool(ø)
+}
+
 // Cmp compares two values as booleans.
 func (ø Bool) Cmp(v Val) int {
 	if bool(ø) == v.Bool() {

@@ -26,7 +26,7 @@ func Asm(r io.Reader) *runtime.Ctx {
 				switch i {
 				case 0:
 					if s.Text() == "true" {
-						p.Native = true
+						p.IsNative = true
 						i++
 					} else {
 						// Stack size
@@ -36,7 +36,7 @@ func Asm(r io.Reader) *runtime.Ctx {
 					// Expected args count
 					p.ExpArgs, _ = strconv.Atoi(s.Text())
 				case 2:
-					if p.Native {
+					if p.IsNative {
 						p.NativeName = s.Text()
 						i = 5
 					} else {
@@ -59,6 +59,11 @@ func Asm(r io.Reader) *runtime.Ctx {
 					f(p)
 				}
 				i++
+			}
+			// If finished scanning, but last p is native func, then it hasn't been added
+			// to the Protos, because there's no other section in a native func (no [v] or [k]...)
+			if p.IsNative {
+				ctx.Protos = append(ctx.Protos, p)
 			}
 		},
 

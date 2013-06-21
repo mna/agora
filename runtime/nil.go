@@ -48,6 +48,10 @@ func (ø null) Bool() bool {
 	return false
 }
 
+func (ø null) Native() interface{} {
+	return nil
+}
+
 func (ø null) Cmp(v Val) int {
 	if v == Nil {
 		return 0

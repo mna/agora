@@ -52,6 +52,10 @@ func (ø String) Bool() bool {
 	return len(string(ø)) > 0
 }
 
+func (ø String) Native() interface{} {
+	return string(ø)
+}
+
 func (ø String) Cmp(v Val) int {
 	if s := v.String(); string(ø) > s {
 		return 1

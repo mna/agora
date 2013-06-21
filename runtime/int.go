@@ -29,6 +29,10 @@ func (ø Int) Bool() bool {
 	return int(ø) != 0
 }
 
+func (ø Int) Native() interface{} {
+	return int(ø)
+}
+
 func (ø Int) Cmp(v Val) int {
 	if i := v.Int(); int(ø) > i {
 		return 1

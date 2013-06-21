@@ -7,6 +7,7 @@ type Converter interface {
 	Float() float64
 	String() string
 	Bool() bool
+	Native() interface{}
 }
 
 // Arithmetic defines the methods required to compute all

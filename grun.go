@@ -6,6 +6,7 @@ import (
 
 	"github.com/PuerkitoBio/goblin/compiler"
 	"github.com/PuerkitoBio/goblin/runtime"
+	"github.com/PuerkitoBio/goblin/runtime/stdlib"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -27,6 +28,7 @@ func main() {
 	if len(ctx.Protos) == 0 {
 		panic("no function in specified file")
 	}
+	ctx.RegisterNativeFuncs(stdlib.Fmt)
 	// Print the function prototypes
 	spew.Dump(ctx)
 
