@@ -17,6 +17,7 @@ const (
 	OP_UNM
 	OP_CALL
 	OP_LT
+	OP_GT
 	OP_TEST
 	OP_JMPB
 	OP_INVL Opcode = 0xFF
@@ -37,6 +38,7 @@ var (
 		OP_UNM:  "UNM ",
 		OP_CALL: "CALL",
 		OP_LT:   "LT  ",
+		OP_GT:   "GT  ",
 		OP_TEST: "TEST",
 		OP_JMPB: "JMPB",
 	}
@@ -55,6 +57,7 @@ var (
 		"UNM":  OP_UNM,
 		"CALL": OP_CALL,
 		"LT":   OP_LT,
+		"GT":   OP_GT,
 		"TEST": OP_TEST,
 		"JMPB": OP_JMPB,
 	}

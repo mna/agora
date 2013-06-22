@@ -270,6 +270,11 @@ func (ø *Func) callVM(args ...Val) Val {
 			cmp := x.Cmp(y)
 			ø.push(Bool(cmp == -1))
 
+		case OP_GT:
+			y, x := ø.pop(), ø.pop()
+			cmp := x.Cmp(y)
+			ø.push(Bool(cmp == 1))
+
 		case OP_TEST:
 			if !ø.pop().Bool() {
 				// Do the jump over ix instructions

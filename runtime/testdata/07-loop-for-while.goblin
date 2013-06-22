@@ -1,0 +1,49 @@
+//
+// a := 5
+// sum := 0
+// for a > 0 { 
+//   sum += a
+//   a-- // implicit constant 1
+// }
+// return sum
+//
+[f]
+2
+0
+
+07-loop-for-while.goblin
+0
+4
+[v]
+a
+07-loop-for-while.goblin
+0
+6
+sum
+07-loop-for-while.goblin
+1
+6
+[k]
+i5
+i0
+i1
+[i]
+PUSH K 0
+POP V 0
+PUSH K 1
+POP V 1
+PUSH V 0 // Loop start, compare
+PUSH K 1
+GT
+TEST J 9 // Exit condition, if false
+PUSH V 1 // Loop body
+PUSH V 0
+ADD
+POP V 1
+PUSH V 0 // Decrement a
+PUSH K 2
+SUB
+POP V 0
+JMPB J 12 // Jump back to loop start
+PUSH V 1 // Outside loop, return
+RET
