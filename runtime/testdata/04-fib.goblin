@@ -42,7 +42,7 @@ i1
 PUSH V 0
 PUSH K 0
 LT
-TEST J 2 // Jump over next instr if true OR use this to know how/what to test (AND n bool values, or OR n bool values)?
+TEST J 2 // If false, jump over n instructions
 PUSH K 1 // Here test was true, put 1 on stack and return
 RET
 PUSH V 0 // Here test was false

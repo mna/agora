@@ -1,0 +1,43 @@
+//
+// import "fmt"
+// 
+// for i := range 10 { // range over 0..9, there's implicit 0 (start) and 1 (step) constants
+//   fmt.Println(i)
+// }
+//
+[f]
+4
+0
+
+06-loop.goblin
+0
+4
+[v]
+i
+06-loop.goblin
+2
+4
+[k]
+i0
+i1
+i10
+[i]
+PUSH K 0 // Loop initialization
+POP V 0
+PUSH V 0 // Loop start, compare
+PUSH K 2
+LT
+TEST J 8 // Exit condition, if false
+PUSH V 0 // Loop body
+PUSH F 1
+CALL A 1
+PUSH V 0 // Increment
+PUSH K 1
+ADD
+POP V 0
+JMPB J 11 // Jump back to loop start
+PUSH N 0 // Outside loop, return
+RET
+[f]
+true
+fmt.Println

@@ -64,7 +64,7 @@ func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
 		ctx,
 		0,
 		vars,
-		make([]Val, proto.StackSz),
+		make([]Val, 0, proto.StackSz), // Initial cap of StackSz
 		0,
 	}
 }
@@ -144,7 +144,12 @@ func (ø *Func) Unm() Val {
 }
 
 func (ø *Func) push(v Val) {
-	ø.stack[ø.sp] = v
+	// Stack has to grow as needed, StackSz doesn't take into account the loops
+	if ø.sp == len(ø.stack) {
+		ø.stack = append(ø.stack, v)
+	} else {
+		ø.stack[ø.sp] = v
+	}
 	ø.sp++
 }
 
@@ -270,6 +275,8 @@ func (ø *Func) callVM(args ...Val) Val {
 				// Do the jump over ix instructions
 				ø.pc += int(ix)
 			}
+		case OP_JMPB:
+			ø.pc -= (int(ix) + 1) // +1 because pc is already on next instr
 		}
 	}
 }
