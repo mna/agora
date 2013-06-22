@@ -3,8 +3,6 @@ package runtime
 import (
 	"io"
 	"os"
-
-	"github.com/PuerkitoBio/goblin/runtime/nfi"
 )
 
 type Ctx struct {
@@ -14,7 +12,7 @@ type Ctx struct {
 	stderr io.ReadWriter
 
 	// Native funcs table
-	nTable map[string]nfi.NativeFunc
+	nTable map[string]NativeFunc
 }
 
 func NewCtx() *Ctx {
@@ -23,11 +21,11 @@ func NewCtx() *Ctx {
 		os.Stdout,
 		os.Stdin,
 		os.Stderr,
-		make(map[string]func(...Val) Val),
+		make(map[string]NativeFunc),
 	}
 }
 
-func (ø *Ctx) RegisterNativeFuncs(fs map[string]nfi.NativeFunc) {
+func (ø *Ctx) RegisterNativeFuncs(fs map[string]NativeFunc) {
 	for k, v := range fs {
 		ø.nTable[k] = v
 	}

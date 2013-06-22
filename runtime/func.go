@@ -184,7 +184,7 @@ func (ø *Func) Call(args ...Val) Val {
 		if !ok {
 			panic(ErrNativeFuncNotFound)
 		}
-		return f(args...)
+		return f(ø.ctx, args...)
 	} else {
 		return ø.callVM(args...)
 	}

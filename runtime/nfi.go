@@ -1,9 +1,7 @@
-package nfi
+package runtime
 
 import (
 	"io"
-
-	"github.com/PuerkitoBio/goblin/runtime"
 )
 
 type Streams interface {
@@ -12,4 +10,4 @@ type Streams interface {
 	Stderr() io.ReadWriter
 }
 
-type NativeFunc func(Streams, ...runtime.Val) runtime.Val
+type NativeFunc func(Streams, ...Val) Val

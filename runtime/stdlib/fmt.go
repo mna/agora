@@ -4,17 +4,16 @@ import (
 	"fmt"
 
 	"github.com/PuerkitoBio/goblin/runtime"
-	"github.com/PuerkitoBio/goblin/runtime/nfi"
 )
 
-var Fmt map[string]nfi.NativeFunc
+var Fmt map[string]runtime.NativeFunc
 
 func init() {
-	Fmt = make(map[string]nfi.NativeFunc, 1)
+	Fmt = make(map[string]runtime.NativeFunc, 1)
 	Fmt["fmt.Println"] = fmt_Println
 }
 
-func fmt_Println(s nfi.Streams, args ...runtime.Val) runtime.Val {
+func fmt_Println(s runtime.Streams, args ...runtime.Val) runtime.Val {
 	var ifs []interface{}
 
 	if len(args) > 0 {
