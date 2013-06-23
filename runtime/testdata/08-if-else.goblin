@@ -1,0 +1,43 @@
+//
+// import "fmt"
+// 
+// a := "ok"
+// if a { 
+//   fmt.Println("true")
+// } else {
+//   fmt.Println("false")
+// }
+//
+[f]
+2
+0
+
+08-if-else.goblin
+0
+7
+[v]
+a
+08-if-else.goblin
+2
+7
+[k]
+sok
+strue
+sfalse
+[i]
+PUSH K 0
+POP V 0
+PUSH V 0 // IF Statement
+TEST J 4
+PUSH K 1 // True part
+PUSH F 1
+CALL A 1
+JMPF J 3
+PUSH K 2 // False part
+PUSH F 1
+CALL A 1
+PUSH N 0
+RET
+[f]
+true
+fmt.Println

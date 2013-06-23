@@ -25,6 +25,18 @@ func NewCtx() *Ctx {
 	}
 }
 
+func (ø *Ctx) SetStdStreams(stdin, stdout, stderr io.ReadWriter) {
+	ø.stdin, ø.stdout, ø.stderr = stdin, stdout, stderr
+}
+
+func (ø *Ctx) Run() interface{} {
+	if len(ø.Protos) == 0 {
+		panic("no function available in this context")
+	}
+	f := NewFunc(ø, ø.Protos[0])
+	return f.Call().Native()
+}
+
 func (ø *Ctx) RegisterNativeFuncs(fs map[string]NativeFunc) {
 	for k, v := range fs {
 		ø.nTable[k] = v

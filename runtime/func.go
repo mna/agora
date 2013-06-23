@@ -282,6 +282,12 @@ func (ø *Func) callVM(args ...Val) Val {
 			}
 		case OP_JMPB:
 			ø.pc -= (int(ix) + 1) // +1 because pc is already on next instr
+
+		case OP_JMPF:
+			ø.pc += int(ix)
+
+		default:
+			panic(fmt.Sprintf("unknown opcode %s", op))
 		}
 	}
 }
