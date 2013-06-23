@@ -22,6 +22,7 @@ i30
 PUSH K 0
 PUSH F 1
 CALL A 1
+DUMP
 RET
 [f]
 3

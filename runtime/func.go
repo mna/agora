@@ -156,7 +156,7 @@ func (ø *Func) push(v Val) {
 func (ø *Func) pop() Val {
 	ø.sp--
 	v := ø.stack[ø.sp]
-	ø.stack[ø.sp] = nil // free this reference for gc
+	ø.stack[ø.sp] = Nil // free this reference for gc
 	return v
 }
 
@@ -181,6 +181,98 @@ func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
 	default:
 		panic(fmt.Sprintf("Func.setVal() - invalid flag value %d", flg))
 	}
+}
+
+func (ø *Func) dump() {
+	if ø.IsNative {
+		fmt.Printf("\nfunc %s (native)\n", ø.NativeName)
+	} else {
+		if ø.Name == "" {
+			fmt.Printf("\nfunc <main> (file: %s)\n", ø.File)
+		} else {
+			fmt.Printf("\nfunc %s (file: %s)\n", ø.Name, ø.File)
+		}
+	}
+	// Constants
+	fmt.Printf("  Constants:\n")
+	for i, v := range ø.KTable {
+		switch v.(type) {
+		case Int:
+			fmt.Printf("    [%d] %d (Int)\n", i, v)
+		case Float:
+			fmt.Printf("    [%d] %f (Float)\n", i, v)
+		case String:
+			fmt.Printf("    [%d] \"%s\" (String)\n", i, v)
+		case Bool:
+			fmt.Printf("    [%d] %s (Bool)\n", i, v)
+		case *null:
+			fmt.Printf("    [%d] [Nil]\n", i)
+		}
+	}
+	// Variables
+	fmt.Printf("\n  Variables:\n")
+	for i, v := range ø.vars {
+		switch v.(type) {
+		case Int:
+			fmt.Printf("    [%d] %s = %d (Int)\n", i, ø.VTable[i].Name, v)
+		case Float:
+			fmt.Printf("    [%d] %s = %f (Float)\n", i, ø.VTable[i].Name, v)
+		case String:
+			fmt.Printf("    [%d] %s = \"%s\" (String)\n", i, ø.VTable[i].Name, v)
+		case Bool:
+			fmt.Printf("    [%d] %s = %s (Bool)\n", i, ø.VTable[i].Name, v)
+		case *null:
+			fmt.Printf("    [%d] %s = [Nil]\n", i, ø.VTable[i].Name, v)
+		case *Func:
+			fmt.Printf("    [%d] %s = %s (Func)", i, ø.VTable[i].Name, v.(*Func).Name)
+		}
+	}
+	// Stack
+	fmt.Printf("\n  Stack:\n")
+	i := int(math.Max(0, float64(ø.sp-5)))
+	for i <= ø.sp {
+		if i == ø.sp {
+			fmt.Print("  ->")
+		} else {
+			fmt.Print("    ")
+		}
+		v := Val(Nil)
+		if i < len(ø.stack) {
+			v = ø.stack[i]
+		}
+		switch v.(type) {
+		case Int:
+			fmt.Printf("[%d] %d (Int)\n", i, v)
+		case Float:
+			fmt.Printf("[%d] %f (Float)\n", i, v)
+		case String:
+			fmt.Printf("[%d] \"%s\" (String)\n", i, v)
+		case Bool:
+			fmt.Printf("[%d] %s (Bool)\n", i, v)
+		case *null:
+			fmt.Printf("[%d] [Nil]\n", i)
+		case *Func:
+			fmt.Printf("[%d] %s (Func)\n", i, v.(*Func).Name)
+		}
+		i++
+	}
+	// Instructions
+	fmt.Printf("\n  Instructions:\n")
+	i = int(math.Max(0, float64(ø.pc-3)))
+	for i <= ø.pc+3 {
+		if i == ø.pc {
+			fmt.Printf("  ->")
+		} else {
+			fmt.Printf("    ")
+		}
+		if i < len(ø.Code) {
+			fmt.Printf("[%d] %s\n", i, ø.Code[i])
+		} else {
+			break
+		}
+		i++
+	}
+	fmt.Println()
 }
 
 func (ø *Func) Call(args ...Val) Val {
@@ -285,6 +377,9 @@ func (ø *Func) callVM(args ...Val) Val {
 
 		case OP_JMPF:
 			ø.pc += int(ix)
+
+		case OP_DUMP:
+			ø.dump()
 
 		default:
 			panic(fmt.Sprintf("unknown opcode %s", op))

@@ -21,6 +21,7 @@ const (
 	OP_TEST
 	OP_JMPB
 	OP_JMPF
+	OP_DUMP
 	OP_INVL Opcode = 0xFF
 )
 
@@ -43,6 +44,7 @@ var (
 		OP_TEST: "TEST",
 		OP_JMPB: "JMPB",
 		OP_JMPF: "JMPF",
+		OP_DUMP: "DUMP",
 	}
 
 	OpLookup = map[string]Opcode{
@@ -63,6 +65,7 @@ var (
 		"TEST": OP_TEST,
 		"JMPB": OP_JMPB,
 		"JMPF": OP_JMPF,
+		"DUMP": OP_DUMP,
 	}
 )
 

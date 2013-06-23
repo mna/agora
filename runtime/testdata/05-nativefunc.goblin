@@ -20,6 +20,7 @@ PUSH K 1
 PUSH F 1
 CALL A 2
 PUSH N 0
+DUMP
 RET
 [f]
 true

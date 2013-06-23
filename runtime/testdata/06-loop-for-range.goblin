@@ -37,6 +37,7 @@ ADD
 POP V 0
 JMPB J 11 // Jump back to loop start
 PUSH N 0 // Outside loop, return
+DUMP
 RET
 [f]
 true

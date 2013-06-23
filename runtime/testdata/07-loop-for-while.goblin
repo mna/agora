@@ -46,4 +46,5 @@ SUB
 POP V 0
 JMPB J 12 // Jump back to loop start
 PUSH V 1 // Outside loop, return
+DUMP
 RET

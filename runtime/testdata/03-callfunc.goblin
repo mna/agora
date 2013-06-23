@@ -21,6 +21,7 @@ PUSH K 0
 PUSH K 1
 PUSH F 1
 CALL A 2
+DUMP
 RET
 [f]
 2

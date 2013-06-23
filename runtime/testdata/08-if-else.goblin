@@ -37,6 +37,7 @@ PUSH K 2 // False part
 PUSH F 1
 CALL A 1
 PUSH N 0
+DUMP
 RET
 [f]
 true
