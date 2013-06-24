@@ -324,15 +324,30 @@ func (ø *Func) callVM(args ...Val) Val {
 			// Call the function, and store the return value on the stack
 			ø.push(fn.Call(args...))
 
+		case OP_EQ:
+			y, x := ø.pop(), ø.pop()
+			cmp := x.Cmp(y)
+			ø.push(Bool(cmp == 0))
+
 		case OP_LT:
 			y, x := ø.pop(), ø.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp == -1))
+			ø.push(Bool(cmp < 0))
+
+		case OP_LTE:
+			y, x := ø.pop(), ø.pop()
+			cmp := x.Cmp(y)
+			ø.push(Bool(cmp <= 0))
 
 		case OP_GT:
 			y, x := ø.pop(), ø.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp == 1))
+			ø.push(Bool(cmp > 0))
+
+		case OP_GTE:
+			y, x := ø.pop(), ø.pop()
+			cmp := x.Cmp(y)
+			ø.push(Bool(cmp >= 0))
 
 		case OP_AND:
 			y, x := ø.pop(), ø.pop()

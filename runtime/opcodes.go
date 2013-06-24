@@ -16,8 +16,11 @@ const (
 	OP_NOT
 	OP_UNM
 	OP_CALL
+	OP_EQ
 	OP_LT
+	OP_LTE
 	OP_GT
+	OP_GTE
 	OP_AND
 	OP_OR
 	OP_TEST
@@ -44,8 +47,11 @@ var (
 		OP_NOT:  "NOT",
 		OP_UNM:  "UNM",
 		OP_CALL: "CALL",
+		OP_EQ:   "EQ",
 		OP_LT:   "LT",
+		OP_LTE:  "LTE",
 		OP_GT:   "GT",
+		OP_GTE:  "GTE",
 		OP_AND:  "AND",
 		OP_OR:   "OR",
 		OP_TEST: "TEST",
@@ -70,8 +76,11 @@ var (
 		"NOT":  OP_NOT,
 		"UNM":  OP_UNM,
 		"CALL": OP_CALL,
+		"EQ":   OP_EQ,
 		"LT":   OP_LT,
+		"LTE":  OP_LTE,
 		"GT":   OP_GT,
+		"GTE":  OP_GTE,
 		"AND":  OP_AND,
 		"OR":   OP_OR,
 		"TEST": OP_TEST,
