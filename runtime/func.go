@@ -51,6 +51,7 @@ type Func struct {
 	vars  []Val
 	stack []Val
 	sp    int
+	This  Val
 }
 
 func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
@@ -66,6 +67,7 @@ func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
 		vars,
 		make([]Val, 0, proto.StackSz), // Initial cap of StackSz
 		0,
+		nil,
 	}
 }
 
