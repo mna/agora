@@ -234,7 +234,7 @@ func (ø *Func) dump() {
 	i := int(math.Max(0, float64(ø.sp-5)))
 	for i <= ø.sp {
 		if i == ø.sp {
-			fmt.Print("  ->")
+			fmt.Print("sp->")
 		} else {
 			fmt.Print("    ")
 		}
@@ -263,7 +263,7 @@ func (ø *Func) dump() {
 	i = int(math.Max(0, float64(ø.pc-3)))
 	for i <= ø.pc+3 {
 		if i == ø.pc {
-			fmt.Printf("  ->")
+			fmt.Printf("pc->")
 		} else {
 			fmt.Printf("    ")
 		}
