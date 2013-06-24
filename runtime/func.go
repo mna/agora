@@ -185,7 +185,11 @@ func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
 	}
 }
 
-func (ø *Func) dump() {
+func (ø *Func) dump() string {
+	return fmt.Sprintf("%s (Func)", ø.Name)
+}
+
+func (ø *Func) dumpAll() {
 	if ø.IsNative {
 		fmt.Printf("\nfunc %s (native)\n", ø.NativeName)
 	} else {
@@ -198,36 +202,12 @@ func (ø *Func) dump() {
 	// Constants
 	fmt.Printf("  Constants:\n")
 	for i, v := range ø.KTable {
-		switch v.(type) {
-		case Int:
-			fmt.Printf("    [%d] %d (Int)\n", i, v)
-		case Float:
-			fmt.Printf("    [%d] %f (Float)\n", i, v)
-		case String:
-			fmt.Printf("    [%d] \"%s\" (String)\n", i, v)
-		case Bool:
-			fmt.Printf("    [%d] %s (Bool)\n", i, v)
-		case *null:
-			fmt.Printf("    [%d] [Nil]\n", i)
-		}
+		fmt.Printf("    [%d] %s\n", i, v.dump())
 	}
 	// Variables
 	fmt.Printf("\n  Variables:\n")
 	for i, v := range ø.vars {
-		switch v.(type) {
-		case Int:
-			fmt.Printf("    [%d] %s = %d (Int)\n", i, ø.VTable[i].Name, v)
-		case Float:
-			fmt.Printf("    [%d] %s = %f (Float)\n", i, ø.VTable[i].Name, v)
-		case String:
-			fmt.Printf("    [%d] %s = \"%s\" (String)\n", i, ø.VTable[i].Name, v)
-		case Bool:
-			fmt.Printf("    [%d] %s = %s (Bool)\n", i, ø.VTable[i].Name, v)
-		case *null:
-			fmt.Printf("    [%d] %s = [Nil]\n", i, ø.VTable[i].Name, v)
-		case *Func:
-			fmt.Printf("    [%d] %s = %s (Func)", i, ø.VTable[i].Name, v.(*Func).Name)
-		}
+		fmt.Printf("    [%d] %s = %s\n", i, ø.VTable[i].Name, v.dump())
 	}
 	// Stack
 	fmt.Printf("\n  Stack:\n")
@@ -242,20 +222,7 @@ func (ø *Func) dump() {
 		if i < len(ø.stack) {
 			v = ø.stack[i]
 		}
-		switch v.(type) {
-		case Int:
-			fmt.Printf("[%d] %d (Int)\n", i, v)
-		case Float:
-			fmt.Printf("[%d] %f (Float)\n", i, v)
-		case String:
-			fmt.Printf("[%d] \"%s\" (String)\n", i, v)
-		case Bool:
-			fmt.Printf("[%d] %s (Bool)\n", i, v)
-		case *null:
-			fmt.Printf("[%d] [Nil]\n", i)
-		case *Func:
-			fmt.Printf("[%d] %s (Func)\n", i, v.(*Func).Name)
-		}
+		fmt.Printf("[%d] %s\n", i, v.dump())
 		i++
 	}
 	// Instructions
@@ -381,7 +348,7 @@ func (ø *Func) callVM(args ...Val) Val {
 			ø.pc += int(ix)
 
 		case OP_DUMP:
-			ø.dump()
+			ø.dumpAll()
 
 		default:
 			panic(fmt.Sprintf("unknown opcode %s", op))

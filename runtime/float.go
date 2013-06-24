@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -8,6 +9,10 @@ import (
 // Float is the representation of the Float type. It is equivalent
 // to Go's float64 type.
 type Float float64
+
+func (ø Float) dump() string {
+	return fmt.Sprintf("%f (Float)", float64(ø))
+}
 
 // Int returns the integer part of the float value.
 func (ø Float) Int() int {

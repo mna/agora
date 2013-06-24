@@ -1,7 +1,9 @@
 package runtime
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 )
 
 var (
@@ -17,10 +19,21 @@ var (
 	ErrInvalidOpPowOnObj = errors.New("cannot apply Pow on this Object")
 	ErrInvalidOpModOnObj = errors.New("cannot apply Mod on this Object")
 	ErrInvalidOpUnmOnObj = errors.New("cannot apply Unm on this Object")
+
+	ErrNoSuchMethod     = errors.New("method does not exist")
+	ErrFieldNotFunction = errors.New("field is not a function")
 )
 
 type Object struct {
 	m map[string]Val
+}
+
+func (ø *Object) dump() string {
+	buf := bytes.NewBuffer(nil)
+	for k, v := range ø.m {
+		buf.WriteString(fmt.Sprintf("\"%s\": %s", k, v))
+	}
+	return fmt.Sprintf("{ %s } (Object)", buf)
 }
 
 func (ø *Object) Int() int {
@@ -145,4 +158,35 @@ func (ø *Object) Not() Val {
 	return Bool(!ø.Bool())
 }
 
-// TODO : NotFound method, how does it work? See js proposition, Lua, others...
+func (ø *Object) get(key string) Val {
+	v, ok := ø.m[key]
+	if !ok {
+		return Nil
+	}
+	return v
+}
+
+func (ø *Object) set(key string, v Val) {
+	ø.m[key] = v
+}
+
+func (ø *Object) callMethod(v Val, args ...Val) Val {
+	switch f := v.(type) {
+	case *Func:
+		// Call the method
+		f.This = ø
+		return f.Call(args...)
+	case null:
+		// Method not found - call __noSuchMethod if it exists, otherwise panic
+		if m, ok := ø.m["__noSuchMethod"]; ok {
+			if f, ok := m.(*Func); ok {
+				f.This = ø
+				return f.Call(args...) // TODO : pass method name as first value
+			}
+		}
+		panic(ErrNoSuchMethod)
+	default:
+		// Any other case: not a function
+		panic(ErrFieldNotFunction)
+	}
+}

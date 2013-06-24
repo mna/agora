@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -17,6 +18,10 @@ var (
 // String is the representation of the String type. It is equivalent
 // to Go's string type.
 type String string
+
+func (ø String) dump() string {
+	return fmt.Sprintf("\"%s\" (String)", string(ø))
+}
 
 // Int converts the string representation of an integer to an integer value.
 // If the string doesn't hold a valid integer representation,

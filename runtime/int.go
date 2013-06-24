@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -8,6 +9,10 @@ import (
 // Int is the representation of the Integer type. It is equivalent
 // to Go's int type (architecture-dependent sized integer).
 type Int int
+
+func (ø Int) dump() string {
+	return fmt.Sprintf("%d (Int)", int(ø))
+}
 
 // Int returns the integer value itself.
 func (ø Int) Int() int {

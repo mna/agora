@@ -30,17 +30,22 @@ type Comparer interface {
 	Cmp(Val) int
 }
 
+type dumper interface {
+	dump() string
+}
+
 // Val is the representation of a value, any value, in the language.
 // The supported value types are the following:
 // * Integer (Int)
 // * Float
 // * String
 // * Boolean (Bool)
-// * Nil
+// * Nil (null)
 // * Object
 // * Func
 type Val interface {
 	Converter
 	Comparer
 	Arithmetic
+	dumper
 }

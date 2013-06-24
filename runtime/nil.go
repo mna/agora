@@ -10,7 +10,7 @@ const (
 
 var (
 	// The one and only Nil instance
-	Nil = &null{}
+	Nil = null{}
 
 	ErrInvalidConvNilToInt   = errors.New("cannot convert Nil to Int")
 	ErrInvalidConvNilToFloat = errors.New("cannot convert Nil to Float")
@@ -27,6 +27,10 @@ var (
 // Null is the representation of the null type. It is semantically equivalent
 // to Go's nil value, but it is represented as a struct.
 type null struct{}
+
+func (ø null) dump() string {
+	return "[Nil]"
+}
 
 // Int is an invalid conversion.
 func (ø null) Int() int {

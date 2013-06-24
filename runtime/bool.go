@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"errors"
+	"fmt"
 )
 
 var (
@@ -17,6 +18,10 @@ var (
 // Bool is the representation of the Boolean type. It is equivalent
 // to Go's bool type.
 type Bool bool
+
+func (ø Bool) dump() string {
+	return fmt.Sprintf("%v (Bool)", bool(ø))
+}
 
 // Int returns 1 if true, 0 if false.
 func (ø Bool) Int() int {
