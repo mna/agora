@@ -18,6 +18,8 @@ const (
 	OP_CALL
 	OP_LT
 	OP_GT
+	OP_AND
+	OP_OR
 	OP_TEST
 	OP_JMPB
 	OP_JMPF
@@ -44,6 +46,8 @@ var (
 		OP_CALL: "CALL",
 		OP_LT:   "LT",
 		OP_GT:   "GT",
+		OP_AND:  "AND",
+		OP_OR:   "OR",
 		OP_TEST: "TEST",
 		OP_JMPB: "JMPB",
 		OP_JMPF: "JMPF",
@@ -68,6 +72,8 @@ var (
 		"CALL": OP_CALL,
 		"LT":   OP_LT,
 		"GT":   OP_GT,
+		"AND":  OP_AND,
+		"OR":   OP_OR,
 		"TEST": OP_TEST,
 		"JMPB": OP_JMPB,
 		"JMPF": OP_JMPF,

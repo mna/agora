@@ -6,4 +6,45 @@
 //   return -1
 // }
 //
-TODO : Implement And() and Or() on Vals
+[f]
+3
+0
+
+09-if-cond-ands.goblin
+0
+5
+[v]
+a
+09-if-cond-ands.goblin
+0
+5
+[k]
+b1
+i3
+i5
+i4
+sfoo
+sbar
+i1
+i-1
+[i]
+PUSH K 0
+POP V 0
+PUSH K 1
+PUSH K 2
+ADD
+PUSH K 3
+GT
+PUSH K 4
+PUSH K 5
+GT
+AND
+PUSH V 0
+AND
+TEST J 3
+PUSH K 6
+DUMP
+RET
+PUSH K 7
+DUMP
+RET

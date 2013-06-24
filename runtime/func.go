@@ -135,11 +135,6 @@ func (ø *Func) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnFunc)
 }
 
-// Not switches the boolean value of func, and returns a Boolean.
-func (ø *Func) Not() Val {
-	return Bool(!ø.Bool())
-}
-
 // Unm is an invalid operation.
 func (ø *Func) Unm() Val {
 	panic(ErrInvalidOpUnmOnFunc)
@@ -148,6 +143,9 @@ func (ø *Func) Unm() Val {
 func (ø *Func) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if ø.sp == len(ø.stack) {
+		if ø.sp == cap(ø.stack) {
+			fmt.Printf("DEBUG expanding stack of func %s, current size: %d\n", ø.Name, len(ø.stack))
+		}
 		ø.stack = append(ø.stack, v)
 	} else {
 		ø.stack[ø.sp] = v
@@ -307,7 +305,7 @@ func (ø *Func) callVM(args ...Val) Val {
 
 		case OP_NOT:
 			x := ø.pop()
-			ø.push(x.Not())
+			ø.push(ø.ctx.logic.Not(x))
 
 		case OP_UNM:
 			x := ø.pop()
@@ -336,12 +334,22 @@ func (ø *Func) callVM(args ...Val) Val {
 			cmp := x.Cmp(y)
 			ø.push(Bool(cmp == 1))
 
+		case OP_AND:
+			y, x := ø.pop(), ø.pop()
+			ø.push(ø.ctx.logic.And(x, y))
+
+		case OP_OR:
+			y, x := ø.pop(), ø.pop()
+			ø.push(ø.ctx.logic.Or(x, y))
+
 		case OP_TEST:
 			if !ø.pop().Bool() {
 				// Do the jump over ix instructions
 				ø.pc += int(ix)
 			}
+
 		case OP_JMPB:
+			// TODO : Eventually change to a single JMP with signed value
 			ø.pc -= (int(ix) + 1) // +1 because pc is already on next instr
 
 		case OP_JMPF:

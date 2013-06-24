@@ -10,6 +10,7 @@ type Ctx struct {
 	stdout io.ReadWriter
 	stdin  io.ReadWriter
 	stderr io.ReadWriter
+	logic  Logic
 
 	// Native funcs table
 	nTable map[string]NativeFunc
@@ -21,6 +22,7 @@ func NewCtx() *Ctx {
 		os.Stdout,
 		os.Stdin,
 		os.Stderr,
+		defaultLogic{},
 		make(map[string]NativeFunc),
 	}
 }

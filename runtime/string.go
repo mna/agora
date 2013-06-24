@@ -110,11 +110,6 @@ func (ø String) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnString)
 }
 
-// Not switches the boolean value of the string, and returns a Boolean.
-func (ø String) Not() Val {
-	return Bool(!ø.Bool())
-}
-
 // Unm is an invalid operation.
 func (ø String) Unm() Val {
 	panic(ErrInvalidOpUnmOnString)

@@ -19,7 +19,6 @@ type Arithmetic interface {
 	Div(Val) Val
 	Mod(Val) Val
 	Pow(Val) Val
-	Not() Val
 	Unm() Val
 }
 
@@ -48,4 +47,24 @@ type Val interface {
 	Comparer
 	Arithmetic
 	dumper
+}
+
+type Logic interface {
+	Not(v Val) Bool
+	And(x, y Val) Bool
+	Or(x, y Val) Bool
+}
+
+type defaultLogic struct{}
+
+func (ø defaultLogic) Not(v Val) Bool {
+	return Bool(!v.Bool())
+}
+
+func (ø defaultLogic) And(x, y Val) Bool {
+	return Bool(x.Bool() && y.Bool())
+}
+
+func (ø defaultLogic) Or(x, y Val) Bool {
+	return Bool(x.Bool() || y.Bool())
 }

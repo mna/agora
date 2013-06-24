@@ -153,17 +153,6 @@ func (ø *Object) Unm() Val {
 	panic(ErrInvalidOpUnmOnObj)
 }
 
-func (ø *Object) Not() Val {
-	if m, ok := ø.m["__not"]; ok {
-		if f, ok := m.(*Func); ok {
-			f.This = ø
-			return f.Call()
-		}
-	}
-	// By default, return !(Bool)
-	return Bool(!ø.Bool())
-}
-
 func (ø *Object) get(key string) Val {
 	v, ok := ø.m[key]
 	if !ok {

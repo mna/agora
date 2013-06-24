@@ -93,11 +93,6 @@ func (ø null) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnNil)
 }
 
-// Not switches the boolean value of nil, and returns a Boolean.
-func (ø null) Not() Val {
-	return Bool(!ø.Bool())
-}
-
 // Unm is an invalid operation.
 func (ø null) Unm() Val {
 	panic(ErrInvalidOpUnmOnNil)

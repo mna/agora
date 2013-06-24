@@ -89,7 +89,7 @@ func Asm(r io.Reader) *runtime.Ctx {
 					p.KTable = append(p.KTable, runtime.String(line[1:]))
 				case 'b':
 					// Boolean
-					p.KTable = append(p.KTable, runtime.Bool(line[1] == 1))
+					p.KTable = append(p.KTable, runtime.Bool(line[1] == '1'))
 				case 'n':
 					// Nil
 					p.KTable = append(p.KTable, runtime.Nil)
