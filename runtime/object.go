@@ -28,12 +28,18 @@ type Object struct {
 	m map[string]Val
 }
 
+func newObject() *Object {
+	return &Object{
+		make(map[string]Val),
+	}
+}
+
 func (ø *Object) dump() string {
 	buf := bytes.NewBuffer(nil)
 	for k, v := range ø.m {
-		buf.WriteString(fmt.Sprintf("\"%s\": %s", k, v))
+		buf.WriteString(fmt.Sprintf(" \"%s\": %s, ", k, v.dump()))
 	}
-	return fmt.Sprintf("{ %s } (Object)", buf)
+	return fmt.Sprintf("{%s} (Object)", buf)
 }
 
 func (ø *Object) Int() int {

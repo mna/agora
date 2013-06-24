@@ -21,6 +21,9 @@ const (
 	OP_TEST
 	OP_JMPB
 	OP_JMPF
+	OP_NEW
+	OP_SFLD
+	OP_GFLD
 	OP_DUMP
 	OP_INVL Opcode = 0xFF
 )
@@ -44,6 +47,9 @@ var (
 		OP_TEST: "TEST",
 		OP_JMPB: "JMPB",
 		OP_JMPF: "JMPF",
+		OP_NEW:  "NEW",
+		OP_SFLD: "SFLD",
+		OP_GFLD: "GFLD",
 		OP_DUMP: "DUMP",
 	}
 
@@ -65,6 +71,9 @@ var (
 		"TEST": OP_TEST,
 		"JMPB": OP_JMPB,
 		"JMPF": OP_JMPF,
+		"NEW":  OP_NEW,
+		"SFLD": OP_SFLD,
+		"GFLD": OP_GFLD,
 		"DUMP": OP_DUMP,
 	}
 )

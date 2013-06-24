@@ -347,8 +347,19 @@ func (ø *Func) callVM(args ...Val) Val {
 		case OP_JMPF:
 			ø.pc += int(ix)
 
+		case OP_NEW:
+			ø.push(newObject())
+
 		case OP_DUMP:
 			ø.dumpAll()
+
+		case OP_SFLD:
+			vr, k, vl := ø.pop(), ø.pop(), ø.pop()
+			vr.(*Object).set(k.String(), vl) // TODO : Detect valid type to give good error message
+
+		case OP_GFLD:
+			vr, k := ø.pop(), ø.pop()
+			ø.push(vr.(*Object).get(k.String())) // TODO : Detect valid type to give good error message
 
 		default:
 			panic(fmt.Sprintf("unknown opcode %s", op))
