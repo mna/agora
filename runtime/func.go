@@ -168,6 +168,8 @@ func (ø *Func) getVal(flg Flag, ix uint64) Val {
 		return ø.vars[ix]
 	case FLG_N:
 		return Nil
+	case FLG_T:
+		return ø.This
 	case FLG_F:
 		return NewFunc(ø.ctx, ø.ctx.Protos[ix])
 	}
@@ -383,6 +385,15 @@ func (ø *Func) callVM(args ...Val) Val {
 		case OP_GFLD:
 			vr, k := ø.pop(), ø.pop()
 			ø.push(vr.(*Object).get(k.String())) // TODO : Detect valid type to give good error message
+
+		case OP_CFLD:
+			vr, k := ø.pop(), ø.pop()
+			// Pop the arguments in reverse order
+			args := make([]Val, ix)
+			for j := ix; j > 0; j-- {
+				args[j-1] = ø.pop()
+			}
+			ø.push(vr.(*Object).callMethod(k.String(), args...))
 
 		default:
 			panic(fmt.Sprintf("unknown opcode %s", op))

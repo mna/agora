@@ -29,6 +29,7 @@ const (
 	OP_NEW
 	OP_SFLD
 	OP_GFLD
+	OP_CFLD
 	OP_DUMP
 	OP_INVL Opcode = 0xFF
 )
@@ -60,6 +61,7 @@ var (
 		OP_NEW:  "NEW",
 		OP_SFLD: "SFLD",
 		OP_GFLD: "GFLD",
+		OP_CFLD: "CFLD",
 		OP_DUMP: "DUMP",
 	}
 
@@ -89,6 +91,7 @@ var (
 		"NEW":  OP_NEW,
 		"SFLD": OP_SFLD,
 		"GFLD": OP_GFLD,
+		"CFLD": OP_CFLD,
 		"DUMP": OP_DUMP,
 	}
 )

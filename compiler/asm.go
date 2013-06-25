@@ -69,11 +69,12 @@ func Asm(r io.Reader) *runtime.Ctx {
 
 		"[k]": func(p *runtime.FuncProto) {
 			for s.Scan() {
-				line := strings.TrimSpace(s.Text())
-				if f, ok := m[line]; ok {
+				tline := strings.TrimSpace(s.Text())
+				if f, ok := m[tline]; ok {
 					f(p)
 					return
 				}
+				line := s.Text()
 
 				switch line[0] {
 				case 'i':

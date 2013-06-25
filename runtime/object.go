@@ -165,7 +165,8 @@ func (ø *Object) set(key string, v Val) {
 	ø.m[key] = v
 }
 
-func (ø *Object) callMethod(v Val, args ...Val) Val {
+func (ø *Object) callMethod(nm string, args ...Val) Val {
+	v := ø.get(nm)
 	switch f := v.(type) {
 	case *Func:
 		// Call the method
@@ -176,7 +177,8 @@ func (ø *Object) callMethod(v Val, args ...Val) Val {
 		if m, ok := ø.m["__noSuchMethod"]; ok {
 			if f, ok := m.(*Func); ok {
 				f.This = ø
-				return f.Call(args...) // TODO : pass method name as first value
+				args = append([]Val{String(nm)}, args...)
+				return f.Call(args...)
 			}
 		}
 		panic(ErrNoSuchMethod)

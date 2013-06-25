@@ -11,6 +11,7 @@ const (
 	FLG_K                // Constant table index
 	FLG_V                // Variable table index
 	FLG_N                // Nil value
+	FLG_T                // `this` keyword
 	FLG_F                // Function prototype index
 	FLG_A                // Args count
 	FLG_J                // Jump over n instructions
@@ -23,6 +24,7 @@ var (
 		FLG_K: "K",
 		FLG_V: "V",
 		FLG_N: "N",
+		FLG_T: "T",
 		FLG_F: "F",
 		FLG_A: "A",
 		FLG_J: "J",
@@ -33,6 +35,7 @@ var (
 		"K": FLG_K,
 		"V": FLG_V,
 		"N": FLG_N,
+		"T": FLG_T,
 		"F": FLG_F,
 		"A": FLG_A,
 		"J": FLG_J,
