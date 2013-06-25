@@ -29,26 +29,22 @@ type debug struct {
 	LineEnd   int
 }
 
-type Var struct {
-	debug
-}
-
 type FuncProto struct {
 	IsNative   bool
 	NativeName string
 	StackSz    int
 	ExpArgs    int
+	VTable     []string
 	KTable     []Val
-	VTable     []Var
 	Code       []Instr
 	debug
 }
 
 type Func struct {
-	*FuncProto
-	ctx   *Ctx
+	proto *FuncProto
+	ctx   *Ctx // TODO : Call stack in context?
 	pc    int
-	vars  []Val
+	vars  map[string]Val
 	stack []Val
 	sp    int
 	This  Val
@@ -56,9 +52,9 @@ type Func struct {
 
 func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
 	// Initialize all variables to the goblin Nil (not Go's nil interface)
-	vars := make([]Val, len(proto.VTable))
-	for i, _ := range vars {
-		vars[i] = Nil
+	vars := make(map[string]Val, len(proto.VTable))
+	for _, n := range proto.VTable {
+		vars[n] = Nil
 	}
 	return &Func{
 		proto,
@@ -163,9 +159,9 @@ func (ø *Func) pop() Val {
 func (ø *Func) getVal(flg Flag, ix uint64) Val {
 	switch flg {
 	case FLG_K:
-		return ø.KTable[ix]
+		return ø.proto.KTable[ix]
 	case FLG_V:
-		return ø.vars[ix]
+		return ø.vars[ø.proto.VTable[ix]]
 	case FLG_N:
 		return Nil
 	case FLG_T:
@@ -193,11 +189,7 @@ func (ø *Func) dumpAll() {
 	if ø.IsNative {
 		fmt.Printf("\nfunc %s (native)\n", ø.NativeName)
 	} else {
-		if ø.Name == "" {
-			fmt.Printf("\nfunc <main> (file: %s)\n", ø.File)
-		} else {
-			fmt.Printf("\nfunc %s (file: %s)\n", ø.Name, ø.File)
-		}
+		fmt.Printf("\nfunc %s (file: %s)\n", ø.Name, ø.File)
 	}
 	// Constants
 	fmt.Printf("  Constants:\n")
