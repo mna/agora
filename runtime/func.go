@@ -202,12 +202,12 @@ func (ø *Func) dumpAll() {
 	// Constants
 	fmt.Printf("  Constants:\n")
 	for i, v := range ø.KTable {
-		fmt.Printf("    [%d] %s\n", i, v.dump())
+		fmt.Printf("    [%3d] %s\n", i, v.dump())
 	}
 	// Variables
 	fmt.Printf("\n  Variables:\n")
 	for i, v := range ø.vars {
-		fmt.Printf("    [%d] %s = %s\n", i, ø.VTable[i].Name, v.dump())
+		fmt.Printf("    [%3d] %s = %s\n", i, ø.VTable[i].Name, v.dump())
 	}
 	// Stack
 	fmt.Printf("\n  Stack:\n")
@@ -222,7 +222,7 @@ func (ø *Func) dumpAll() {
 		if i < len(ø.stack) {
 			v = ø.stack[i]
 		}
-		fmt.Printf("[%d] %s\n", i, v.dump())
+		fmt.Printf("[%3d] %s\n", i, v.dump())
 		i++
 	}
 	// Instructions
@@ -235,7 +235,7 @@ func (ø *Func) dumpAll() {
 			fmt.Printf("    ")
 		}
 		if i < len(ø.Code) {
-			fmt.Printf("[%d] %s\n", i, ø.Code[i])
+			fmt.Printf("[%3d] %s\n", i, ø.Code[i])
 		} else {
 			break
 		}
