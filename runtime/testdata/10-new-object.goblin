@@ -8,16 +8,13 @@
 [f]
 3
 0
+1
 
 10-new-object.goblin
 0
 4
-[v]
-a
-10-new-object.goblin
-0
-4
 [k]
+sa
 sb
 s6
 sc
@@ -26,25 +23,25 @@ sd
 [i]
 NEW // Create new object on stack
 POP V 0
-PUSH K 1 // Push bool true
-PUSH K 0 // Push string 'b'
+PUSH K 2
+PUSH K 1
 PUSH V 0
 SFLD // Set field sp-1[sp-2]=sp-3 (pops 3 from stack)
+PUSH K 4
 PUSH K 3
-PUSH K 2
 PUSH V 0
 SFLD
-PUSH K 0
+PUSH K 1
 PUSH V 0
 GFLD // Get field sp-1[sp-2], pops 2, pushes result on stack
-PUSH K 2
+PUSH K 3
 PUSH V 0
 GFLD
 ADD
-PUSH K 4
+PUSH K 5
 PUSH V 0
 SFLD
-PUSH K 4
+PUSH K 5
 PUSH V 0
 GFLD
 DUMP

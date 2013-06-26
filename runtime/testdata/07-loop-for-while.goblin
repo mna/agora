@@ -10,41 +10,35 @@
 [f]
 2
 0
+2
 
 07-loop-for-while.goblin
 0
 4
-[v]
-a
-07-loop-for-while.goblin
-0
-6
-sum
-07-loop-for-while.goblin
-1
-6
 [k]
+sa
 i5
+ssum
 i0
 i1
 [i]
-PUSH K 0
+PUSH K 1
 POP V 0
-PUSH K 1
-POP V 1
+PUSH K 3
+POP V 2
 PUSH V 0 // Loop start, compare
-PUSH K 1
+PUSH K 3
 GT
 TEST J 9 // Exit condition, if false
-PUSH V 1 // Loop body
+PUSH V 2 // Loop body
 PUSH V 0
 ADD
-POP V 1
+POP V 2
 PUSH V 0 // Decrement a
-PUSH K 2
+PUSH K 4
 SUB
 POP V 0
 JMPB J 12 // Jump back to loop start
-PUSH V 1 // Outside loop, return
+PUSH V 2 // Outside loop, return
 DUMP
 RET

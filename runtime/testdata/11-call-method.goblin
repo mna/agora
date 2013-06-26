@@ -10,16 +10,13 @@
 [f]
 3
 0
+1
 
 11-call-method.goblin
 0
 6
-[v]
-a
-11-call-method.goblin
-0
-6
 [k]
+sa
 sb
 sc
 shi
@@ -28,15 +25,15 @@ syou
 NEW
 POP V 0
 PUSH F 1 // Push func index 1 on stack
-PUSH K 0 // Push string 'b'
+PUSH K 1 // Push string 'b'
 PUSH V 0
 SFLD // Set field sp-1[sp-2]=sp-3 (pops 3 from stack)
+PUSH K 3
 PUSH K 2
-PUSH K 1
 PUSH V 0
 SFLD
-PUSH K 3
-PUSH K 0
+PUSH K 4
+PUSH K 1
 PUSH V 0
 CFLD A 1 // Call field sp-1[sp-2], pops 2, calls as method with the specified number of args
 DUMP
@@ -44,28 +41,25 @@ RET
 [f]
 3
 1
+1
 
 11-call-method.goblin
 1
 4
-[v]
-greet
-11-call-method.goblin
-1
-4
 [k]
+sgreet
 sc
 s, 
 [i]
-PUSH K 0
+PUSH K 1
 PUSH T 0 // Push "this", index unused
 GFLD
 PUSH F 2
 CALL A 1
-PUSH K 0
+PUSH K 1
 PUSH T 0
 GFLD
-PUSH K 1
+PUSH K 2
 ADD
 PUSH V 0
 ADD

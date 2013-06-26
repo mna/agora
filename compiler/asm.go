@@ -27,7 +27,7 @@ func Asm(r io.Reader) *runtime.Ctx {
 				case 0:
 					if s.Text() == "true" {
 						p.IsNative = true
-						i++
+						i = 2
 					} else {
 						// Stack size
 						p.StackSz, _ = strconv.Atoi(s.Text())

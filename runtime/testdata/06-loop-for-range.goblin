@@ -8,31 +8,28 @@
 [f]
 4
 0
+1
 
 06-loop.goblin
 0
 4
-[v]
-i
-06-loop.goblin
-2
-4
 [k]
+si
 i0
 i1
 i10
 [i]
-PUSH K 0 // Loop initialization
+PUSH K 1 // Loop initialization
 POP V 0
 PUSH V 0 // Loop start, compare
-PUSH K 2
+PUSH K 3
 LT
 TEST J 8 // Exit condition, if false
 PUSH V 0 // Loop body
 PUSH F 1
 CALL A 1
 PUSH V 0 // Increment
-PUSH K 1
+PUSH K 2
 ADD
 POP V 0
 JMPB J 11 // Jump back to loop start

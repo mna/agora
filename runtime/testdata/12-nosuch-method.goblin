@@ -9,16 +9,13 @@
 [f]
 3
 0
+1
 
 12-nosuch-method.goblin
 0
 5
-[v]
-a
-12-nosuch-method.goblin
-0
-5
 [k]
+sa
 s__noSuchMethod
 sb
 i12
@@ -26,11 +23,11 @@ i12
 NEW
 POP V 0
 PUSH F 1
-PUSH K 0
+PUSH K 1
 PUSH V 0
 SFLD
+PUSH K 3
 PUSH K 2
-PUSH K 1
 PUSH V 0
 CFLD A 1
 PUSH N 0
@@ -39,19 +36,16 @@ RET
 [f]
 2
 1
+1
 
 11-call-method.goblin
 2
 4
-[v]
-nm
-11-call-method.goblin
-2
-4
 [k]
+snm
 snot found:
 [i]
-PUSH K 0
+PUSH K 1
 PUSH V 0
 ADD
 PUSH F 2

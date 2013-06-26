@@ -9,16 +9,13 @@
 [f]
 3
 0
+1
 
 09-if-cond-ands.goblin
 0
 5
-[v]
-a
-09-if-cond-ands.goblin
-0
-5
 [k]
+sa
 b1
 i3
 i5
@@ -28,23 +25,23 @@ sbar
 i1
 i-1
 [i]
-PUSH K 0
-POP V 0
 PUSH K 1
+POP V 0
 PUSH K 2
-ADD
 PUSH K 3
-GT
+ADD
 PUSH K 4
+GT
 PUSH K 5
+PUSH K 6
 GT
 AND
 PUSH V 0
 AND
 TEST J 3
-PUSH K 6
+PUSH K 7
 DUMP
 RET
-PUSH K 7
+PUSH K 8
 DUMP
 RET
