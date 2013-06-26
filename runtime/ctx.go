@@ -14,8 +14,6 @@ type Module interface {
 	Load(*Ctx) Val
 }
 
-type FuncFn func(...Val) Val
-
 type Ctx struct {
 	// Public fields
 	FuncProtos []*FuncProto   // TODO : Move into module or unnecessary?...

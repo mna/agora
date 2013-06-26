@@ -1,30 +1,13 @@
 package runtime
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 )
 
-type debug struct {
-	File      string
-	LineStart int
-	LineEnd   int
-}
-
-type FuncProto struct {
-	IsNative bool
-	Name     string
-	StackSz  int
-	ExpArgs  int
-	ExpVars  int
-	KTable   []Val
-	Code     []Instr
-	Dbg      debug
-}
-
-type Func struct {
-	proto *FuncProto
-	ctx   *Ctx // TODO : Call stack in context?
+type funcVM struct {
+	proto *GoblinFunc
 	pc    int
 	vars  map[string]Val
 	stack []Val
@@ -33,20 +16,19 @@ type Func struct {
 	args  []Val
 }
 
-func newFunc(ctx *Ctx, proto *FuncProto) *Func {
-	return &Func{
+func newFuncVM(proto *GoblinFunc) *funcVM {
+	return &funcVM{
 		proto,
-		ctx,
 		0,
-		make(map[string]Val, proto.ExpVars),
-		make([]Val, 0, proto.StackSz), // Initial cap of StackSz
+		make(map[string]Val, proto.expVars),
+		make([]Val, 0, proto.stackSz),
 		0,
 		nil,
 		nil,
 	}
 }
 
-func (ø *Func) push(v Val) {
+func (ø *funcVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if ø.sp == len(ø.stack) {
 		if ø.sp == cap(ø.stack) {
@@ -59,20 +41,20 @@ func (ø *Func) push(v Val) {
 	ø.sp++
 }
 
-func (ø *Func) pop() Val {
+func (ø *funcVM) pop() Val {
 	ø.sp--
 	v := ø.stack[ø.sp]
-	ø.stack[ø.sp] = Nil // free this reference for gc
+	ø.stack[ø.sp] = nil // free this reference for gc
 	return v
 }
 
-func (ø *Func) getVal(flg Flag, ix uint64) Val {
+func (ø *funcVM) getVal(flg Flag, ix uint64) Val {
 	switch flg {
 	case FLG_K:
-		return ø.proto.KTable[ix]
+		return ø.proto.kTable[ix]
 	case FLG_V:
 		// If not found, will return Nil, so the value is always fine
-		v, _ := ø.ctx.getVar(ø.proto.KTable[ix].String())
+		v, _ := ø.proto.ctx.getVar(ø.proto.kTable[ix].String())
 		return v
 	case FLG_N:
 		return Nil
@@ -86,77 +68,56 @@ func (ø *Func) getVal(flg Flag, ix uint64) Val {
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
 
-func (ø *FuncProto) dump() string {
-	return fmt.Sprintf("%s (Func)", ø.Name)
-}
-
-func (ø *Func) dumpAll() {
-	if ø.proto.IsNative {
-		fmt.Printf("\nfunc %s (native)\n", ø.proto.Name)
-	} else {
-		fmt.Printf("\nfunc %s (file: %s)\n", ø.proto.Name, ø.proto.Dbg.File)
-	}
+func (ø *funcVM) dump() string {
+	buf := bytes.New(nil)
+	fmt.Fprintf(buf, "\n> %s\n", ø.proto.dump())
 	// Constants
-	fmt.Printf("  Constants:\n")
+	fmt.Fprintf(buf, "  Constants:\n")
 	for i, v := range ø.proto.KTable {
-		fmt.Printf("    [%3d] %s\n", i, v.dump())
+		fmt.Fprintf(buf, "    [%3d] %s\n", i, v.dump())
 	}
 	// Variables
-	fmt.Printf("\n  Variables:\n")
+	fmt.Fprintf(buf, "\n  Variables:\n")
 	for k, v := range ø.vars {
-		fmt.Printf("    %s = %s\n", k, v.dump())
+		fmt.Fprintf(buf, "    %s = %s\n", k, v.dump())
 	}
 	// Stack
-	fmt.Printf("\n  Stack:\n")
+	fmt.Fprintf(buf, "\n  Stack:\n")
 	i := int(math.Max(0, float64(ø.sp-5)))
 	for i <= ø.sp {
 		if i == ø.sp {
-			fmt.Print("sp->")
+			fmt.Fprint(buf, "sp->")
 		} else {
-			fmt.Print("    ")
+			fmt.Fprint(buf, "    ")
 		}
 		v := Val(Nil)
 		if i < len(ø.stack) {
 			v = ø.stack[i]
 		}
-		fmt.Printf("[%3d] %s\n", i, v.dump())
+		fmt.Fprintf(buf, "[%3d] %s\n", i, v.dump())
 		i++
 	}
 	// Instructions
-	fmt.Printf("\n  Instructions:\n")
+	fmt.Fprintf(buf, "\n  Instructions:\n")
 	i = int(math.Max(0, float64(ø.pc-3)))
 	for i <= ø.pc+3 {
 		if i == ø.pc {
-			fmt.Printf("pc->")
+			fmt.Fprintf(buf, "pc->")
 		} else {
-			fmt.Printf("    ")
+			fmt.Fprintf(buf, "    ")
 		}
 		if i < len(ø.proto.Code) {
-			fmt.Printf("[%3d] %s\n", i, ø.proto.Code[i])
+			fmt.Fprintf(buf, "[%3d] %s\n", i, ø.proto.Code[i])
 		} else {
 			break
 		}
 		i++
 	}
-	fmt.Println()
+	fmt.Fprintln(buf)
+	return buf.String()
 }
 
-func (ø *Func) Call(args ...Val) Val {
-	ø.ctx.push(ø)
-	defer ø.ctx.pop()
-
-	if ø.proto.IsNative {
-		f, ok := ø.ctx.nTable[ø.proto.Name]
-		if !ok {
-			panic(ErrNativeFuncNotFound)
-		}
-		return f(ø.ctx, args...)
-	} else {
-		return ø.callVM(args...)
-	}
-}
-
-func (ø *Func) callVM(args ...Val) Val {
+func (ø *funcVM) run(args ...Val) Val {
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
 	for j, l := 0, len(args); j < ø.proto.ExpArgs; j++ {
 		if j < l {
