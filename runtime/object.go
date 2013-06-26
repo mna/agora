@@ -25,11 +25,13 @@ var (
 )
 
 type Object struct {
-	m map[string]Val
+	ctx *Ctx
+	m   map[string]Val
 }
 
-func newObject() *Object {
+func newObject(ctx *Ctx) *Object {
 	return &Object{
+		ctx,
 		make(map[string]Val),
 	}
 }
@@ -44,9 +46,8 @@ func (ø *Object) dump() string {
 
 func (ø *Object) Int() int {
 	if i, ok := ø.m["__toInt"]; ok {
-		if f, ok := i.(*Func); ok {
-			f.This = ø
-			return f.Call().Int()
+		if fp, ok := i.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp).Int()
 		}
 	}
 	panic(ErrInvalidConvObjToInt)
@@ -54,9 +55,8 @@ func (ø *Object) Int() int {
 
 func (ø *Object) Float() float64 {
 	if l, ok := ø.m["__toFloat"]; ok {
-		if f, ok := l.(*Func); ok {
-			f.This = ø
-			return f.Call().Float()
+		if fp, ok := l.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp).Float()
 		}
 	}
 	panic(ErrInvalidConvObjToFloat)
@@ -64,9 +64,8 @@ func (ø *Object) Float() float64 {
 
 func (ø *Object) String() string {
 	if s, ok := ø.m["__toString"]; ok {
-		if f, ok := s.(*Func); ok {
-			f.This = ø
-			return f.Call().String()
+		if fp, ok := s.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp).String()
 		}
 	}
 	panic(ErrInvalidConvObjToString)
@@ -74,9 +73,8 @@ func (ø *Object) String() string {
 
 func (ø *Object) Bool() bool {
 	if b, ok := ø.m["__toBool"]; ok {
-		if f, ok := b.(*Func); ok {
-			f.This = ø
-			return f.Call().Bool()
+		if fp, ok := b.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp).Bool()
 		}
 	}
 	// If __toBool is not defined, object returns true (since it is not nil)
@@ -85,9 +83,8 @@ func (ø *Object) Bool() bool {
 
 func (ø *Object) Native() interface{} {
 	if o, ok := ø.m["__toNative"]; ok {
-		if f, ok := o.(*Func); ok {
-			f.This = ø
-			return f.Call().Native()
+		if fp, ok := o.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp).Native()
 		}
 	}
 	panic(ErrInvalidConvObjToNative)
@@ -96,9 +93,8 @@ func (ø *Object) Native() interface{} {
 func (ø *Object) Cmp(v Val) int {
 	// First check for a custom Cmp method
 	if c, ok := ø.m["__cmp"]; ok {
-		if f, ok := c.(*Func); ok {
-			f.This = ø
-			return f.Call(v).Int()
+		if fp, ok := c.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp, v).Int()
 		}
 	}
 	// Else, default Cmp - if same reference as v, return 0 (equal)
@@ -111,9 +107,8 @@ func (ø *Object) Cmp(v Val) int {
 
 func (ø *Object) callBinaryMethod(nm string, err error, v Val) Val {
 	if m, ok := ø.m[nm]; ok {
-		if f, ok := m.(*Func); ok {
-			f.This = ø
-			return f.Call(v)
+		if fp, ok := m.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp, v)
 		}
 	}
 	panic(err)
@@ -145,20 +140,18 @@ func (ø *Object) Pow(v Val) Val {
 
 func (ø *Object) Unm() Val {
 	if m, ok := ø.m["__unm"]; ok {
-		if f, ok := m.(*Func); ok {
-			f.This = ø
-			return f.Call()
+		if fp, ok := m.(*FuncProto); ok {
+			return ø.callFromFuncProto(fp)
 		}
 	}
 	panic(ErrInvalidOpUnmOnObj)
 }
 
 func (ø *Object) get(key string) Val {
-	v, ok := ø.m[key]
-	if !ok {
-		return Nil
+	if v, ok := ø.m[key]; ok {
+		return v
 	}
-	return v
+	return Nil
 }
 
 func (ø *Object) set(key string, v Val) {
@@ -167,18 +160,15 @@ func (ø *Object) set(key string, v Val) {
 
 func (ø *Object) callMethod(nm string, args ...Val) Val {
 	v := ø.get(nm)
-	switch f := v.(type) {
-	case *Func:
-		// Call the method
-		f.This = ø
-		return f.Call(args...)
+	switch fp := v.(type) {
+	case *FuncProto:
+		return ø.callFromFuncProto(fp, args...)
 	case null:
 		// Method not found - call __noSuchMethod if it exists, otherwise panic
 		if m, ok := ø.m["__noSuchMethod"]; ok {
-			if f, ok := m.(*Func); ok {
-				f.This = ø
+			if fp, ok := m.(*FuncProto); ok {
 				args = append([]Val{String(nm)}, args...)
-				return f.Call(args...)
+				return ø.callFromFuncProto(fp, args...)
 			}
 		}
 		panic(ErrNoSuchMethod)
@@ -186,4 +176,10 @@ func (ø *Object) callMethod(nm string, args ...Val) Val {
 		// Any other case: not a function
 		panic(ErrFieldNotFunction)
 	}
+}
+
+func (ø *Object) callFromFuncProto(fp *FuncProto, args ...Val) Val {
+	fn := newFunc(ø.ctx, fp)
+	fn.this = ø
+	return fn.Call(args...)
 }

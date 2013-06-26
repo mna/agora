@@ -36,22 +36,22 @@ func Asm(r io.Reader) *runtime.Ctx {
 					// Expected args count
 					p.ExpArgs, _ = strconv.Atoi(s.Text())
 				case 2:
-					if p.IsNative {
-						p.NativeName = s.Text()
-						i = 5
-					} else {
-						// Func name
-						p.Name = s.Text()
-					}
+					// Expected vars count
+					p.ExpVars, _ = strconv.Atoi(s.Text())
 				case 3:
-					// File name
-					p.File = s.Text()
+					p.Name = s.Text()
+					if p.IsNative {
+						i = 1000
+					}
 				case 4:
-					// Line start
-					p.LineStart, _ = strconv.Atoi(s.Text())
+					// File name
+					p.Dbg.File = s.Text()
 				case 5:
+					// Line start
+					p.Dbg.LineStart, _ = strconv.Atoi(s.Text())
+				case 6:
 					// Line end
-					p.LineEnd, _ = strconv.Atoi(s.Text())
+					p.Dbg.LineEnd, _ = strconv.Atoi(s.Text())
 				default:
 					ctx.Protos = append(ctx.Protos, p)
 					// Find where to go from here
@@ -99,37 +99,6 @@ func Asm(r io.Reader) *runtime.Ctx {
 				}
 			}
 			panic("missing instructions section [i]")
-		},
-
-		"[v]": func(p *runtime.FuncProto) {
-			var v runtime.Var
-			i := 0
-			for s.Scan() {
-				line := strings.TrimSpace(s.Text())
-				if f, ok := m[line]; ok {
-					f(p)
-					return
-				}
-				switch i {
-				case 0:
-					// Var name
-					v = runtime.Var{}
-					v.Name = s.Text()
-				case 1:
-					// Var file
-					v.File = s.Text()
-				case 2:
-					// Var line start
-					v.LineStart, _ = strconv.Atoi(s.Text())
-				case 3:
-					// Var line end
-					v.LineEnd, _ = strconv.Atoi(s.Text())
-					p.VTable = append(p.VTable, v)
-					i = -1
-				}
-				i++
-			}
-			panic("missing constant section [k]")
 		},
 
 		"[i]": func(p *runtime.FuncProto) {

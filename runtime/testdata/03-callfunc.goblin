@@ -1,5 +1,5 @@
 //
-// func Add(x, y) {
+// func Add(x, y) { // Essentially means var Add = func ...
 //   return x + y
 // }
 //  
@@ -8,38 +8,35 @@
 [f]
 3
 0
-
+1
+<main>
 03-callfunc.goblin
 0
 4
-[v]
 [k]
+sAdd
 i4
 s198
 [i]
-PUSH K 0
-PUSH K 1
 PUSH F 1
+POP V 0
+PUSH K 1
+PUSH K 2
+PUSH V 0
 CALL A 2
 DUMP
 RET
 [f]
 2
 2
+2
 Add
 03-callfunc.goblin
 0
 2
-[v]
-x
-03-callfunc.goblin
-0
-2
-y
-03-callfunc.goblin
-0
-2
 [k]
+sx
+sy
 [i]
 PUSH V 0
 PUSH V 1

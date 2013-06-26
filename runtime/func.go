@@ -23,21 +23,20 @@ var (
 )
 
 type debug struct {
-	Name      string
 	File      string
 	LineStart int
 	LineEnd   int
 }
 
 type FuncProto struct {
-	IsNative   bool
-	NativeName string
-	StackSz    int
-	ExpArgs    int
-	VTable     []string
-	KTable     []Val
-	Code       []Instr
-	debug
+	IsNative bool
+	Name     string
+	StackSz  int
+	ExpArgs  int
+	ExpVars  int
+	KTable   []Val
+	Code     []Instr
+	Dbg      debug
 }
 
 type Func struct {
@@ -47,20 +46,15 @@ type Func struct {
 	vars  map[string]Val
 	stack []Val
 	sp    int
-	This  Val
+	this  Val
 }
 
-func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
-	// Initialize all variables to the goblin Nil (not Go's nil interface)
-	vars := make(map[string]Val, len(proto.VTable))
-	for _, n := range proto.VTable {
-		vars[n] = Nil
-	}
+func newFunc(ctx *Ctx, proto *FuncProto) *Func {
 	return &Func{
 		proto,
 		ctx,
 		0,
-		vars,
+		make(map[string]Val, proto.ExpVars),
 		make([]Val, 0, proto.StackSz), // Initial cap of StackSz
 		0,
 		nil,
@@ -68,31 +62,30 @@ func NewFunc(ctx *Ctx, proto *FuncProto) *Func {
 }
 
 // Int is an invalid conversion.
-func (ø *Func) Int() int {
+func (ø *FuncProto) Int() int {
 	panic(ErrInvalidConvFuncToInt)
 }
 
 // Float is an invalid conversion.
-func (ø *Func) Float() float64 {
+func (ø *FuncProto) Float() float64 {
 	panic(ErrInvalidConvFuncToFloat)
 }
 
 // String is an invalid conversion.
-func (ø *Func) String() string {
+func (ø *FuncProto) String() string {
 	panic(ErrInvalidConvFuncToString)
 }
 
 // Bool returns true.
-func (ø *Func) Bool() bool {
+func (ø *FuncProto) Bool() bool {
 	return true
 }
 
-func (ø *Func) Native() interface{} {
-	// TODO : Is this a good idea?
-	return ø.Call
+func (ø *FuncProto) Native() interface{} {
+	return ø
 }
 
-func (ø *Func) Cmp(v Val) int {
+func (ø *FuncProto) Cmp(v Val) int {
 	if ø == v {
 		// Point to same function
 		return 0
@@ -102,37 +95,37 @@ func (ø *Func) Cmp(v Val) int {
 }
 
 // Add is an invalid operation.
-func (ø *Func) Add(v Val) Val {
+func (ø *FuncProto) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnFunc)
 }
 
 // Sub is an invalid operation.
-func (ø *Func) Sub(v Val) Val {
+func (ø *FuncProto) Sub(v Val) Val {
 	panic(ErrInvalidOpSubOnFunc)
 }
 
 // Mul is an invalid operation.
-func (ø *Func) Mul(v Val) Val {
+func (ø *FuncProto) Mul(v Val) Val {
 	panic(ErrInvalidOpMulOnFunc)
 }
 
 // Div is an invalid operation.
-func (ø *Func) Div(v Val) Val {
+func (ø *FuncProto) Div(v Val) Val {
 	panic(ErrInvalidOpDivOnFunc)
 }
 
 // Mod is an invalid operation.
-func (ø *Func) Mod(v Val) Val {
+func (ø *FuncProto) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnFunc)
 }
 
 // Pow is an invalid operation.
-func (ø *Func) Pow(v Val) Val {
+func (ø *FuncProto) Pow(v Val) Val {
 	panic(ErrInvalidOpPowOnFunc)
 }
 
 // Unm is an invalid operation.
-func (ø *Func) Unm() Val {
+func (ø *FuncProto) Unm() Val {
 	panic(ErrInvalidOpUnmOnFunc)
 }
 
@@ -140,7 +133,7 @@ func (ø *Func) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if ø.sp == len(ø.stack) {
 		if ø.sp == cap(ø.stack) {
-			fmt.Printf("DEBUG expanding stack of func %s, current size: %d\n", ø.Name, len(ø.stack))
+			fmt.Printf("DEBUG expanding stack of func %s, current size: %d\n", ø.proto.Name, len(ø.stack))
 		}
 		ø.stack = append(ø.stack, v)
 	} else {
@@ -161,45 +154,38 @@ func (ø *Func) getVal(flg Flag, ix uint64) Val {
 	case FLG_K:
 		return ø.proto.KTable[ix]
 	case FLG_V:
-		return ø.vars[ø.proto.VTable[ix]]
+		// If not found, will return Nil, so the value is always fine
+		v, _ := ø.ctx.getVar(ø.proto.KTable[ix].String())
+		return v
 	case FLG_N:
 		return Nil
 	case FLG_T:
-		return ø.This
+		return ø.this
 	case FLG_F:
-		return NewFunc(ø.ctx, ø.ctx.Protos[ix])
+		return ø.ctx.Protos[ix]
 	}
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
 
-func (ø *Func) setVal(flg Flag, ix uint64, v Val) {
-	switch flg {
-	case FLG_V:
-		ø.vars[ix] = v
-	default:
-		panic(fmt.Sprintf("Func.setVal() - invalid flag value %d", flg))
-	}
-}
-
-func (ø *Func) dump() string {
+func (ø *FuncProto) dump() string {
 	return fmt.Sprintf("%s (Func)", ø.Name)
 }
 
 func (ø *Func) dumpAll() {
-	if ø.IsNative {
-		fmt.Printf("\nfunc %s (native)\n", ø.NativeName)
+	if ø.proto.IsNative {
+		fmt.Printf("\nfunc %s (native)\n", ø.proto.Name)
 	} else {
-		fmt.Printf("\nfunc %s (file: %s)\n", ø.Name, ø.File)
+		fmt.Printf("\nfunc %s (file: %s)\n", ø.proto.Name, ø.proto.Dbg.File)
 	}
 	// Constants
 	fmt.Printf("  Constants:\n")
-	for i, v := range ø.KTable {
+	for i, v := range ø.proto.KTable {
 		fmt.Printf("    [%3d] %s\n", i, v.dump())
 	}
 	// Variables
 	fmt.Printf("\n  Variables:\n")
-	for i, v := range ø.vars {
-		fmt.Printf("    [%3d] %s = %s\n", i, ø.VTable[i].Name, v.dump())
+	for k, v := range ø.vars {
+		fmt.Printf("    %s = %s\n", k, v.dump())
 	}
 	// Stack
 	fmt.Printf("\n  Stack:\n")
@@ -226,8 +212,8 @@ func (ø *Func) dumpAll() {
 		} else {
 			fmt.Printf("    ")
 		}
-		if i < len(ø.Code) {
-			fmt.Printf("[%3d] %s\n", i, ø.Code[i])
+		if i < len(ø.proto.Code) {
+			fmt.Printf("[%3d] %s\n", i, ø.proto.Code[i])
 		} else {
 			break
 		}
@@ -237,8 +223,11 @@ func (ø *Func) dumpAll() {
 }
 
 func (ø *Func) Call(args ...Val) Val {
-	if ø.IsNative {
-		f, ok := ø.ctx.nTable[ø.NativeName]
+	ø.ctx.push(ø)
+	defer ø.ctx.pop()
+
+	if ø.proto.IsNative {
+		f, ok := ø.ctx.nTable[ø.proto.Name]
 		if !ok {
 			panic(ErrNativeFuncNotFound)
 		}
@@ -249,15 +238,17 @@ func (ø *Func) Call(args ...Val) Val {
 }
 
 func (ø *Func) callVM(args ...Val) Val {
-	// Set the args values (already initialized to Nil in func constructor, so
-	// just set if a value is received).
-	cnt := int(math.Min(float64(len(args)), float64(ø.ExpArgs)))
-	for j := 0; j < cnt; j++ {
-		ø.vars[j] = args[j]
+	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
+	for j, l := 0, len(args); j < ø.proto.ExpArgs; j++ {
+		if j < l {
+			ø.vars[ø.proto.KTable[j].String()] = args[j]
+		} else {
+			ø.vars[ø.proto.KTable[j].String()] = Nil
+		}
 	}
 	for {
 		// Get the instruction to process
-		i := ø.Code[ø.pc]
+		i := ø.proto.Code[ø.pc]
 		// Decode the instruction
 		op, flg, ix := i.Opcode(), i.Flag(), i.Index()
 		// Increment the PC, if a jump requires a different PC delta, it will set it explicitly
@@ -271,7 +262,10 @@ func (ø *Func) callVM(args ...Val) Val {
 			ø.push(ø.getVal(flg, ix))
 
 		case OP_POP:
-			ø.setVal(flg, ix, ø.pop())
+			if nm, v := ø.proto.KTable[ix].String(), ø.pop(); !ø.ctx.setVar(nm, v) {
+				// Not found anywhere, create variable locally
+				ø.vars[nm] = v
+			}
 
 		case OP_ADD:
 			y, x := ø.pop(), ø.pop()
@@ -309,7 +303,7 @@ func (ø *Func) callVM(args ...Val) Val {
 			// ix is the number of args
 			// Pop the function itself, ensure it is a function
 			x := ø.pop()
-			fn := x.(*Func)
+			fn := newFunc(ø.ctx, x.(*FuncProto))
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
@@ -365,7 +359,7 @@ func (ø *Func) callVM(args ...Val) Val {
 			ø.pc += int(ix)
 
 		case OP_NEW:
-			ø.push(newObject())
+			ø.push(newObject(ø.ctx))
 
 		case OP_DUMP:
 			ø.dumpAll()

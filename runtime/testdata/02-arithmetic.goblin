@@ -13,89 +13,59 @@
 [f]
 2
 0
-
+10
+<main>
 02-arithmetic.goblin
 0
-9
-[v]
-a
-02-arithmetic.goblin
-0
-9
-b
-02-arithmetic.goblin
-1
-9
-add
-02-arithmetic.goblin
-2
-9
-sub
-02-arithmetic.goblin
-3
-9
-mul
-02-arithmetic.goblin
-4
-9
-div
-02-arithmetic.goblin
-5
-9
-mod
-02-arithmetic.goblin
-6
-9
-pow
-02-arithmetic.goblin
-7
-9
-not
-02-arithmetic.goblin
-8
-9
-unm
-02-arithmetic.goblin
-9
 9
 [k]
+sa
 i7
+sb
 i10
+sadd
+ssub
+smul
+sdiv
+smod
+spow
+snot
+sunm
 [i]
-PUSH K 0
-POP V 0
 PUSH K 1
-POP V 1
-PUSH V 0
-PUSH V 1
-ADD
+POP V 0
+PUSH K 3
 POP V 2
 PUSH V 0
-PUSH V 1
-SUB
-POP V 3
-PUSH V 0
-PUSH V 1
-MUL
+PUSH V 2
+ADD
 POP V 4
 PUSH V 0
-PUSH V 1
-DIV
+PUSH V 2
+SUB
 POP V 5
-PUSH V 1
 PUSH V 0
-MOD
+PUSH V 2
+MUL
 POP V 6
 PUSH V 0
-PUSH V 1
-POW
+PUSH V 2
+DIV
 POP V 7
+PUSH V 2
 PUSH V 0
-NOT
+MOD
 POP V 8
 PUSH V 0
-UNM
+PUSH V 2
+POW
 POP V 9
+PUSH V 0
+NOT
+POP V 10
+PUSH V 0
+UNM
+POP V 11
 PUSH N 0
 DUMP
 RET

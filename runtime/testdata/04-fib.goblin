@@ -6,55 +6,56 @@
 //   return Fib(n-1) + Fib(n-2)
 // }
 //  
-// return Fib(3)
+// return Fib(30)
 //
 [f]
 2
 0
-
+1
+<main>
 04-fib.goblin
 0
 7
-[v]
 [k]
+sFib
 i30
 [i]
-PUSH K 0
 PUSH F 1
+POP V 0
+PUSH K 1
+PUSH V 0
 CALL A 1
 DUMP
 RET
 [f]
 3
 1
+1
 Fib
 04-fib.goblin
 0
 5
-[v]
-n
-04-fib.goblin
-0
-5
 [k]
+sn
 i2
 i1
+sFib
 [i]
 PUSH V 0
-PUSH K 0
+PUSH K 1
 LT
 TEST J 2 // If false, jump over n instructions
-PUSH K 1 // Here test was true, put 1 on stack and return
+PUSH K 2 // Here test was true, put 1 on stack and return
 RET
 PUSH V 0 // Here test was false
-PUSH K 1
+PUSH K 2
 SUB
-PUSH F 1
+PUSH V 3 // Push var identified by Fib - look in parent call stack
 CALL A 1 // Fib(n-1), the return value will replace the F and A
 PUSH V 0
-PUSH K 0
+PUSH K 1
 SUB
-PUSH F 1
+PUSH V 3
 CALL A 1 // Fib(n-2)
 ADD
 RET
