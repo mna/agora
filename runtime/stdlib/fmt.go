@@ -6,12 +6,20 @@ import (
 	"github.com/PuerkitoBio/goblin/runtime"
 )
 
-var Fmt map[string]runtime.NativeFunc
-
 func init() {
-	Fmt = make(map[string]runtime.NativeFunc, 1)
-	Fmt["fmt.Println"] = fmt_Println
-	Fmt["fmt.Printf"] = fmt_Printf
+	runtime.RegisterModule("fmt", new(fmtMod))
+}
+
+type fmtMod struct {
+	ctx *runtime.Ctx
+}
+
+func (ø fmtMod) Load(ctx *runtime.Ctx) runtime.Val {
+	ø.ctx = ctx
+	ob := runtime.NewObject()
+	ob.Set("Println", runtime.NewNativeFunc(ø.fmt_Println))
+	ob.Set("Printf", runtime.NewNativeFunc(ø.fmt_Printf))
+	return ob
 }
 
 func toNative(args []runtime.Val) []interface{} {
@@ -26,22 +34,22 @@ func toNative(args []runtime.Val) []interface{} {
 	return ifs
 }
 
-func fmt_Println(s runtime.Streams, args ...runtime.Val) runtime.Val {
+func (ø fmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	ifs := toNative(args)
-	n, err := fmt.Fprintln(s.Stdout(), ifs...)
+	n, err := fmt.Fprintln(ø.ctx.Stdout, ifs...)
 	if err != nil {
 		panic(err)
 	}
 	return runtime.Int(n)
 }
 
-func fmt_Printf(s runtime.Streams, args ...runtime.Val) runtime.Val {
+func (ø fmtMod) fmt_Printf(s runtime.Streams, args ...runtime.Val) runtime.Val {
 	var ft string
 	if len(args) > 0 {
 		ft = args[0].String()
 	}
 	ifs := toNative(args[1:])
-	n, err := fmt.Fprintf(s.Stdout(), ft, ifs)
+	n, err := fmt.Fprintf(ø.ctx.Stdout, ft, ifs)
 	if err != nil {
 		panic(err)
 	}

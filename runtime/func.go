@@ -1,25 +1,8 @@
 package runtime
 
 import (
-	"errors"
 	"fmt"
 	"math"
-)
-
-var (
-	ErrNativeFuncNotFound = errors.New("native function not found")
-
-	ErrInvalidConvFuncToInt    = errors.New("cannot convert Func to Int")
-	ErrInvalidConvFuncToFloat  = errors.New("cannot convert Func to Float")
-	ErrInvalidConvFuncToString = errors.New("cannot convert Func to String")
-
-	ErrInvalidOpAddOnFunc = errors.New("cannot apply Add on a Func value")
-	ErrInvalidOpSubOnFunc = errors.New("cannot apply Sub on a Func value")
-	ErrInvalidOpMulOnFunc = errors.New("cannot apply Mul on a Func value")
-	ErrInvalidOpDivOnFunc = errors.New("cannot apply Div on a Func value")
-	ErrInvalidOpPowOnFunc = errors.New("cannot apply Pow on a Func value")
-	ErrInvalidOpModOnFunc = errors.New("cannot apply Mod on a Func value")
-	ErrInvalidOpUnmOnFunc = errors.New("cannot apply Unm on a Func value")
 )
 
 type debug struct {
@@ -61,74 +44,6 @@ func newFunc(ctx *Ctx, proto *FuncProto) *Func {
 		nil,
 		nil,
 	}
-}
-
-// Int is an invalid conversion.
-func (ø *FuncProto) Int() int {
-	panic(ErrInvalidConvFuncToInt)
-}
-
-// Float is an invalid conversion.
-func (ø *FuncProto) Float() float64 {
-	panic(ErrInvalidConvFuncToFloat)
-}
-
-// String is an invalid conversion.
-func (ø *FuncProto) String() string {
-	panic(ErrInvalidConvFuncToString)
-}
-
-// Bool returns true.
-func (ø *FuncProto) Bool() bool {
-	return true
-}
-
-func (ø *FuncProto) Native() interface{} {
-	return ø
-}
-
-func (ø *FuncProto) Cmp(v Val) int {
-	if ø == v {
-		// Point to same function
-		return 0
-	}
-	// Otherwise, always return -1 (no rational way to compare 2 functions)
-	return -1
-}
-
-// Add is an invalid operation.
-func (ø *FuncProto) Add(v Val) Val {
-	panic(ErrInvalidOpAddOnFunc)
-}
-
-// Sub is an invalid operation.
-func (ø *FuncProto) Sub(v Val) Val {
-	panic(ErrInvalidOpSubOnFunc)
-}
-
-// Mul is an invalid operation.
-func (ø *FuncProto) Mul(v Val) Val {
-	panic(ErrInvalidOpMulOnFunc)
-}
-
-// Div is an invalid operation.
-func (ø *FuncProto) Div(v Val) Val {
-	panic(ErrInvalidOpDivOnFunc)
-}
-
-// Mod is an invalid operation.
-func (ø *FuncProto) Mod(v Val) Val {
-	panic(ErrInvalidOpModOnFunc)
-}
-
-// Pow is an invalid operation.
-func (ø *FuncProto) Pow(v Val) Val {
-	panic(ErrInvalidOpPowOnFunc)
-}
-
-// Unm is an invalid operation.
-func (ø *FuncProto) Unm() Val {
-	panic(ErrInvalidOpUnmOnFunc)
 }
 
 func (ø *Func) push(v Val) {

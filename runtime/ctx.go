@@ -6,19 +6,31 @@ import (
 	"os"
 )
 
-type Ctx struct {
-	Protos []*FuncProto
-	stdout io.ReadWriter
-	stdin  io.ReadWriter
-	stderr io.ReadWriter
-	logic  Logic
+var (
+	DefaultCtx = NewCtx()
+)
 
-	// Native funcs table
-	nTable map[string]NativeFunc
+type Module interface {
+	Load(*Ctx) Val
+}
+
+type FuncFn func(...Val) Val
+
+type Ctx struct {
+	// Public fields
+	FuncProtos []*FuncProto   // TODO : Move into module or unnecessary?...
+	Stdout     io.ReadWriter  // The standard streams
+	Stdin      io.ReadWriter  // ...
+	Stderr     io.ReadWriter  // ...
+	Logic      LogicProcessor // The boolean logic processor (And, Or, Not)
 
 	// Call stack
 	callstack []*Func
 	callsp    int
+
+	// Modules management
+	loadedMods map[string]Val    // Modules export a Val
+	nativeMods map[string]Module // List of available native modules
 }
 
 func NewCtx() *Ctx {
@@ -28,14 +40,15 @@ func NewCtx() *Ctx {
 		os.Stdin,
 		os.Stderr,
 		defaultLogic{},
-		make(map[string]NativeFunc),
-		make([]*Func, 2),
+		nil,
 		0,
+		make(map[string]Val),
+		make(map[string]Module),
 	}
 }
 
-func (ø *Ctx) SetStdStreams(stdin, stdout, stderr io.ReadWriter) {
-	ø.stdin, ø.stdout, ø.stderr = stdin, stdout, stderr
+func Run() interface{} {
+	return DefaultCtx.Run()
 }
 
 func (ø *Ctx) Run() interface{} {
@@ -46,22 +59,12 @@ func (ø *Ctx) Run() interface{} {
 	return f.Call().Native()
 }
 
-func (ø *Ctx) RegisterNativeFuncs(fs map[string]NativeFunc) {
-	for k, v := range fs {
-		ø.nTable[k] = v
-	}
+func RegisterModule(nm string, m Module) {
+	DefaultCtx.RegisterModule(nm, m)
 }
 
-func (ø *Ctx) Stdout() io.ReadWriter {
-	return ø.stdout
-}
-
-func (ø *Ctx) Stdin() io.ReadWriter {
-	return ø.stdin
-}
-
-func (ø *Ctx) Stderr() io.ReadWriter {
-	return ø.stderr
+func (ø *Ctx) RegisterModule(nm string, m Module) {
+	ø.nativeMods[nm] = m
 }
 
 func (ø *Ctx) push(f *Func) {
