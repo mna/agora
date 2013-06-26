@@ -13,32 +13,35 @@ const (
 	FLG_N                // Nil value
 	FLG_T                // `this` keyword
 	FLG_F                // Function prototype index
-	FLG_A                // Args count
+	FLG_nA               // Args count
+	FLG_AA               // Arguments array
 	FLG_J                // Jump over n instructions
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
 var (
 	FlagNames = [...]string{
-		FLG__: "_",
-		FLG_K: "K",
-		FLG_V: "V",
-		FLG_N: "N",
-		FLG_T: "T",
-		FLG_F: "F",
-		FLG_A: "A",
-		FLG_J: "J",
+		FLG__:  "_",
+		FLG_K:  "K",
+		FLG_V:  "V",
+		FLG_N:  "N",
+		FLG_T:  "T",
+		FLG_F:  "F",
+		FLG_nA: "A",
+		FLG_AA: "AA",
+		FLG_J:  "J",
 	}
 
 	FlagLookup = map[string]Flag{
-		"_": FLG__,
-		"K": FLG_K,
-		"V": FLG_V,
-		"N": FLG_N,
-		"T": FLG_T,
-		"F": FLG_F,
-		"A": FLG_A,
-		"J": FLG_J,
+		"_":  FLG__,
+		"K":  FLG_K,
+		"V":  FLG_V,
+		"N":  FLG_N,
+		"T":  FLG_T,
+		"F":  FLG_F,
+		"A":  FLG_nA,
+		"AA": FLG_AA,
+		"J":  FLG_J,
 	}
 )
 

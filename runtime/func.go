@@ -47,6 +47,7 @@ type Func struct {
 	stack []Val
 	sp    int
 	this  Val
+	args  []Val
 }
 
 func newFunc(ctx *Ctx, proto *FuncProto) *Func {
@@ -57,6 +58,7 @@ func newFunc(ctx *Ctx, proto *FuncProto) *Func {
 		make(map[string]Val, proto.ExpVars),
 		make([]Val, 0, proto.StackSz), // Initial cap of StackSz
 		0,
+		nil,
 		nil,
 	}
 }
@@ -163,6 +165,8 @@ func (ø *Func) getVal(flg Flag, ix uint64) Val {
 		return ø.this
 	case FLG_F:
 		return ø.ctx.Protos[ix]
+	case FLG_AA:
+		return ø.args[ix]
 	}
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
@@ -246,6 +250,10 @@ func (ø *Func) callVM(args ...Val) Val {
 			ø.vars[ø.proto.KTable[j].String()] = Nil
 		}
 	}
+	// Keep the args array
+	ø.args = args
+
+	// Execute the instructions
 	for {
 		// Get the instruction to process
 		i := ø.proto.Code[ø.pc]
