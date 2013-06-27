@@ -1,26 +1,72 @@
 package runtime
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 var (
-	DefaultCtx = NewCtx()
+	ErrModuleNotFound = errors.New("module not found")
 )
 
 type Module interface {
 	Load(*Ctx) Val
 }
 
+type ModuleResolver interface {
+	Resolve(string) (io.Reader, error)
+}
+
+type FileResolver struct{}
+
+func (ø FileResolver) Resolve(id string) (io.Reader, error) {
+	var nm string
+	if filepath.IsAbs(id) {
+		nm = id
+	} else {
+		pwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		nm = filepath.Join(pwd, id)
+	}
+	if !strings.HasSuffix(nm, ".goblin") {
+		nm += ".goblin"
+	}
+	return os.Open(nm)
+}
+
+type Compiler interface {
+	Compile(string, io.Reader) (Module, error)
+}
+
+/*
+Sequence for loading, compiling, and bootstrapping execution:
+
+* Get or create a Ctx (DefaultCtx or NewCtx())
+* ctx.LoadFile(id string) (Val, error)
+* If module is cached (ctx.loadedMods), return the Val, done.
+* If module is native (ctx.nativeMods), call Module.Load(ctx), cache and return the value, done.
+* If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
+* If Resolve returns an error, return nil, error, done.
+* Call Compiler.Compile(id string, r io.Reader) (Module, error)
+* If Compile returns an error, return nil, error, done.
+* Call Module.Load(ctx), cache and return the value, done.
+*/
+
 type Ctx struct {
 	// Public fields
-	Protos []Func
-	Stdout io.ReadWriter  // The standard streams
-	Stdin  io.ReadWriter  // ...
-	Stderr io.ReadWriter  // ...
-	Logic  LogicProcessor // The boolean logic processor (And, Or, Not)
+	Protos   []Func
+	Stdout   io.ReadWriter  // The standard streams
+	Stdin    io.ReadWriter  // ...
+	Stderr   io.ReadWriter  // ...
+	Logic    LogicProcessor // The boolean logic processor (And, Or, Not)
+	Resolver ModuleResolver
+	Compiler Compiler
 
 	// Call stack
 	callstack []Func
@@ -35,40 +81,49 @@ type Ctx struct {
 	nativeMods map[string]Module // List of available native modules
 }
 
-func NewCtx() *Ctx {
+func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	return &Ctx{
-		nil,
-		os.Stdout,
-		os.Stdin,
-		os.Stderr,
-		defaultLogic{},
-		nil,
-		0,
-		nil,
-		0,
-		make(map[string]Val),
-		make(map[string]Module),
+		Stdout:     os.Stdout,
+		Stdin:      os.Stdin,
+		Stderr:     os.Stderr,
+		Logic:      defaultLogic{},
+		Resolver:   resolver,
+		Compiler:   comp,
+		loadedMods: make(map[string]Val),
+		nativeMods: make(map[string]Module),
 	}
 }
 
-func Run() interface{} {
-	return DefaultCtx.Run()
-}
-
-func (ø *Ctx) Run() interface{} {
-	if len(ø.Protos) == 0 {
-		panic("no function available in this context")
+func (ø *Ctx) Load(id string) (Val, error) {
+	if id == "" {
+		return nil, ErrModuleNotFound
 	}
-	f := ø.Protos[0]
-	return f.Call().Native()
+	if v, ok := ø.loadedMods[id]; ok {
+		return v, nil
+	}
+	if m, ok := ø.nativeMods[id]; ok {
+		ø.loadedMods[id] = m.Load(ø)
+		return ø.loadedMods[id], nil
+	}
+	r, err := ø.Resolver.Resolve(id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if rc, ok := r.(io.ReadCloser); ok {
+			rc.Close()
+		}
+	}()
+	m, err := ø.Compiler.Compile(id, r)
+	if err != nil {
+		return nil, err
+	}
+	ø.loadedMods[id] = m.Load(ø)
+	return ø.loadedMods[id], nil
 }
 
-func RegisterModule(nm string, m Module) {
-	DefaultCtx.RegisterModule(nm, m)
-}
-
-func (ø *Ctx) RegisterModule(nm string, m Module) {
-	ø.nativeMods[nm] = m
+func (ø *Ctx) RegisterModule(id string, m Module) {
+	ø.nativeMods[id] = m
 }
 
 func (ø *Ctx) push(f Func, fvm *funcVM) {

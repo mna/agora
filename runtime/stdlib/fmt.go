@@ -6,15 +6,11 @@ import (
 	"github.com/PuerkitoBio/goblin/runtime"
 )
 
-func init() {
-	runtime.RegisterModule("fmt", fmtMod{})
-}
-
-type fmtMod struct {
+type FmtMod struct {
 	ctx *runtime.Ctx
 }
 
-func (ø fmtMod) Load(ctx *runtime.Ctx) runtime.Val {
+func (ø FmtMod) Load(ctx *runtime.Ctx) runtime.Val {
 	ø.ctx = ctx
 	ob := runtime.NewObject()
 	ob.Set(runtime.String("Println"), runtime.NewNativeFunc(ctx, "fmt.Println", ø.fmt_Println))
@@ -34,7 +30,7 @@ func toNative(args []runtime.Val) []interface{} {
 	return ifs
 }
 
-func (ø fmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
+func (ø FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	ifs := toNative(args)
 	n, err := fmt.Fprintln(ø.ctx.Stdout, ifs...)
 	if err != nil {
@@ -43,7 +39,7 @@ func (ø fmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	return runtime.Int(n)
 }
 
-func (ø fmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
+func (ø FmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
 	var ft string
 	if len(args) > 0 {
 		ft = args[0].String()
