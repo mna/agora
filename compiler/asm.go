@@ -10,13 +10,12 @@ import (
 )
 
 var (
-	s *bufio.Scanner
 	m map[string]func(*runtime.GoblinFunc)
 )
 
-func Asm(r io.Reader) *runtime.Ctx {
-	ctx := runtime.NewCtx()
-	s = bufio.NewScanner(r)
+func Compile(id string, r io.Reader) (runtime.Module, error) {
+	s := bufio.NewScanner(r)
+	mod := runtime.NewGoblinModule(id)
 
 	m = map[string]func(*runtime.GoblinFunc){
 		"[f]": func(_ *runtime.GoblinFunc) {

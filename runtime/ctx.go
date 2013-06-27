@@ -10,11 +10,35 @@ import (
 )
 
 var (
-	ErrModuleNotFound = errors.New("module not found")
+	ErrModuleNotFound  = errors.New("module not found")
+	ErrModuleHasNoFunc = errors.New("module has no function")
 )
 
 type Module interface {
 	Load(*Ctx) Val
+}
+
+type GoblinModule struct {
+	ID  string
+	Fns []*GoblinFunc
+	Ks  []Val
+	Is  []Instr
+}
+
+func NewGoblinModule(id string) *GoblinModule {
+	return &GoblinModule{
+		ID: id,
+	}
+}
+
+func (ø *GoblinModule) Load(ctx *Ctx) Val {
+	if len(ø.Fns) == 0 {
+		panic(ErrModuleHasNoFunc)
+	}
+	for i, _ := range ø.Fns {
+		ø.Fns[i].ctx = ctx
+	}
+	return ø.Fns[0].Call()
 }
 
 type ModuleResolver interface {
