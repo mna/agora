@@ -2,8 +2,13 @@ package runtime
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"math"
+)
+
+var (
+	ErrValNotAnObject = errors.New("value is not an object")
 )
 
 type funcVM struct {
@@ -32,7 +37,7 @@ func (ø *funcVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if ø.sp == len(ø.stack) {
 		if ø.sp == cap(ø.stack) {
-			fmt.Printf("DEBUG expanding stack of func %s, current size: %d\n", ø.proto.Name, len(ø.stack))
+			fmt.Printf("DEBUG expanding stack of func %s, current size: %d\n", ø.proto.name, len(ø.stack))
 		}
 		ø.stack = append(ø.stack, v)
 	} else {
@@ -61,7 +66,7 @@ func (ø *funcVM) getVal(flg Flag, ix uint64) Val {
 	case FLG_T:
 		return ø.this
 	case FLG_F:
-		return ø.ctx.Protos[ix]
+		return ø.proto.ctx.Protos[ix]
 	case FLG_AA:
 		return ø.args[ix]
 	}
@@ -69,11 +74,11 @@ func (ø *funcVM) getVal(flg Flag, ix uint64) Val {
 }
 
 func (ø *funcVM) dump() string {
-	buf := bytes.New(nil)
+	buf := bytes.NewBuffer(nil)
 	fmt.Fprintf(buf, "\n> %s\n", ø.proto.dump())
 	// Constants
 	fmt.Fprintf(buf, "  Constants:\n")
-	for i, v := range ø.proto.KTable {
+	for i, v := range ø.proto.kTable {
 		fmt.Fprintf(buf, "    [%3d] %s\n", i, v.dump())
 	}
 	// Variables
@@ -106,8 +111,8 @@ func (ø *funcVM) dump() string {
 		} else {
 			fmt.Fprintf(buf, "    ")
 		}
-		if i < len(ø.proto.Code) {
-			fmt.Fprintf(buf, "[%3d] %s\n", i, ø.proto.Code[i])
+		if i < len(ø.proto.code) {
+			fmt.Fprintf(buf, "[%3d] %s\n", i, ø.proto.code[i])
 		} else {
 			break
 		}
@@ -119,11 +124,11 @@ func (ø *funcVM) dump() string {
 
 func (ø *funcVM) run(args ...Val) Val {
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
-	for j, l := 0, len(args); j < ø.proto.ExpArgs; j++ {
+	for j, l := 0, len(args); j < ø.proto.expArgs; j++ {
 		if j < l {
-			ø.vars[ø.proto.KTable[j].String()] = args[j]
+			ø.vars[ø.proto.kTable[j].String()] = args[j]
 		} else {
-			ø.vars[ø.proto.KTable[j].String()] = Nil
+			ø.vars[ø.proto.kTable[j].String()] = Nil
 		}
 	}
 	// Keep the args array
@@ -132,7 +137,7 @@ func (ø *funcVM) run(args ...Val) Val {
 	// Execute the instructions
 	for {
 		// Get the instruction to process
-		i := ø.proto.Code[ø.pc]
+		i := ø.proto.code[ø.pc]
 		// Decode the instruction
 		op, flg, ix := i.Opcode(), i.Flag(), i.Index()
 		// Increment the PC, if a jump requires a different PC delta, it will set it explicitly
@@ -146,7 +151,7 @@ func (ø *funcVM) run(args ...Val) Val {
 			ø.push(ø.getVal(flg, ix))
 
 		case OP_POP:
-			if nm, v := ø.proto.KTable[ix].String(), ø.pop(); !ø.ctx.setVar(nm, v) {
+			if nm, v := ø.proto.kTable[ix].String(), ø.pop(); !ø.proto.ctx.setVar(nm, v) {
 				// Not found anywhere, create variable locally
 				ø.vars[nm] = v
 			}
@@ -177,7 +182,7 @@ func (ø *funcVM) run(args ...Val) Val {
 
 		case OP_NOT:
 			x := ø.pop()
-			ø.push(ø.ctx.logic.Not(x))
+			ø.push(ø.proto.ctx.Logic.Not(x))
 
 		case OP_UNM:
 			x := ø.pop()
@@ -187,14 +192,18 @@ func (ø *funcVM) run(args ...Val) Val {
 			// ix is the number of args
 			// Pop the function itself, ensure it is a function
 			x := ø.pop()
-			fn := newFunc(ø.ctx, x.(*FuncProto))
+			f, ok := x.(Func)
+			if !ok {
+				// TODO : Make an ErrXxx
+				panic("call on a non-function value")
+			}
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
 				args[j-1] = ø.pop()
 			}
 			// Call the function, and store the return value on the stack
-			ø.push(fn.Call(args...))
+			ø.push(f.Call(args...))
 
 		case OP_EQ:
 			y, x := ø.pop(), ø.pop()
@@ -223,11 +232,11 @@ func (ø *funcVM) run(args ...Val) Val {
 
 		case OP_AND:
 			y, x := ø.pop(), ø.pop()
-			ø.push(ø.ctx.logic.And(x, y))
+			ø.push(ø.proto.ctx.Logic.And(x, y))
 
 		case OP_OR:
 			y, x := ø.pop(), ø.pop()
-			ø.push(ø.ctx.logic.Or(x, y))
+			ø.push(ø.proto.ctx.Logic.Or(x, y))
 
 		case OP_TEST:
 			if !ø.pop().Bool() {
@@ -243,18 +252,27 @@ func (ø *funcVM) run(args ...Val) Val {
 			ø.pc += int(ix)
 
 		case OP_NEW:
-			ø.push(newObject(ø.ctx))
+			ø.push(NewObject())
 
 		case OP_DUMP:
-			ø.dumpAll()
+			// Dumps `ix` number of stack traces
+			ø.proto.ctx.dump(int(ix)) // TODO : check int value
 
 		case OP_SFLD:
 			vr, k, vl := ø.pop(), ø.pop(), ø.pop()
-			vr.(*Object).set(k.String(), vl) // TODO : Detect valid type to give good error message
+			if ob, ok := vr.(*Object); ok {
+				ob.Set(k, vl)
+			} else {
+				panic(ErrValNotAnObject)
+			}
 
 		case OP_GFLD:
 			vr, k := ø.pop(), ø.pop()
-			ø.push(vr.(*Object).get(k.String())) // TODO : Detect valid type to give good error message
+			if ob, ok := vr.(*Object); ok {
+				ø.push(ob.Get(k))
+			} else {
+				panic(ErrValNotAnObject)
+			}
 
 		case OP_CFLD:
 			vr, k := ø.pop(), ø.pop()
@@ -263,7 +281,11 @@ func (ø *funcVM) run(args ...Val) Val {
 			for j := ix; j > 0; j-- {
 				args[j-1] = ø.pop()
 			}
-			ø.push(vr.(*Object).callMethod(k.String(), args...))
+			if ob, ok := vr.(*Object); ok {
+				ø.push(ob.callMethod(k, args...))
+			} else {
+				panic(ErrValNotAnObject)
+			}
 
 		default:
 			panic(fmt.Sprintf("unknown opcode %s", op))

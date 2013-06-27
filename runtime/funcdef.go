@@ -5,6 +5,7 @@ type FuncFn func(...Val) Val
 
 // A Func value in Goblin is a Val that also implements the Func interface.
 type Func interface {
+	Val
 	Call(...Val) Val
 }
 
@@ -56,9 +57,9 @@ func (ø *GoblinFunc) Cmp(v Val) int {
 }
 
 func (ø *GoblinFunc) Call(args ...Val) Val {
-	ø.ctx.push(ø)
-	defer ø.ctx.pop()
 	vm := newFuncVM(ø)
+	ø.ctx.push(ø, vm)
+	defer ø.ctx.pop(true)
 	return vm.run(args...)
 }
 
@@ -82,7 +83,7 @@ func (ø *NativeFunc) Cmp(v Val) int {
 }
 
 func (ø *NativeFunc) Call(args ...Val) Val {
-	ø.ctx.push(ø)
-	defer ø.ctx.pop()
+	ø.ctx.push(ø, nil)
+	defer ø.ctx.pop(false)
 	return ø.fn(args...)
 }

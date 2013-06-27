@@ -49,7 +49,7 @@ type Val interface {
 	dumper
 }
 
-type Logic interface {
+type LogicProcessor interface {
 	Not(v Val) Bool
 	And(x, y Val) Bool
 	Or(x, y Val) Bool

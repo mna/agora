@@ -11,16 +11,16 @@ import (
 
 var (
 	s *bufio.Scanner
-	m map[string]func(*runtime.FuncProto)
+	m map[string]func(*runtime.GoblinFunc)
 )
 
 func Asm(r io.Reader) *runtime.Ctx {
 	ctx := runtime.NewCtx()
 	s = bufio.NewScanner(r)
 
-	m = map[string]func(*runtime.FuncProto){
-		"[f]": func(_ *runtime.FuncProto) {
-			p := &runtime.FuncProto{}
+	m = map[string]func(*runtime.GoblinFunc){
+		"[f]": func(_ *runtime.GoblinFunc) {
+			var p *runtime.GoblinFunc
 			i := 0
 			for s.Scan() {
 				switch i {

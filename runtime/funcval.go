@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"errors"
+	"fmt"
 )
 
 var (
@@ -26,7 +27,7 @@ type funcVal struct {
 }
 
 func (ø *funcVal) dump() string {
-	return fmt.Sprintf("%s (Func)", ø.Name)
+	return fmt.Sprintf("%s (Func)", ø.name)
 }
 
 // Int is an invalid conversion.
