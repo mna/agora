@@ -1,7 +1,12 @@
-//
-// import "fmt" // implicit fmt variable
-// fmt.Println("Hello ", "world")
-//
+package compiler
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestAsm(t *testing.T) {
+	src := `
 [f]
 3
 0
@@ -25,3 +30,12 @@ CFLD A 2
 PUSH N 0 // <-Nil
 DUMP
 RET
+`
+
+	a := &Asm{}
+	b, err := a.Compile("test", strings.NewReader(src))
+	if err != nil {
+		panic(err)
+	}
+	t.Log(b)
+}

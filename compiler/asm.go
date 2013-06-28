@@ -2,133 +2,168 @@ package compiler
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"github.com/PuerkitoBio/goblin/runtime"
 	"io"
 	"strconv"
 	"strings"
-
-	"github.com/PuerkitoBio/goblin/runtime"
 )
 
 var (
-	m map[string]func(*runtime.GoblinFunc)
+	ErrMissingStackSz   = errors.New("missing stack size")
+	ErrMissingArgsCnt   = errors.New("missing arguments count")
+	ErrMissingVarsCnt   = errors.New("missing variables count")
+	ErrMissingLineStart = errors.New("missing line start")
+	ErrMissingLineEnd   = errors.New("missing line end")
+	ErrMissingFnNm      = errors.New("missing function name")
 )
 
-func Compile(id string, r io.Reader) (runtime.Module, error) {
+type Asm struct {
+	ended bool
+}
+
+func (ø *Asm) Compile(id string, r io.Reader) ([]byte, error) {
+	var line string
+
 	s := bufio.NewScanner(r)
-	mod := runtime.NewGoblinModule(id)
+	buf := bytes.NewBuffer(nil)
 
-	m = map[string]func(*runtime.GoblinFunc){
-		"[f]": func(_ *runtime.GoblinFunc) {
-			var p *runtime.GoblinFunc
-			i := 0
-			for s.Scan() {
-				switch i {
-				case 0:
-					if s.Text() == "true" {
-						p.IsNative = true
-						i = 2
-					} else {
-						// Stack size
-						p.StackSz, _ = strconv.Atoi(s.Text())
-					}
-				case 1:
-					// Expected args count
-					p.ExpArgs, _ = strconv.Atoi(s.Text())
-				case 2:
-					// Expected vars count
-					p.ExpVars, _ = strconv.Atoi(s.Text())
-				case 3:
-					p.Name = s.Text()
-					if p.IsNative {
-						i = 1000
-					}
-				case 4:
-					// File name
-					p.Dbg.File = s.Text()
-				case 5:
-					// Line start
-					p.Dbg.LineStart, _ = strconv.Atoi(s.Text())
-				case 6:
-					// Line end
-					p.Dbg.LineEnd, _ = strconv.Atoi(s.Text())
-				default:
-					ctx.Protos = append(ctx.Protos, p)
-					// Find where to go from here
-					f := m[s.Text()]
-					f(p)
-				}
-				i++
-			}
-			// If finished scanning, but last p is native func, then it hasn't been added
-			// to the Protos, because there's no other section in a native func (no [v] or [k]...)
-			if p.IsNative {
-				ctx.Protos = append(ctx.Protos, p)
-			}
-		},
-
-		"[k]": func(p *runtime.FuncProto) {
-			for s.Scan() {
-				tline := strings.TrimSpace(s.Text())
-				if f, ok := m[tline]; ok {
-					f(p)
-					return
-				}
-				line := s.Text()
-
-				switch line[0] {
-				case 'i':
-					// Integer
-					i := runtime.String(line[1:]).Int()
-					p.KTable = append(p.KTable, runtime.Int(i))
-				case 'f':
-					// Float
-					f := runtime.String(line[1:]).Float()
-					p.KTable = append(p.KTable, runtime.Float(f))
-				case 's':
-					// String
-					p.KTable = append(p.KTable, runtime.String(line[1:]))
-				case 'b':
-					// Boolean
-					p.KTable = append(p.KTable, runtime.Bool(line[1] == '1'))
-				case 'n':
-					// Nil
-					p.KTable = append(p.KTable, runtime.Nil)
-				default:
-					panic("invalid constant value type")
-				}
-			}
-			panic("missing instructions section [i]")
-		},
-
-		"[i]": func(p *runtime.FuncProto) {
-			for s.Scan() {
-				line := strings.TrimSpace(s.Text())
-				if f, ok := m[line]; ok {
-					f(p)
-					return
-				}
-				parts := strings.Fields(line)
-				l := len(parts)
-				var (
-					op  runtime.Opcode
-					flg runtime.Flag
-					ix  int64
-				)
-				op = runtime.NewOpcode(parts[0])
-				if l > 1 {
-					flg = runtime.NewFlag(parts[1])
-					ix, _ = strconv.ParseInt(parts[2], 10, 64)
-				}
-				p.Code = append(p.Code, runtime.NewInstr(op, flg, uint64(ix)))
-			}
-		},
+	if err := binary.Write(buf, binary.LittleEndian, _SIG); err != nil {
+		return nil, err
 	}
-
-	for s.Scan() {
-		line := strings.TrimSpace(s.Text())
-		if f, ok := m[line]; ok {
-			f(nil)
+	for ø.ended = !s.Scan(); !ø.ended; ø.ended = !s.Scan() {
+		line = strings.TrimSpace(s.Text())
+		if line == "[f]" || line == "[k]" || line == "[i]" {
+			break
 		}
 	}
-	return ctx
+	if err := s.Err(); err != nil {
+		return nil, err
+	}
+
+	for !ø.ended {
+		switch line {
+		case "[f]":
+			// Read a func
+			f := new(fn)
+			if !ø.loadInt64(s, &f.stackSz) {
+				return nil, ErrMissingStackSz
+			}
+			if !ø.loadInt64(s, &f.args) {
+				return nil, ErrMissingArgsCnt
+			}
+			if !ø.loadInt64(s, &f.vars) {
+				return nil, ErrMissingVarsCnt
+			}
+			if !ø.loadInt64(s, &f.lineStart) {
+				return nil, ErrMissingLineStart
+			}
+			if !ø.loadInt64(s, &f.lineEnd) {
+				return nil, ErrMissingLineEnd
+			}
+			if !s.Scan() {
+				return nil, ErrMissingFnNm
+			}
+			nm := s.Text()
+			f.nmSz = int64(len(nm))
+			if err := binary.Write(buf, binary.LittleEndian, f); err != nil {
+				return nil, err
+			}
+			if err := binary.Write(buf, binary.LittleEndian, []byte(nm)); err != nil {
+				return nil, err
+			}
+			if !s.Scan() {
+				break
+			}
+			line = strings.TrimSpace(s.Text())
+
+		case "[k]":
+			for {
+				if t, v, ok := ø.loadK(s); ok {
+					// Write the K type
+					if err := binary.Write(buf, binary.LittleEndian, t); err != nil {
+						return nil, err
+					}
+					if t == 's' {
+						// Write the string length
+						if err := binary.Write(buf, binary.LittleEndian, int64(len(v.([]byte)))); err != nil {
+							return nil, err
+						}
+					}
+					if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
+						return nil, err
+					}
+				} else {
+					line = strings.TrimSpace(s.Text())
+					break
+				}
+			}
+
+		case "[i]":
+			for {
+				if i, ok := ø.loadI(s); ok {
+					if err := binary.Write(buf, binary.LittleEndian, i); err != nil {
+						return nil, err
+					}
+				} else {
+					line = strings.TrimSpace(s.Text())
+					break
+				}
+			}
+		}
+	}
+	return buf.Bytes(), nil
+}
+
+func (ø *Asm) loadI(s *bufio.Scanner) (uint64, bool) {
+	if !s.Scan() {
+		ø.ended = true
+		return 0, false
+	}
+	line := strings.TrimSpace(s.Text())
+	if line[0] == '[' {
+		return 0, false
+	}
+	flds := strings.Fields(s.Text())
+	op := runtime.NewOpcode(flds[0])
+	var f runtime.Flag
+	var ix uint64
+	if len(flds) > 1 {
+		f = runtime.NewFlag(flds[1])
+		i, _ := strconv.Atoi(flds[2])
+		ix = uint64(i)
+	}
+	return uint64(runtime.NewInstr(op, f, ix)), true
+}
+
+func (ø *Asm) loadK(s *bufio.Scanner) (byte, interface{}, bool) {
+	if !s.Scan() {
+		ø.ended = true
+		return byte(0), nil, false
+	}
+	line := strings.TrimSpace(s.Text())
+	switch line[0] {
+	case 'i', 'b':
+		v, _ := strconv.Atoi(line[1:])
+		return line[0], v, true
+	case 'f':
+		v, _ := strconv.ParseFloat(line[1:], 64)
+		return line[0], v, true
+	case 's':
+		return line[0], []byte(line[1:]), true
+	}
+	return byte(0), nil, false
+}
+
+func (ø *Asm) loadInt64(s *bufio.Scanner, dest *int64) bool {
+	if !s.Scan() {
+		ø.ended = true
+		return false
+	}
+	i, _ := strconv.Atoi(s.Text())
+	*dest = int64(i)
+	return true
 }
