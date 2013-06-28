@@ -72,19 +72,10 @@ type Compiler interface {
 	Compile(string, io.Reader) ([]byte, error)
 }
 
-/*
-Sequence for loading, compiling, and bootstrapping execution:
-
-* Get or create a Ctx (DefaultCtx or NewCtx())
-* ctx.LoadFile(id string) (Val, error)
-* If module is cached (ctx.loadedMods), return the Val, done.
-* If module is native (ctx.nativeMods), call Module.Load(ctx), cache and return the value, done.
-* If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
-* If Resolve returns an error, return nil, error, done.
-* Call Compiler.Compile(id string, r io.Reader) (Module, error)
-* If Compile returns an error, return nil, error, done.
-* Call Module.Load(ctx), cache and return the value, done.
-*/
+type frame struct {
+	f   Func
+	fvm *funcVM
+}
 
 type Ctx struct {
 	// Public fields
@@ -97,12 +88,8 @@ type Ctx struct {
 	Compiler Compiler
 
 	// Call stack
-	callstack []Func
-	callsp    int
-
-	// Nested scopes - like call stack, but only for funcVM.run() calls
-	scopes  []*funcVM
-	scopesp int
+	frames []*frame
+	frmsp  int
 
 	// Modules management
 	loadedMods map[string]Val    // Modules export a Val
@@ -122,6 +109,21 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	}
 }
 
+/*
+Sequence for loading, compiling, and bootstrapping execution:
+
+* Get or create a Ctx (DefaultCtx or NewCtx())
+* ctx.LoadFile(id string) (Val, error)
+* If module is cached (ctx.loadedMods), return the Val, done.
+* If module is native (ctx.nativeMods), call Module.Load(ctx), cache and return the value, done.
+* If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
+* If Resolve returns an error, return nil, error, done.
+* Call Compiler.Compile(id string, r io.Reader) ([]byte, error)
+* If Compile returns an error, return nil, error, done.
+* Call Undump(b) (Module, error)
+* If Undump returns an error, return nil, error, done.
+* Call Module.Load(ctx), cache and return the value, done.
+*/
 func (ø *Ctx) Load(id string) (Val, error) {
 	if id == "" {
 		return nil, ErrModuleNotFound
@@ -166,42 +168,28 @@ func (ø *Ctx) RegisterModule(m Module) {
 
 func (ø *Ctx) push(f Func, fvm *funcVM) {
 	// Stack has to grow as needed
-	if ø.callsp == len(ø.callstack) {
-		if ø.callsp == cap(ø.callstack) {
-			fmt.Printf("DEBUG expanding call stack of ctx, current size: %d\n", len(ø.callstack))
+	if ø.frmsp == len(ø.frames) {
+		if ø.frmsp == cap(ø.frames) {
+			fmt.Printf("DEBUG expanding frames of ctx, current size: %d\n", len(ø.frames))
 		}
-		ø.callstack = append(ø.callstack, f)
+		ø.frames = append(ø.frames, &frame{f, fvm})
 	} else {
-		ø.callstack[ø.callsp] = f
+		ø.frames[ø.frmsp] = &frame{f, fvm}
 	}
-	ø.callsp++
-
-	// fvm may be nil, if f is native
-	if ø.scopesp == len(ø.scopes) {
-		if ø.scopesp == cap(ø.scopes) {
-			fmt.Printf("DEBUG expanding scopes of ctx, current size: %d\n", len(ø.scopes))
-		}
-		ø.scopes = append(ø.scopes, fvm)
-	} else {
-		ø.scopes[ø.scopesp] = fvm
-	}
-	ø.scopesp++
+	ø.frmsp++
 }
 
 func (ø *Ctx) pop() {
-	ø.callsp--
-	ø.callstack[ø.callsp] = nil // free this reference for gc
-
-	ø.scopesp--
-	ø.scopes[ø.scopesp] = nil // free this reference for gc
+	ø.frmsp--
+	ø.frames[ø.frmsp] = nil // free this reference for gc
 }
 
 func (ø *Ctx) getVar(nm string) (Val, bool) {
-	// Current scope is ø.scopesp - 1
-	for i := ø.scopesp - 1; i >= 0; i-- {
-		f := ø.scopes[i]
-		if f != nil {
-			if v, ok := f.vars[nm]; ok {
+	// Current frame is ø.frmsp - 1
+	for i := ø.frmsp - 1; i >= 0; i-- {
+		frm := ø.frames[i]
+		if frm.fvm != nil {
+			if v, ok := frm.fvm.vars[nm]; ok {
 				return v, true
 			}
 		}
@@ -210,12 +198,12 @@ func (ø *Ctx) getVar(nm string) (Val, bool) {
 }
 
 func (ø *Ctx) setVar(nm string, v Val) bool {
-	// Current scope is ø.scopesp - 1
-	for i := ø.scopesp - 1; i >= 0; i-- {
-		f := ø.scopes[i]
-		if f != nil {
-			if _, ok := f.vars[nm]; ok {
-				f.vars[nm] = v
+	// Current frame is ø.frmsp - 1
+	for i := ø.frmsp - 1; i >= 0; i-- {
+		frm := ø.frames[i]
+		if frm.fvm != nil {
+			if _, ok := frm.fvm.vars[nm]; ok {
+				frm.fvm.vars[nm] = v
 				return true
 			}
 		}
@@ -227,12 +215,12 @@ func (ø *Ctx) dump(n int) {
 	if n < 0 {
 		return
 	}
-	for i, cnt := ø.callsp, ø.callsp-n; i > 0 && i > cnt; i-- {
-		fmt.Fprintf(ø.Stdout, "[Call Stack %3d]\n================\n", i-1)
-		if fvm := ø.scopes[i-1]; fvm != nil {
-			fmt.Fprintln(ø.Stdout, fvm.dump())
+	for i, cnt := ø.frmsp, ø.frmsp-n; i > 0 && i > cnt; i-- {
+		fmt.Fprintf(ø.Stdout, "[Frame %3d]\n===========\n", i-1)
+		if frm := ø.frames[i-1]; frm.fvm != nil {
+			fmt.Fprintln(ø.Stdout, frm.fvm.dump())
 		} else {
-			fmt.Fprintln(ø.Stdout, ø.callstack[i-1].(dumper).dump())
+			fmt.Fprintln(ø.Stdout, frm.f.(dumper).dump())
 		}
 	}
 }
