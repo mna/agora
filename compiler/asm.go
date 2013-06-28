@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
-	"github.com/PuerkitoBio/goblin/runtime"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/PuerkitoBio/goblin/runtime"
 )
 
 var (
@@ -21,6 +21,14 @@ var (
 	ErrMissingFnNm      = errors.New("missing function name")
 )
 
+type fn struct {
+	stackSz   int64
+	args      int64
+	vars      int64
+	lineStart int64
+	lineEnd   int64
+}
+
 type Asm struct {
 	ended bool
 }
@@ -31,7 +39,12 @@ func (ø *Asm) Compile(id string, r io.Reader) ([]byte, error) {
 	s := bufio.NewScanner(r)
 	buf := bytes.NewBuffer(nil)
 
-	if err := binary.Write(buf, binary.LittleEndian, _SIG); err != nil {
+	// Write the header signature (bytes 0x60B114)
+	if err := binary.Write(buf, binary.LittleEndian, runtime.SIG); err != nil {
+		return nil, err
+	}
+	// Write the module's id
+	if err := ø.writeString(buf, id); err != nil {
 		return nil, err
 	}
 	for ø.ended = !s.Scan(); !ø.ended; ø.ended = !s.Scan() {
@@ -64,15 +77,14 @@ func (ø *Asm) Compile(id string, r io.Reader) ([]byte, error) {
 			if !ø.loadInt64(s, &f.lineEnd) {
 				return nil, ErrMissingLineEnd
 			}
+			if err := binary.Write(buf, binary.LittleEndian, f); err != nil {
+				return nil, err
+			}
 			if !s.Scan() {
 				return nil, ErrMissingFnNm
 			}
 			nm := s.Text()
-			f.nmSz = int64(len(nm))
-			if err := binary.Write(buf, binary.LittleEndian, f); err != nil {
-				return nil, err
-			}
-			if err := binary.Write(buf, binary.LittleEndian, []byte(nm)); err != nil {
+			if err := ø.writeString(buf, nm); err != nil {
 				return nil, err
 			}
 			if !s.Scan() {
@@ -81,34 +93,56 @@ func (ø *Asm) Compile(id string, r io.Reader) ([]byte, error) {
 			line = strings.TrimSpace(s.Text())
 
 		case "[k]":
+			cntK := int64(0)
+			bufK := bytes.NewBuffer(nil)
 			for {
 				if t, v, ok := ø.loadK(s); ok {
+					cntK++
 					// Write the K type
-					if err := binary.Write(buf, binary.LittleEndian, t); err != nil {
+					if err := binary.Write(bufK, binary.LittleEndian, t); err != nil {
 						return nil, err
 					}
 					if t == 's' {
 						// Write the string length
-						if err := binary.Write(buf, binary.LittleEndian, int64(len(v.([]byte)))); err != nil {
+						if err := binary.Write(bufK, binary.LittleEndian, int64(len(v.([]byte)))); err != nil {
 							return nil, err
 						}
 					}
-					if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
+					if err := binary.Write(bufK, binary.LittleEndian, v); err != nil {
 						return nil, err
 					}
 				} else {
+					// Write the number of Ks
+					if err := binary.Write(buf, binary.LittleEndian, cntK); err != nil {
+						return nil, err
+					}
+					// Append the bufK
+					if _, err := buf.Write(bufK.Bytes()); err != nil {
+						return nil, err
+					}
 					line = strings.TrimSpace(s.Text())
 					break
 				}
 			}
 
 		case "[i]":
+			cntI := int64(0)
+			bufI := bytes.NewBuffer(nil)
 			for {
 				if i, ok := ø.loadI(s); ok {
-					if err := binary.Write(buf, binary.LittleEndian, i); err != nil {
+					cntI++
+					if err := binary.Write(bufI, binary.LittleEndian, i); err != nil {
 						return nil, err
 					}
 				} else {
+					//Write the number of instructions
+					if err := binary.Write(buf, binary.LittleEndian, cntI); err != nil {
+						return nil, err
+					}
+					// Append the bufI
+					if _, err := buf.Write(bufI.Bytes()); err != nil {
+						return nil, err
+					}
 					line = strings.TrimSpace(s.Text())
 					break
 				}
@@ -116,6 +150,13 @@ func (ø *Asm) Compile(id string, r io.Reader) ([]byte, error) {
 		}
 	}
 	return buf.Bytes(), nil
+}
+
+func (ø *Asm) writeString(w io.Writer, s string) error {
+	if err := binary.Write(w, binary.LittleEndian, int64(len(s))); err != nil {
+		return err
+	}
+	return binary.Write(w, binary.LittleEndian, []byte(s))
 }
 
 func (ø *Asm) loadI(s *bufio.Scanner) (uint64, bool) {

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -15,30 +16,33 @@ var (
 )
 
 type Module interface {
+	ID() string
 	Load(*Ctx) Val
 }
 
-type GoblinModule struct {
-	ID  string
-	Fns []*GoblinFunc
-	Ks  []Val
-	Is  []Instr
+type goblinModule struct {
+	id  string
+	fns []*GoblinFunc
 }
 
-func NewGoblinModule(id string) *GoblinModule {
-	return &GoblinModule{
-		ID: id,
+func newGoblinModule(id string) *goblinModule {
+	return &goblinModule{
+		id: id,
 	}
 }
 
-func (ø *GoblinModule) Load(ctx *Ctx) Val {
-	if len(ø.Fns) == 0 {
+func (ø *goblinModule) Load(ctx *Ctx) Val {
+	if len(ø.fns) == 0 {
 		panic(ErrModuleHasNoFunc)
 	}
-	for i, _ := range ø.Fns {
-		ø.Fns[i].ctx = ctx
+	for i, _ := range ø.fns {
+		ø.fns[i].ctx = ctx
 	}
-	return ø.Fns[0].Call()
+	return ø.fns[0].Call()
+}
+
+func (ø *goblinModule) ID() string {
+	return ø.id
 }
 
 type ModuleResolver interface {
@@ -65,7 +69,7 @@ func (ø FileResolver) Resolve(id string) (io.Reader, error) {
 }
 
 type Compiler interface {
-	Compile(string, io.Reader) (Module, error)
+	Compile(string, io.Reader) ([]byte, error)
 }
 
 /*
@@ -122,13 +126,16 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	if id == "" {
 		return nil, ErrModuleNotFound
 	}
+	// If already loaded, return from cache
 	if v, ok := ø.loadedMods[id]; ok {
 		return v, nil
 	}
+	// If native module, get from native table
 	if m, ok := ø.nativeMods[id]; ok {
 		ø.loadedMods[id] = m.Load(ø)
 		return ø.loadedMods[id], nil
 	}
+	// Else, resolve the matching file from the module id
 	r, err := ø.Resolver.Resolve(id)
 	if err != nil {
 		return nil, err
@@ -138,16 +145,23 @@ func (ø *Ctx) Load(id string) (Val, error) {
 			rc.Close()
 		}
 	}()
-	m, err := ø.Compiler.Compile(id, r)
+	// Compile to bytecode
+	b, err := ø.Compiler.Compile(id, r)
 	if err != nil {
 		return nil, err
 	}
+	// Load the bytecode in memory
+	m, err := Undump(bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
+	// Load the module, cache and return
 	ø.loadedMods[id] = m.Load(ø)
 	return ø.loadedMods[id], nil
 }
 
-func (ø *Ctx) RegisterModule(id string, m Module) {
-	ø.nativeMods[id] = m
+func (ø *Ctx) RegisterModule(m Module) {
+	ø.nativeMods[m.ID()] = m
 }
 
 func (ø *Ctx) push(f Func, fvm *funcVM) {
@@ -162,35 +176,34 @@ func (ø *Ctx) push(f Func, fvm *funcVM) {
 	}
 	ø.callsp++
 
-	if fvm != nil { // fvm may be nil, if f is native
-		if ø.scopesp == len(ø.scopes) {
-			if ø.scopesp == cap(ø.scopes) {
-				fmt.Printf("DEBUG expanding scopes of ctx, current size: %d\n", len(ø.scopes))
-			}
-			ø.scopes = append(ø.scopes, fvm)
-		} else {
-			ø.scopes[ø.scopesp] = fvm
+	// fvm may be nil, if f is native
+	if ø.scopesp == len(ø.scopes) {
+		if ø.scopesp == cap(ø.scopes) {
+			fmt.Printf("DEBUG expanding scopes of ctx, current size: %d\n", len(ø.scopes))
 		}
-		ø.scopesp++
+		ø.scopes = append(ø.scopes, fvm)
+	} else {
+		ø.scopes[ø.scopesp] = fvm
 	}
+	ø.scopesp++
 }
 
-func (ø *Ctx) pop(scopeToo bool) {
+func (ø *Ctx) pop() {
 	ø.callsp--
 	ø.callstack[ø.callsp] = nil // free this reference for gc
 
-	if scopeToo {
-		ø.scopesp--
-		ø.scopes[ø.scopesp] = nil // free this reference for gc
-	}
+	ø.scopesp--
+	ø.scopes[ø.scopesp] = nil // free this reference for gc
 }
 
 func (ø *Ctx) getVar(nm string) (Val, bool) {
 	// Current scope is ø.scopesp - 1
 	for i := ø.scopesp - 1; i >= 0; i-- {
 		f := ø.scopes[i]
-		if v, ok := f.vars[nm]; ok {
-			return v, true
+		if f != nil {
+			if v, ok := f.vars[nm]; ok {
+				return v, true
+			}
 		}
 	}
 	return Nil, false
@@ -200,9 +213,11 @@ func (ø *Ctx) setVar(nm string, v Val) bool {
 	// Current scope is ø.scopesp - 1
 	for i := ø.scopesp - 1; i >= 0; i-- {
 		f := ø.scopes[i]
-		if _, ok := f.vars[nm]; ok {
-			f.vars[nm] = v
-			return true
+		if f != nil {
+			if _, ok := f.vars[nm]; ok {
+				f.vars[nm] = v
+				return true
+			}
 		}
 	}
 	return false
@@ -213,7 +228,11 @@ func (ø *Ctx) dump(n int) {
 		return
 	}
 	for i, cnt := ø.callsp, ø.callsp-n; i > 0 && i > cnt; i-- {
-		fmt.Fprintf(ø.Stdout, "[Call Stack %3d]\n===============\n", i-1)
-		fmt.Fprint(ø.Stdout, ø.callstack[i-1].(dumper).dump())
+		fmt.Fprintf(ø.Stdout, "[Call Stack %3d]\n================\n", i-1)
+		if fvm := ø.scopes[i-1]; fvm != nil {
+			fmt.Fprintln(ø.Stdout, fvm.dump())
+		} else {
+			fmt.Fprintln(ø.Stdout, ø.callstack[i-1].(dumper).dump())
+		}
 	}
 }

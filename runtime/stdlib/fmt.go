@@ -10,6 +10,10 @@ type FmtMod struct {
 	ctx *runtime.Ctx
 }
 
+func (ø FmtMod) ID() string {
+	return "fmt"
+}
+
 func (ø FmtMod) Load(ctx *runtime.Ctx) runtime.Val {
 	ø.ctx = ctx
 	ob := runtime.NewObject()

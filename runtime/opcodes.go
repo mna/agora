@@ -5,6 +5,7 @@ type Opcode byte
 
 const (
 	OP_RET Opcode = iota
+	OP_LOAD
 	OP_PUSH
 	OP_POP
 	OP_ADD
@@ -37,6 +38,7 @@ const (
 var (
 	OpNames = [...]string{
 		OP_RET:  "RET",
+		OP_LOAD: "LOAD",
 		OP_PUSH: "PUSH",
 		OP_POP:  "POP",
 		OP_ADD:  "ADD",
@@ -67,6 +69,7 @@ var (
 
 	OpLookup = map[string]Opcode{
 		"RET":  OP_RET,
+		"LOAD": OP_LOAD,
 		"PUSH": OP_PUSH,
 		"POP":  OP_POP,
 		"ADD":  OP_ADD,

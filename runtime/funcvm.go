@@ -147,6 +147,13 @@ func (ø *funcVM) run(args ...Val) Val {
 			// End this function call, return the value on top of the stack
 			return ø.pop()
 
+		case OP_LOAD:
+			v, err := ø.proto.ctx.Load(ø.getVal(flg, ix).String())
+			if err != nil {
+				panic(err)
+			}
+			ø.push(v)
+
 		case OP_PUSH:
 			ø.push(ø.getVal(flg, ix))
 

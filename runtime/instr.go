@@ -16,6 +16,7 @@ const (
 	FLG_nA               // Args count
 	FLG_AA               // Arguments array
 	FLG_J                // Jump over n instructions
+	FLG_S                // For debug, dump n Stack traces
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
@@ -30,6 +31,7 @@ var (
 		FLG_nA: "A",
 		FLG_AA: "AA",
 		FLG_J:  "J",
+		FLG_S:  "S",
 	}
 
 	FlagLookup = map[string]Flag{
@@ -42,6 +44,7 @@ var (
 		"A":  FLG_nA,
 		"AA": FLG_AA,
 		"J":  FLG_J,
+		"S":  FLG_S,
 	}
 )
 

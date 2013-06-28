@@ -19,20 +19,6 @@ func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
 	}
 }
 
-func NewGoblinFunc(ctx *Ctx, nm string) *GoblinFunc {
-	return &GoblinFunc{
-		&funcVal{
-			ctx,
-			nm,
-		},
-		0,
-		0,
-		0,
-		nil,
-		nil,
-	}
-}
-
 type GoblinFunc struct {
 	// Expose the default Func value's behaviour
 	*funcVal
@@ -43,6 +29,17 @@ type GoblinFunc struct {
 	expVars int
 	kTable  []Val
 	code    []Instr
+}
+
+func newGoblinFunc() *GoblinFunc {
+	return &GoblinFunc{
+		&funcVal{},
+		0,
+		0,
+		0,
+		nil,
+		nil,
+	}
 }
 
 func (ø *GoblinFunc) Native() interface{} {
@@ -59,7 +56,7 @@ func (ø *GoblinFunc) Cmp(v Val) int {
 func (ø *GoblinFunc) Call(args ...Val) Val {
 	vm := newFuncVM(ø)
 	ø.ctx.push(ø, vm)
-	defer ø.ctx.pop(true)
+	defer ø.ctx.pop()
 	return vm.run(args...)
 }
 
@@ -84,6 +81,6 @@ func (ø *NativeFunc) Cmp(v Val) int {
 
 func (ø *NativeFunc) Call(args ...Val) Val {
 	ø.ctx.push(ø, nil)
-	defer ø.ctx.pop(false)
+	defer ø.ctx.pop()
 	return ø.fn(args...)
 }
