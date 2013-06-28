@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 )
 
@@ -73,6 +74,23 @@ func (ø *funcVM) getVal(flg Flag, ix uint64) Val {
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
 
+func (ø *funcVM) dumpInstrInfo(w io.Writer, i Instr) {
+	switch i.Flag() {
+	case FLG_K:
+		fmt.Fprintf(w, " ; %s", ø.proto.kTable[i.Index()].dump())
+	case FLG_V:
+		fmt.Fprintf(w, " ; var %s", ø.proto.kTable[i.Index()])
+	case FLG_N:
+		fmt.Fprintf(w, " ; %s", Nil.dump())
+	case FLG_T:
+		fmt.Fprint(w, " ; [this]")
+	case FLG_F:
+		fmt.Fprintf(w, " ; %s", ø.proto.ctx.Protos[i.Index()].dump())
+	case FLG_AA:
+		fmt.Fprintf(w, " ; args[%d]", i.Index())
+	}
+}
+
 func (ø *funcVM) dump() string {
 	buf := bytes.NewBuffer(nil)
 	fmt.Fprintf(buf, "\n> %s\n", ø.proto.dump())
@@ -104,15 +122,17 @@ func (ø *funcVM) dump() string {
 	}
 	// Instructions
 	fmt.Fprintf(buf, "\n  Instructions:\n")
-	i = int(math.Max(0, float64(ø.pc-3)))
-	for i <= ø.pc+3 {
+	i = int(math.Max(0, float64(ø.pc-10)))
+	for i <= ø.pc+10 {
 		if i == ø.pc {
 			fmt.Fprintf(buf, "pc->")
 		} else {
 			fmt.Fprintf(buf, "    ")
 		}
 		if i < len(ø.proto.code) {
-			fmt.Fprintf(buf, "[%3d] %s\n", i, ø.proto.code[i])
+			fmt.Fprintf(buf, "[%3d] %s", i, ø.proto.code[i])
+			ø.dumpInstrInfo(buf, ø.proto.code[i])
+			fmt.Fprintln(buf)
 		} else {
 			break
 		}
