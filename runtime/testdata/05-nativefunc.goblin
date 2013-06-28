@@ -16,12 +16,12 @@ sHello
 sworld
 [i]
 LOAD K 0 // <-fmt
-DUMP S 3
 POP V 0 // ->fmt
+DUMP S 3
 PUSH K 2 // <-"Hello "
 PUSH K 3 // <-"world"
 PUSH K 1 // <-"Println"
-PUSH K 0 // <-"fmt"
+PUSH V 0 // <-"fmt"
 CFLD A 2
 PUSH N 0 // <-Nil
 RET

@@ -49,7 +49,7 @@ func (ø *funcVM) push(v Val) {
 func (ø *funcVM) pop() Val {
 	ø.sp--
 	v := ø.stack[ø.sp]
-	ø.stack[ø.sp] = nil // free this reference for gc
+	ø.stack[ø.sp] = Nil // free this reference for gc
 	return v
 }
 
