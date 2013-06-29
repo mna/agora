@@ -8,44 +8,45 @@
 [f]
 4
 0
-1
-<main>
-14-args-array.goblin
+2
 0
 4
+<main>
 [k]
+sfmt
 sf
 i17
 sfoo
 b0
 [i]
-PUSH F 1
+LOAD K 0
 POP V 0
-PUSH K 1
+PUSH F 1
+POP V 1
 PUSH K 2
 PUSH K 3
-PUSH V 0
+PUSH K 4
+PUSH V 1
 CALL A 3
 PUSH N 0
-DUMP
+DUMP S 1
 RET
 [f]
-4
+5
 0
 0
-f
-14-args-array.goblin
 1
 3
+f
 [k]
+sfmt
+sPrintln
 [i]
 PUSH AA 0
 PUSH AA 1
 PUSH AA 2
-PUSH F 2
-CALL A 3
+PUSH K 1
+PUSH V 0
+CFLD A 3
 PUSH N 0
 RET
-[f]
-true
-fmt.Println

@@ -1,4 +1,5 @@
 //
+// import "fmt"
 // a := {}
 // a.b = func(greet) {
 //   fmt.Println(this.c)
@@ -11,59 +12,60 @@
 3
 0
 1
-
-11-call-method.goblin
 0
 6
+<main>
 [k]
+sfmt
 sa
 sb
 sc
 shi
 syou
 [i]
-NEW
+LOAD K 0
 POP V 0
+NEW
+POP V 1
 PUSH F 1 // Push func index 1 on stack
-PUSH K 1 // Push string 'b'
-PUSH V 0
-SFLD // Set field sp-1[sp-2]=sp-3 (pops 3 from stack)
-PUSH K 3
-PUSH K 2
-PUSH V 0
-SFLD
+PUSH K 2 // Push string 'b'
+PUSH V 1
+SFLD 
 PUSH K 4
-PUSH K 1
-PUSH V 0
+PUSH K 3
+PUSH V 1
+SFLD
+PUSH K 5
+PUSH K 2
+PUSH V 1
 CFLD A 1 // Call field sp-1[sp-2], pops 2, calls as method with the specified number of args
-DUMP
+DUMP S 1
 RET
 [f]
 3
 1
 1
-
-11-call-method.goblin
-1
-4
+2
+5
+a.b
 [k]
 sgreet
+sfmt
+sPrintln
 sc
 s, 
 [i]
-PUSH K 1
+PUSH K 3
 PUSH T 0 // Push "this", index unused
 GFLD
-PUSH F 2
-CALL A 1
-PUSH K 1
+PUSH K 2
+PUSH V 1
+CFLD A 1
+PUSH K 3
 PUSH T 0
 GFLD
-PUSH K 2
+PUSH K 4
 ADD
 PUSH V 0
 ADD
 RET
-[f]
-true
-fmt.Println

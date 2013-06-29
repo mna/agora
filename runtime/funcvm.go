@@ -101,6 +101,9 @@ func (ø *funcVM) dump() string {
 	}
 	// Variables
 	fmt.Fprintf(buf, "\n  Variables:\n")
+	if ø.this != nil {
+		fmt.Fprintf(buf, "    [this] = %s\n", ø.this.dump())
+	}
 	for k, v := range ø.vars {
 		fmt.Fprintf(buf, "    %s = %s\n", k, v.dump())
 	}
@@ -230,7 +233,7 @@ func (ø *funcVM) run(args ...Val) Val {
 				args[j-1] = ø.pop()
 			}
 			// Call the function, and store the return value on the stack
-			ø.push(f.Call(args...))
+			ø.push(f.Call(nil, args...))
 
 		case OP_EQ:
 			y, x := ø.pop(), ø.pop()

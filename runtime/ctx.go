@@ -38,7 +38,7 @@ func (ø *goblinModule) Load(ctx *Ctx) Val {
 	for i, _ := range ø.fns {
 		ø.fns[i].ctx = ctx
 	}
-	return ø.fns[0].Call()
+	return ø.fns[0].Call(nil)
 }
 
 func (ø *goblinModule) ID() string {

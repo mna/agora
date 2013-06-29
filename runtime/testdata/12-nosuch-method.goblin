@@ -9,49 +9,50 @@
 [f]
 3
 0
-1
-
-12-nosuch-method.goblin
+2
 0
 5
+<main>
 [k]
+sfmt
 sa
 s__noSuchMethod
 sb
 i12
 [i]
-NEW
+LOAD K 0
 POP V 0
+NEW
+POP V 1
 PUSH F 1
-PUSH K 1
-PUSH V 0
-SFLD
-PUSH K 3
 PUSH K 2
-PUSH V 0
+PUSH V 1
+SFLD
+PUSH K 4
+PUSH K 3
+PUSH V 1
 CFLD A 1
 PUSH N 0
-DUMP
+DUMP S 1
 RET
 [f]
-2
+3
 1
 1
-
-11-call-method.goblin
 2
 4
+a.__noSuchMethod
 [k]
 snm
+sfmt
+sPrintln
 snot found:
 [i]
-PUSH K 1
+PUSH K 3
 PUSH V 0
 ADD
-PUSH F 2
-CALL A 1
+PUSH K 2
+PUSH V 1
+CFLD A 1
 PUSH N 0
 RET
-[f]
-true
-fmt.Println

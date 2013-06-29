@@ -9,10 +9,9 @@
 3
 0
 1
-
-10-new-object.goblin
 0
 4
+<main>
 [k]
 sa
 sb
@@ -44,5 +43,5 @@ SFLD
 PUSH K 5
 PUSH V 0
 GFLD
-DUMP
+DUMP S 1
 RET

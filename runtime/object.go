@@ -45,7 +45,7 @@ func (ø *Object) dump() string {
 func (ø *Object) Int() int {
 	if i, ok := ø.m[String("__toInt")]; ok {
 		if f, ok := i.(Func); ok {
-			return f.Call().Int()
+			return f.Call(ø).Int()
 		}
 	}
 	panic(ErrInvalidConvObjToInt)
@@ -54,7 +54,7 @@ func (ø *Object) Int() int {
 func (ø *Object) Float() float64 {
 	if l, ok := ø.m[String("__toFloat")]; ok {
 		if f, ok := l.(Func); ok {
-			return f.Call().Float()
+			return f.Call(ø).Float()
 		}
 	}
 	panic(ErrInvalidConvObjToFloat)
@@ -63,7 +63,7 @@ func (ø *Object) Float() float64 {
 func (ø *Object) String() string {
 	if s, ok := ø.m[String("__toString")]; ok {
 		if f, ok := s.(Func); ok {
-			return f.Call().String()
+			return f.Call(ø).String()
 		}
 	}
 	panic(ErrInvalidConvObjToString)
@@ -72,7 +72,7 @@ func (ø *Object) String() string {
 func (ø *Object) Bool() bool {
 	if b, ok := ø.m[String("__toBool")]; ok {
 		if f, ok := b.(Func); ok {
-			return f.Call().Bool()
+			return f.Call(ø).Bool()
 		}
 	}
 	// If __toBool is not defined, object returns true (since it is not nil)
@@ -82,7 +82,7 @@ func (ø *Object) Bool() bool {
 func (ø *Object) Native() interface{} {
 	if o, ok := ø.m[String("__toNative")]; ok {
 		if f, ok := o.(Func); ok {
-			return f.Call().Native()
+			return f.Call(ø).Native()
 		}
 	}
 	panic(ErrInvalidConvObjToNative)
@@ -92,7 +92,7 @@ func (ø *Object) Cmp(v Val) int {
 	// First check for a custom Cmp method
 	if c, ok := ø.m[String("__cmp")]; ok {
 		if f, ok := c.(Func); ok {
-			return f.Call(v).Int()
+			return f.Call(ø, v).Int()
 		}
 	}
 	// Else, default Cmp - if same reference as v, return 0 (equal)
@@ -105,7 +105,7 @@ func (ø *Object) Cmp(v Val) int {
 func (ø *Object) callBinaryMethod(nm String, err error, v Val) Val {
 	if m, ok := ø.m[nm]; ok {
 		if f, ok := m.(Func); ok {
-			return f.Call(v)
+			return f.Call(ø, v)
 		}
 	}
 	panic(err)
@@ -138,7 +138,7 @@ func (ø *Object) Pow(v Val) Val {
 func (ø *Object) Unm() Val {
 	if m, ok := ø.m[String("__unm")]; ok {
 		if f, ok := m.(Func); ok {
-			return f.Call()
+			return f.Call(ø)
 		}
 	}
 	panic(ErrInvalidOpUnmOnObj)
@@ -159,7 +159,7 @@ func (ø *Object) callMethod(nm Val, args ...Val) Val {
 	v, ok := ø.m[nm]
 	if ok {
 		if f, ok := v.(Func); ok {
-			return f.Call(args...)
+			return f.Call(ø, args...)
 		} else {
 			panic(ErrFieldNotFunction)
 		}
@@ -168,7 +168,7 @@ func (ø *Object) callMethod(nm Val, args ...Val) Val {
 		if m, ok := ø.m[String("__noSuchMethod")]; ok {
 			if f, ok := m.(Func); ok {
 				args = append([]Val{nm}, args...)
-				return f.Call(args...)
+				return f.Call(ø, args...)
 			}
 		}
 		panic(ErrNoSuchMethod)
