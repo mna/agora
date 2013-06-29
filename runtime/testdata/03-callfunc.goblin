@@ -2,17 +2,15 @@
 // func Add(x, y) { // Essentially means var Add = func ...
 //   return x + y
 // }
-//  
 // return Add(4, "198")
 //
 [f]
 3
 0
 1
-<main>
-03-callfunc.goblin
 0
-4
+3
+<main>
 [k]
 sAdd
 i4
@@ -24,16 +22,15 @@ PUSH K 1
 PUSH K 2
 PUSH V 0
 CALL A 2
-DUMP
+DUMP S 1
 RET
 [f]
 2
 2
 2
-Add
-03-callfunc.goblin
 0
 2
+Add
 [k]
 sx
 sy

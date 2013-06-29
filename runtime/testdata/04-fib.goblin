@@ -5,17 +5,15 @@
 //   }
 //   return Fib(n-1) + Fib(n-2)
 // }
-//  
 // return Fib(30)
 //
 [f]
 2
 0
 1
-<main>
-04-fib.goblin
 0
-7
+6
+<main>
 [k]
 sFib
 i30
@@ -25,16 +23,15 @@ POP V 0
 PUSH K 1
 PUSH V 0
 CALL A 1
-DUMP
+DUMP S 1
 RET
 [f]
 3
 1
 1
-Fib
-04-fib.goblin
 0
 5
+Fib
 [k]
 sn
 i2

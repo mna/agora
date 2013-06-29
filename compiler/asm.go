@@ -189,7 +189,7 @@ func (ø *Asm) loadK(s *bufio.Scanner) (byte, interface{}, bool) {
 	switch line[0] {
 	case 'i', 'b':
 		v, _ := strconv.Atoi(line[1:])
-		return line[0], v, true
+		return line[0], int64(v), true
 	case 'f':
 		v, _ := strconv.ParseFloat(line[1:], 64)
 		return line[0], v, true

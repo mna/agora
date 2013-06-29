@@ -30,7 +30,7 @@ func Undump(r io.Reader) (m Module, err error) {
 }
 
 func readFunc(r io.Reader, m *goblinModule) {
-	f := newGoblinFunc()
+	f := newGoblinFunc(m)
 	f.stackSz = int(readInt64(r))
 	f.expArgs = int(readInt64(r))
 	f.expVars = int(readInt64(r))

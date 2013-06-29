@@ -67,7 +67,7 @@ func (ø *funcVM) getVal(flg Flag, ix uint64) Val {
 	case FLG_T:
 		return ø.this
 	case FLG_F:
-		return ø.proto.ctx.Protos[ix]
+		return ø.proto.mod.fns[ix]
 	case FLG_AA:
 		return ø.args[ix]
 	}
@@ -85,7 +85,7 @@ func (ø *funcVM) dumpInstrInfo(w io.Writer, i Instr) {
 	case FLG_T:
 		fmt.Fprint(w, " ; [this]")
 	case FLG_F:
-		fmt.Fprintf(w, " ; %s", ø.proto.ctx.Protos[i.Index()].dump())
+		fmt.Fprintf(w, " ; %s", ø.proto.mod.fns[i.Index()].dump())
 	case FLG_AA:
 		fmt.Fprintf(w, " ; args[%d]", i.Index())
 	}

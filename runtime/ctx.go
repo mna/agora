@@ -79,7 +79,6 @@ type frame struct {
 
 type Ctx struct {
 	// Public fields
-	Protos   []Func
 	Stdout   io.ReadWriter  // The standard streams
 	Stdin    io.ReadWriter  // ...
 	Stderr   io.ReadWriter  // ...
@@ -216,7 +215,7 @@ func (ø *Ctx) dump(n int) {
 		return
 	}
 	for i, cnt := ø.frmsp, ø.frmsp-n; i > 0 && i > cnt; i-- {
-		fmt.Fprintf(ø.Stdout, "[Frame %3d]\n===========\n", i-1)
+		fmt.Fprintf(ø.Stdout, "\n[Frame %3d]\n===========", i-1)
 		if frm := ø.frames[i-1]; frm.fvm != nil {
 			fmt.Fprintln(ø.Stdout, frm.fvm.dump())
 		} else {

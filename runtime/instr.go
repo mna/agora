@@ -90,5 +90,5 @@ func (ø Instr) Index() uint64 {
 
 func (ø Instr) String() string {
 	op, f, ix := ø.Opcode(), ø.Flag(), ø.Index()
-	return fmt.Sprintf("%-4s %-2s %d", op, f, ix)
+	return fmt.Sprintf("%-4s %-2s %3d", op, f, ix)
 }

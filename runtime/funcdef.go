@@ -24,6 +24,7 @@ type GoblinFunc struct {
 	*funcVal
 
 	// Internal fields filled by the compiler
+	mod     *goblinModule
 	stackSz int
 	expArgs int
 	expVars int
@@ -31,9 +32,10 @@ type GoblinFunc struct {
 	code    []Instr
 }
 
-func newGoblinFunc() *GoblinFunc {
+func newGoblinFunc(mod *goblinModule) *GoblinFunc {
 	return &GoblinFunc{
 		&funcVal{},
+		mod,
 		0,
 		0,
 		0,
