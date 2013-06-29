@@ -169,7 +169,7 @@ func (ø *Ctx) push(f Func, fvm *funcVM) {
 	// Stack has to grow as needed
 	if ø.frmsp == len(ø.frames) {
 		if ø.frmsp == cap(ø.frames) {
-			fmt.Printf("DEBUG expanding frames of ctx, current size: %d\n", len(ø.frames))
+			fmt.Fprintf(ø.Stdout, "DEBUG expanding frames of ctx, current size: %d\n", len(ø.frames))
 		}
 		ø.frames = append(ø.frames, &frame{f, fvm})
 	} else {

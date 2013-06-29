@@ -9,6 +9,7 @@ import (
 var (
 	ErrInvalidFile = errors.New("invalid bytecode file")
 
+	// TODO : Add Major.Minor version in the compiled chunk
 	SIG = [...]byte{'6', '0', 'B', '1', '1', '4'}
 )
 

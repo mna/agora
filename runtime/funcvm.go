@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"sort"
 )
 
 var (
@@ -38,7 +39,7 @@ func (ø *funcVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if ø.sp == len(ø.stack) {
 		if ø.sp == cap(ø.stack) {
-			fmt.Printf("DEBUG expanding stack of func %s, current size: %d\n", ø.proto.name, len(ø.stack))
+			fmt.Fprintf(ø.proto.ctx.Stdout, "DEBUG expanding stack of func %s, current size: %d\n", ø.proto.name, len(ø.stack))
 		}
 		ø.stack = append(ø.stack, v)
 	} else {
@@ -104,8 +105,16 @@ func (ø *funcVM) dump() string {
 	if ø.this != nil {
 		fmt.Fprintf(buf, "    [this] = %s\n", ø.this.dump())
 	}
-	for k, v := range ø.vars {
-		fmt.Fprintf(buf, "    %s = %s\n", k, v.dump())
+	// Sort the vars for deterministic output
+	sortedVars := make([]string, len(ø.vars))
+	j := 0
+	for k, _ := range ø.vars {
+		sortedVars[j] = k
+		j++
+	}
+	sort.Strings(sortedVars)
+	for _, k := range sortedVars {
+		fmt.Fprintf(buf, "    %s = %s\n", k, ø.vars[k].dump())
 	}
 	// Stack
 	fmt.Fprintf(buf, "\n  Stack:\n")

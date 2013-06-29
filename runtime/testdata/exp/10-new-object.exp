@@ -1,0 +1,35 @@
+DEBUG expanding frames of ctx, current size: 0
+
+[Frame   0]
+===========
+> <main> (Func)
+  Constants:
+    [  0] "a" (String)
+    [  1] "b" (String)
+    [  2] "6" (String)
+    [  3] "c" (String)
+    [  4] 4 (Int)
+    [  5] "d" (String)
+
+  Variables:
+    a = { "b" (String): "6" (String),  "c" (String): 4 (Int),  "d" (String): "64" (String), } (Object)
+
+  Stack:
+    [  0] "64" (String)
+sp->[  1] [Nil]
+
+  Instructions:
+    [ 14] PUSH V    0 ; var a
+    [ 15] GFLD _    0
+    [ 16] ADD  _    0
+    [ 17] PUSH K    5 ; "d" (String)
+    [ 18] PUSH V    0 ; var a
+    [ 19] SFLD _    0
+    [ 20] PUSH K    5 ; "d" (String)
+    [ 21] PUSH V    0 ; var a
+    [ 22] GFLD _    0
+    [ 23] DUMP S    1
+pc->[ 24] RET  _    0
+    
+
+PASS - 64

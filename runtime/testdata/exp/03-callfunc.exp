@@ -1,0 +1,30 @@
+DEBUG expanding frames of ctx, current size: 0
+DEBUG expanding frames of ctx, current size: 1
+
+[Frame   0]
+===========
+> <main> (Func)
+  Constants:
+    [  0] "Add" (String)
+    [  1] 4 (Int)
+    [  2] "198" (String)
+
+  Variables:
+    Add = Add (Func)
+
+  Stack:
+    [  0] 202 (Int)
+sp->[  1] [Nil]
+
+  Instructions:
+    [  0] PUSH F    1 ; Add (Func)
+    [  1] POP  V    0 ; var Add
+    [  2] PUSH K    1 ; 4 (Int)
+    [  3] PUSH K    2 ; "198" (String)
+    [  4] PUSH V    0 ; var Add
+    [  5] CALL A    2
+    [  6] DUMP S    1
+pc->[  7] RET  _    0
+    
+
+PASS - 202
