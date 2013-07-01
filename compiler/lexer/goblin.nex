@@ -1,9 +1,14 @@
-/[0-9]+/           { println("TOK_INT:", txt()) } 
-/return/           { println("TOK_RET:", txt()) } 
-/[a-z_][a-z_0-9]*/ { println("TOK_IDENT:", txt()) }
-/:=/               { println("TOK_ASSIGN:", txt()) } 
-/[ \t\n]+/         { /* eat up whitespace */ } 
-/./                { println("Unrecognized character:", txt()) } 
+/\/\/[^\n]+/             { println("TOK_COMMENT:", txt())}
+/[0-9]+/           { println("TOK_INT_LIT:", txt()) } 
+/return|func/           { println("TOK_KEYWORD:", txt()) } 
+/[a-zA-Z_][a-zA-Z_0-9]*/ { println("TOK_IDENT:", txt()) }
+/:=|\+|\-|\*|\/|%|\^|!/     { println("TOK_OP:", txt()) } 
+/\(|\)/                  { println("TOK_PAREN:", txt()) }
+/\{|\}/                  { println("TOK_BRACE:", txt()) }
+/,/ 									   { println("TOK_COMMA:", txt()) }
+/"(\\.|[^"])*"/ 			 { println("TOK_STR_LIT:", txt()) }
+/[ \t\n]+/               { /* eat up whitespace */ } 
+/./                      { println("Unrecognized character:", txt()) } 
 
 // 
 

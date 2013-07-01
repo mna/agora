@@ -1,2 +1,2 @@
-a := 5
-return a
+aB := 5
+return aB
