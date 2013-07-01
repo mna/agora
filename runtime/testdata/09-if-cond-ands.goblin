@@ -10,10 +10,9 @@
 3
 0
 1
-
-09-if-cond-ands.goblin
 0
 5
+<main>
 [k]
 sa
 b1
@@ -40,8 +39,8 @@ PUSH V 0
 AND
 TEST J 3
 PUSH K 7
-DUMP
+DUMP S 1
 RET
 PUSH K 8
-DUMP
+DUMP S 1
 RET

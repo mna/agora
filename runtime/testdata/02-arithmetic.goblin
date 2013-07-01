@@ -14,10 +14,9 @@
 2
 0
 10
-<main>
-02-arithmetic.goblin
 0
 9
+<main>
 [k]
 sa
 i7
@@ -67,5 +66,5 @@ PUSH V 0
 UNM
 POP V 11
 PUSH N 0
-DUMP
+DUMP S 1
 RET

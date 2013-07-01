@@ -1,0 +1,32 @@
+DEBUG expanding frames of ctx, current size: 0
+DEBUG expanding frames of ctx, current size: 1
+DEBUG expanding frames of ctx, current size: 2
+DEBUG expanding frames of ctx, current size: 4
+DEBUG expanding frames of ctx, current size: 8
+DEBUG expanding frames of ctx, current size: 16
+
+[Frame   0]
+===========
+> <main> (Func)
+  Constants:
+    [  0] "Fib" (String)
+    [  1] 30 (Int)
+
+  Variables:
+    Fib = Fib (Func)
+
+  Stack:
+    [  0] 1346269 (Int)
+sp->[  1] [Nil]
+
+  Instructions:
+    [  0] PUSH F    1 ; Fib (Func)
+    [  1] POP  V    0 ; var Fib
+    [  2] PUSH K    1 ; 30 (Int)
+    [  3] PUSH V    0 ; var Fib
+    [  4] CALL A    1
+    [  5] DUMP S    1
+pc->[  6] RET  _    0
+    
+
+PASS - 1346269

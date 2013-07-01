@@ -1,0 +1,39 @@
+DEBUG expanding frames of ctx, current size: 0
+DEBUG expanding frames of ctx, current size: 1
+DEBUG expanding frames of ctx, current size: 2
+not found:b
+
+[Frame   0]
+===========
+> <main> (Func)
+  Constants:
+    [  0] "fmt" (String)
+    [  1] "a" (String)
+    [  2] "__noSuchMethod" (String)
+    [  3] "b" (String)
+    [  4] 12 (Int)
+
+  Variables:
+    a = { "__noSuchMethod" (String): a.__noSuchMethod (Func), } (Object)
+    fmt = { "Println" (String): fmt.Println (Func),  "Printf" (String): fmt.Printf (Func), } (Object)
+
+  Stack:
+    [  0] [Nil]
+    [  1] [Nil]
+sp->[  2] [Nil]
+
+  Instructions:
+    [  4] PUSH F    1 ; a.__noSuchMethod (Func)
+    [  5] PUSH K    2 ; "__noSuchMethod" (String)
+    [  6] PUSH V    1 ; var a
+    [  7] SFLD _    0
+    [  8] PUSH K    4 ; 12 (Int)
+    [  9] PUSH K    3 ; "b" (String)
+    [ 10] PUSH V    1 ; var a
+    [ 11] CFLD A    1
+    [ 12] PUSH N    0 ; [Nil]
+    [ 13] DUMP S    1
+pc->[ 14] RET  _    0
+    
+
+PASS - nil

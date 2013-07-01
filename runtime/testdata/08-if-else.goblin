@@ -1,6 +1,5 @@
 //
 // import "fmt"
-// 
 // a := "ok"
 // if a { 
 //   fmt.Println("true")
@@ -9,33 +8,35 @@
 // }
 //
 [f]
+3
+0
 2
 0
-1
-
-08-if-else.goblin
-0
-7
+6
+<main>
 [k]
+sfmt
 sa
 sok
+sPrintln
 strue
 sfalse
 [i]
-PUSH K 1
+LOAD K 0
 POP V 0
-PUSH V 0 // IF Statement
-TEST J 4
-PUSH K 2 // True part
-PUSH F 1
-CALL A 1
-JMPF J 3
-PUSH K 3 // False part
-PUSH F 1
-CALL A 1
+PUSH K 2
+POP V 1
+PUSH V 1 // IF Statement
+TEST J 5
+PUSH K 4 // True part
+PUSH K 3
+PUSH V 0
+CFLD A 1
+JMPF J 4
+PUSH K 5 // False part
+PUSH K 3
+PUSH V 0
+CFLD A 1
 PUSH N 0
-DUMP
+DUMP S 1
 RET
-[f]
-true
-fmt.Println

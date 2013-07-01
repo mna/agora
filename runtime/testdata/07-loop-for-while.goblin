@@ -11,10 +11,9 @@
 2
 0
 2
-
-07-loop-for-while.goblin
 0
-4
+6
+<main>
 [k]
 sa
 i5
@@ -40,5 +39,5 @@ SUB
 POP V 0
 JMPB J 12 // Jump back to loop start
 PUSH V 2 // Outside loop, return
-DUMP
+DUMP S 1
 RET

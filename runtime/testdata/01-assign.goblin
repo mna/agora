@@ -6,10 +6,9 @@
 1
 0
 1
+0
+2
 <main>
-01-assign.goblin
-0
-0
 [k]
 sa
 i5
@@ -17,5 +16,5 @@ i5
 PUSH K 1 // Push constant value 5 on the stack
 POP V 0  // Pop the value from the stack into variable identified by constant 0 (a)
 PUSH V 0 // Push value of variable identified by constant 0 on the stack (a)
-DUMP
+DUMP S 1
 RET

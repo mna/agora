@@ -1,27 +1,27 @@
 //
-// import "fmt"
-//  
+// import "fmt" // implicit fmt variable
 // fmt.Println("Hello ", "world")
 //
 [f]
-3
+4
 0
+1
 0
-
-05-nativefunc.goblin
-0
-2
+1
+<main>
 [k]
+sfmt
+sPrintln
 sHello 
 sworld
 [i]
-PUSH K 0
-PUSH K 1
-PUSH F 1
-CALL A 2
-PUSH N 0
-DUMP
+LOAD K 0 // <-fmt
+POP V 0 // ->fmt
+PUSH K 2 // <-"Hello "
+PUSH K 3 // <-"world"
+PUSH K 1 // <-"Println"
+PUSH V 0 // <-"fmt"
+CFLD A 2
+PUSH N 0 // <-Nil
+DUMP S 3
 RET
-[f]
-true
-fmt.Println

@@ -1,0 +1,35 @@
+DEBUG expanding frames of ctx, current size: 0
+DEBUG expanding frames of ctx, current size: 1
+Hello world
+
+[Frame   0]
+===========
+> <main> (Func)
+  Constants:
+    [  0] "fmt" (String)
+    [  1] "Println" (String)
+    [  2] "Hello" (String)
+    [  3] "world" (String)
+
+  Variables:
+    fmt = { "Println" (String): fmt.Println (Func),  "Printf" (String): fmt.Printf (Func), } (Object)
+
+  Stack:
+    [  0] 12 (Int)
+    [  1] [Nil]
+sp->[  2] [Nil]
+
+  Instructions:
+    [  0] LOAD K    0 ; "fmt" (String)
+    [  1] POP  V    0 ; var fmt
+    [  2] PUSH K    2 ; "Hello" (String)
+    [  3] PUSH K    3 ; "world" (String)
+    [  4] PUSH K    1 ; "Println" (String)
+    [  5] PUSH V    0 ; var fmt
+    [  6] CFLD A    2
+    [  7] PUSH N    0 ; [Nil]
+    [  8] DUMP S    3
+pc->[  9] RET  _    0
+    
+
+PASS - nil
