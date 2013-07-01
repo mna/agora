@@ -1,0 +1,18 @@
+/[0-9]+/           { println("TOK_INT:", txt()) } 
+/return/           { println("TOK_RET:", txt()) } 
+/[a-z_][a-z_0-9]*/ { println("TOK_IDENT:", txt()) }
+/:=/               { println("TOK_ASSIGN:", txt()) } 
+/[ \t\n]+/         { /* eat up whitespace */ } 
+/./                { println("Unrecognized character:", txt()) } 
+
+// 
+
+package main 
+import "os"
+func main() { 
+  lex := NewLexer(os.Stdin) 
+  txt := func() string { 
+		return lex.Text() 
+	} 
+  NN_FUN(lex) 
+}
