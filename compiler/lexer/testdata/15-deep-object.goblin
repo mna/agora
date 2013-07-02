@@ -1,0 +1,2 @@
+a := {b: {c: {d: "allo"}}}
+return a.b.c.d

@@ -1,0 +1,7 @@
+import "fmt"
+a := "ok"
+if a { 
+  fmt.Println("true")
+} else {
+  fmt.Println("false")
+}

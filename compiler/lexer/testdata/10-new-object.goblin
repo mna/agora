@@ -1,0 +1,5 @@
+a := {}
+a.b = "6"
+a.c = 4
+a.d = a.b + a.c
+return a.d

@@ -1,0 +1,8 @@
+import "fmt"
+a := {}
+a.b = func(greet) {
+  fmt.Println(this.c)
+  return this.c + ", " + greet
+}
+a.c = "hi"
+return a.b("you")

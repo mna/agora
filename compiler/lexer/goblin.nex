@@ -1,11 +1,13 @@
 /\/\/[^\n]+/             { println("TOK_COMMENT:", txt())}
 /[0-9]+/           { println("TOK_INT_LIT:", txt()) } 
-/return|func/           { println("TOK_KEYWORD:", txt()) } 
+/return|func|import|for|range|if|else/           { println("TOK_KEYWORD:", txt()) } 
+/true|false/       { println("TOK_BOOL_LIT:", txt()) }
 /[a-zA-Z_][a-zA-Z_0-9]*/ { println("TOK_IDENT:", txt()) }
-/:=|\+|\-|\*|\/|%|\^|!/     { println("TOK_OP:", txt()) } 
+/:=|==|=|!=|\+\+|\-\-|\+=|\-=|\*=|\/=|%=|\^=|\+|\-|\*|\/|%|\^|!|>=|<=|<|>|&&|\|\|/ { println("TOK_OP:", txt()) } 
 /\(|\)/                  { println("TOK_PAREN:", txt()) }
 /\{|\}/                  { println("TOK_BRACE:", txt()) }
-/,/ 									   { println("TOK_COMMA:", txt()) }
+/\[|\]/                  { println("TOK_INDEX:", txt()) }
+/,|\.|;|:/ 									   { println("TOK_PUNC:", txt()) }
 /"(\\.|[^"])*"/ 			 { println("TOK_STR_LIT:", txt()) }
 /[ \t\n]+/               { /* eat up whitespace */ } 
 /./                      { println("Unrecognized character:", txt()) } 

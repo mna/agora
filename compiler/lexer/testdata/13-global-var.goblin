@@ -1,0 +1,6 @@
+a := 5
+func b(delta) {
+  a += delta
+}
+b(3)
+return a

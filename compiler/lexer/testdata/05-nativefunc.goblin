@@ -1,0 +1,2 @@
+import "fmt" // implicit fmt variable
+fmt.Println("Hello ", "world")

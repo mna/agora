@@ -1,0 +1,6 @@
+a := true
+if (3 + 5) > 4 && ("foo" > "bar") && a { 
+  return 1
+} else {
+  return -1
+}
