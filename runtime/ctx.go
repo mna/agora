@@ -13,6 +13,7 @@ import (
 var (
 	ErrModuleNotFound  = errors.New("module not found")
 	ErrModuleHasNoFunc = errors.New("module has no function")
+	ErrCyclicDepFound  = errors.New("cyclic module dependency found")
 )
 
 type Module interface {
@@ -91,20 +92,22 @@ type Ctx struct {
 	frmsp  int
 
 	// Modules management
-	loadedMods map[string]Val    // Modules export a Val
-	nativeMods map[string]Module // List of available native modules
+	loadingMods map[string]bool   // Modules currently being loaded
+	loadedMods  map[string]Val    // Modules export a Val
+	nativeMods  map[string]Module // List of available native modules
 }
 
 func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	return &Ctx{
-		Stdout:     os.Stdout,
-		Stdin:      os.Stdin,
-		Stderr:     os.Stderr,
-		Logic:      defaultLogic{},
-		Resolver:   resolver,
-		Compiler:   comp,
-		loadedMods: make(map[string]Val),
-		nativeMods: make(map[string]Module),
+		Stdout:      os.Stdout,
+		Stdin:       os.Stdin,
+		Stderr:      os.Stderr,
+		Logic:       defaultLogic{},
+		Resolver:    resolver,
+		Compiler:    comp,
+		loadingMods: make(map[string]bool),
+		loadedMods:  make(map[string]Val),
+		nativeMods:  make(map[string]Module),
 	}
 }
 
@@ -127,6 +130,12 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	if id == "" {
 		return nil, ErrModuleNotFound
 	}
+	if ø.loadingMods[id] {
+		return nil, ErrCyclicDepFound
+	}
+	ø.loadingMods[id] = true
+	defer delete(ø.loadingMods, id)
+
 	// If already loaded, return from cache
 	if v, ok := ø.loadedMods[id]; ok {
 		return v, nil

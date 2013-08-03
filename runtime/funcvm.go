@@ -182,7 +182,7 @@ func (ø *funcVM) run(args ...Val) Val {
 		case OP_LOAD:
 			v, err := ø.proto.ctx.Load(ø.getVal(flg, ix).String())
 			if err != nil {
-				panic(err)
+				panic(err) // TODO : Better error management
 			}
 			ø.push(v)
 

@@ -1,0 +1,19 @@
+//
+// import "16-import-cycle-b"
+// return 1
+//
+[f]
+1
+0
+0
+0
+1
+<main>
+[k]
+s16-import-cycle-b
+i1
+[i]
+LOAD K 0
+PUSH K 1
+DUMP S 1
+RET

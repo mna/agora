@@ -31,6 +31,7 @@ const (
 	OP_SFLD
 	OP_GFLD
 	OP_CFLD
+	// Debugging
 	OP_DUMP
 	OP_INVL Opcode = 0xFF
 )
