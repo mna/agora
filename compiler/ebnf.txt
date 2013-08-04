@@ -1,0 +1,59 @@
+// Unlike in Go, there is no package concept, each file is its own
+// "package", there is only the file scope.
+//
+// "Import" imports a file (module) or a predefined, native module
+// made available to the execution context.
+//
+// There is no concept of "top-level declarations", the whole file
+// is implicitly in a top-level function, so any statement is available
+// at the top level.
+//
+// The only scopes are file (module) scope and function scope, which
+// is another way of saying there's only function scope (since the module
+// is an implicit function). Because of this, there is no "block" production
+// available anywhere, only with complex statements.
+//
+// There is no goto/labels, nor goroutines and channels. Goblin is single-threaded,
+// although the host program can run different Goblin contexts in parallel
+// (contexts are fully isolated). There is no switch for now, and because
+// of the choice about channels, no select statement either.
+//
+// Single return value only.
+//
+// No constant, no "var"-type declaration (only short form is supported),
+// no type declaration (only "object" type for compound structures).
+//
+// If statements don't allow the "simple statement" before the condition
+// expression (since it doesn't introduce a new scope, this is not very
+// useful).
+//
+// TODO : Labels to break out of deeply nested loops?
+// TODO : Choice (and grammar) for error handling.
+Module = [ ImportStmt ] StmtList .
+
+ImportStmt = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) .
+ImportSpec = [ identifier ] ImportPath .
+ImportPath = string_lit .
+
+StmtList = { Statement ";" } .
+Statement = SimpleStmt | ReturnStmt | BreakStmt | ContinueStmt |
+						IfStmt | ForStmt .
+
+SimpleStmt = ExpressionStmt | IncDecStmt | Assignment | ShortVarDecl .
+ExpressionStmt = Expression .
+IncDecStmt = Expression ( "++" | "--" ) .
+Assignment = ExpressionList assign_op ExpressionList .
+ShortVarDecl = IdentifierList ":=" ExpressionList .
+
+ReturnStmt = "return" { Expression } .
+BreakStmt = "break" .
+ContinueStmt = "continue" .
+
+IfStmt = "if" Expression Block [ "else" ( IfStmt | Block ) ] .
+
+ForStmt = "for" [ Condition | ForClause | RangeClause ] Block .
+Condition = Expression .
+ForClause = [ InitStmt ] ";" [ Condition ] ";" [ PostStmt ] .
+InitStmt = SimpleStmt .
+PostStmt = SimpleStmt .
+RangeClause = ( ExpressionList "=" | IdentifierList ":=" ) "range" Expression .

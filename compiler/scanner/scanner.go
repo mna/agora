@@ -7,7 +7,7 @@
 // It takes a []byte as source which can then be tokenized
 // through repeated calls to the Scan method.
 //
-// Adapter from Go stdlib for Goblin
+// Adapted from Go stdlib for Goblin
 package scanner
 
 import (

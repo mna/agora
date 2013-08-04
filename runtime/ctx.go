@@ -170,7 +170,7 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	return ø.loadedMods[id], nil
 }
 
-func (ø *Ctx) RegisterModule(m Module) {
+func (ø *Ctx) RegisterNativeModule(m Module) {
 	ø.nativeMods[m.ID()] = m
 }
 
