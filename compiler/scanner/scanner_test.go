@@ -651,7 +651,7 @@ return a.b.c.d
 		},
 	}
 
-	isolateCase = 16
+	isolateCase = -1
 )
 
 func TestScan(t *testing.T) {
