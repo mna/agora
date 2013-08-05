@@ -505,6 +505,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 	s.skipWhitespace()
 
 	// determine token value
+	insertSemi := false
 	switch ch := s.ch; {
 	case isLetter(ch):
 		lit = s.scanIdentifier()
@@ -513,14 +514,14 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 			tok = token.Lookup(lit)
 			switch tok {
 			case token.IDENT, token.BREAK, token.CONTINUE, token.RETURN:
-				s.insertSemi = true
+				insertSemi = true
 			}
 		} else {
-			s.insertSemi = true
+			insertSemi = true
 			tok = token.IDENT
 		}
 	case '0' <= ch && ch <= '9':
-		s.insertSemi = true
+		insertSemi = true
 		tok, lit = s.scanNumber(false)
 	default:
 		s.next() // always make progress
@@ -538,18 +539,18 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 			s.insertSemi = false // newline consumed
 			return token.SEMICOLON, "\n"
 		case '"':
-			s.insertSemi = true
+			insertSemi = true
 			tok = token.STRING
 			lit = s.scanString()
 		case '`':
-			s.insertSemi = true
+			insertSemi = true
 			tok = token.STRING
 			lit = s.scanRawString()
 		case ':':
 			tok = s.switch2(token.COLON, token.DEFINE)
 		case '.':
 			if '0' <= s.ch && s.ch <= '9' {
-				s.insertSemi = true
+				insertSemi = true
 				tok, lit = s.scanNumber(true)
 			} else {
 				tok = token.PERIOD
@@ -562,27 +563,27 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 		case '(':
 			tok = token.LPAREN
 		case ')':
-			s.insertSemi = true
+			insertSemi = true
 			tok = token.RPAREN
 		case '[':
 			tok = token.LBRACK
 		case ']':
-			s.insertSemi = true
+			insertSemi = true
 			tok = token.RBRACK
 		case '{':
 			tok = token.LBRACE
 		case '}':
-			s.insertSemi = true
+			insertSemi = true
 			tok = token.RBRACE
 		case '+':
 			tok = s.switch3(token.ADD, token.ADD_ASSIGN, '+', token.INC)
 			if tok == token.INC {
-				s.insertSemi = true
+				insertSemi = true
 			}
 		case '-':
 			tok = s.switch3(token.SUB, token.SUB_ASSIGN, '-', token.DEC)
 			if tok == token.DEC {
-				s.insertSemi = true
+				insertSemi = true
 			}
 		case '*':
 			tok = s.switch2(token.MUL, token.MUL_ASSIGN)
@@ -629,9 +630,11 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 			if ch != bom {
 				s.error(fmt.Sprintf("illegal character %#U", ch))
 			}
+			insertSemi = s.insertSemi
 			tok = token.ILLEGAL
 			lit = string(ch)
 		}
 	}
+	s.insertSemi = insertSemi
 	return
 }

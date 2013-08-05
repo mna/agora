@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/PuerkitoBio/goblin/compiler/token"
@@ -88,6 +87,40 @@ unm := -a`),
 				token.SEMICOLON,
 			},
 		},
+		{
+			src: []byte(`
+func Add(x, y) { // Essentially means var Add = func ...
+  return x + y
+}
+return Add(4, "198")
+`),
+			exp: []token.Token{
+				token.FUNC,
+				token.IDENT,
+				token.LPAREN,
+				token.IDENT,
+				token.COMMA,
+				token.IDENT,
+				token.RPAREN,
+				token.LBRACE,
+				token.COMMENT,
+				token.RETURN,
+				token.IDENT,
+				token.ADD,
+				token.IDENT,
+				token.SEMICOLON,
+				token.RBRACE,
+				token.SEMICOLON,
+				token.RETURN,
+				token.IDENT,
+				token.LPAREN,
+				token.INT,
+				token.COMMA,
+				token.STRING,
+				token.RPAREN,
+				token.SEMICOLON,
+			},
+		},
 	}
 )
 
@@ -99,10 +132,7 @@ func TestScan(t *testing.T) {
 		s.Init("test", c.src, err.Add)
 		j := 0
 		gotErr := false
-		for tok, lit := s.Scan(); tok != token.EOF; tok, lit = s.Scan() {
-			if testing.Verbose() {
-				fmt.Println(tok, lit)
-			}
+		for tok, _ := s.Scan(); tok != token.EOF; tok, _ = s.Scan() {
 			if j < len(c.exp) && tok != c.exp[j] {
 				t.Errorf("expected token %s at index %d, got %s", c.exp[j], j, tok)
 				gotErr = true
