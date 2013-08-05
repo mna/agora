@@ -25,10 +25,17 @@
 //
 // If statements don't allow the "simple statement" before the condition
 // expression (since it doesn't introduce a new scope, this is not very
-// useful).
+// useful). It is however allowed in the for statement, since the 3-part
+// for loop is so common.
 //
-// TODO : Labels to break out of deeply nested loops?
+// There are no slices (no arrays), only the object type. So no slicing
+// operation.
+//
+// TODO : Labels to break out of deeply nested loops? break and continue
+//        not so useful without labels. Then goto would be nice too.
 // TODO : Choice (and grammar) for error handling.
+// TODO : Use type assertion notation to find out if value is of specified type?
+// 				i.e. if a.(String) {...}
 Module = [ ImportStmt ] StmtList .
 
 ImportStmt = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) .
@@ -45,7 +52,7 @@ IncDecStmt = Expression ( "++" | "--" ) .
 Assignment = ExpressionList assign_op ExpressionList .
 ShortVarDecl = IdentifierList ":=" ExpressionList .
 
-ReturnStmt = "return" { Expression } .
+ReturnStmt = "return" [ Expression ] .
 BreakStmt = "break" .
 ContinueStmt = "continue" .
 
@@ -57,3 +64,39 @@ ForClause = [ InitStmt ] ";" [ Condition ] ";" [ PostStmt ] .
 InitStmt = SimpleStmt .
 PostStmt = SimpleStmt .
 RangeClause = ( ExpressionList "=" | IdentifierList ":=" ) "range" Expression .
+
+IdentifierList = identifier { "," identifier } .
+ExpressionList = Expression { "," Expression } .
+Expression = UnaryExpr | Expression binary_op UnaryExpr .
+UnaryExpr = PrimaryExpr | unary_op UnaryExpr .
+PrimaryExpr = Operand |
+							PrimaryExpr Selector |
+							PrimaryExpr IndexSelector |
+							PrimaryExpr Call .
+Operand = Literal | OperandName | "(" Expression ")" .
+
+Literal = BasicLit | CompositeLit | FunctionLit .
+BasicLit = num_lit | string_lit | bool_lit .
+CompositeLit = LiteralValue .
+LiteralValue = "{" [ ElementList [ "," ] ] "}" .
+ElementList = Element { "," Element } .
+Element = Key ":" Value . // TODO : Eventually make key optional, implicit array index?
+Key = FieldName | ElementIndex .
+FiendName = identifier .
+ElementIndex = Expression .
+Value = Expression | LiteralValue .
+FunctionLit = "func" Function .
+Function = Signature FunctionBody .
+FunctionBody = Block .
+Signature = Parameters .
+Parameters = "(" [ ParameterList [ "," ] ] ")" .
+ParameterList = Parameter { "," Parameter } .
+Parameter = identifier .
+
+OperandName = identifier | QualifiedIdent .
+QualifiedIdent = identifier "." identifier .
+
+Selector = "." identifier .
+IndexSelector = "[" Expression "]" .
+Call = "(" [ ArgumentList [ "," ] ] ")" .
+ArgumentList = ExpressionList .

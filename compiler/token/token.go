@@ -75,19 +75,17 @@ const (
 
 	keyword_beg
 	// Keywords
+	TRUE
+	FALSE
 	BREAK
-	CASE
 	CONTINUE
-	DEFAULT
 	ELSE
 	FOR
 	FUNC
-	GOTO
 	IF
 	IMPORT
 	RANGE
 	RETURN
-	SWITCH
 	keyword_end
 )
 
@@ -142,19 +140,17 @@ var tokens = [...]string{
 	SEMICOLON: ";",
 	COLON:     ":",
 
+	TRUE:     "true",
+	FALSE:    "false",
 	BREAK:    "break",
-	CASE:     "case",
 	CONTINUE: "continue",
-	DEFAULT:  "default",
 	ELSE:     "else",
 	FOR:      "for",
 	FUNC:     "func",
-	GOTO:     "goto",
 	IF:       "if",
 	IMPORT:   "import",
 	RANGE:    "range",
 	RETURN:   "return",
-	SWITCH:   "switch",
 }
 
 // String returns the string corresponding to the token tok.

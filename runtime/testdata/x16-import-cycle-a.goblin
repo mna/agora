@@ -1,5 +1,5 @@
 //
-// import "16-import-cycle-b"
+// import "x16-import-cycle-b"
 // return 1
 //
 [f]
@@ -10,7 +10,7 @@
 1
 <main>
 [k]
-s16-import-cycle-b
+sx16-import-cycle-b
 i1
 [i]
 LOAD K 0
