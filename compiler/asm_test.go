@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// TODO : This is not a test at all...
 func TestAsm(t *testing.T) {
 	f, err := os.Open("../runtime/testdata/05-nativefunc.goblin")
 	if err != nil {

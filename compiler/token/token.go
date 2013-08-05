@@ -86,6 +86,7 @@ const (
 	IMPORT
 	RANGE
 	RETURN
+	THIS
 	keyword_end
 )
 
@@ -151,6 +152,7 @@ var tokens = [...]string{
 	IMPORT:   "import",
 	RANGE:    "range",
 	RETURN:   "return",
+	THIS:     "this",
 }
 
 // String returns the string corresponding to the token tok.

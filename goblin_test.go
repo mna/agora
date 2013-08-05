@@ -75,10 +75,14 @@ func runTestFile(t *testing.T, fnm string) {
 		fnm = fnm[1:]
 	}
 	if skipOnShort && testing.Short() {
-		fmt.Println("skipping ", fnm, ".")
+		if testing.Verbose() {
+			fmt.Println("skipping ", fnm, ".")
+		}
 		return
 	} else {
-		fmt.Println("testing ", fnm, "...")
+		if testing.Verbose() {
+			fmt.Println("testing ", fnm, "...")
+		}
 	}
 	// Create the execution context
 	ctx := createCtx()
