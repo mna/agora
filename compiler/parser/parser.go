@@ -55,13 +55,13 @@ func (p *Parser) importStmt() bool {
 			for p.importSpec() {
 			}
 			p.expect(token.RPAREN)
+			p.expect(token.SEMICOLON)
 		} else {
 			// Single import
 			if !p.importSpec() {
 				p.Error("ImportStmt : expected import path")
 			}
 		}
-		p.expect(token.SEMICOLON)
 		return true
 	}
 	return false
@@ -72,12 +72,13 @@ func (p *Parser) importSpec() bool {
 	if p.match(token.IDENT) {
 		id = p.matchedLit
 	}
-	if !p.match(token.STRING) && id != "" {
-		p.Error("ImportSpec : missing import path")
-	} else {
+	if p.match(token.STRING) {
 		path = p.matchedLit
+	} else if id != "" {
+		p.Error("ImportSpec : missing import path")
 	}
 	if path != "" || id != "" {
+		p.expect(token.SEMICOLON)
 		p.ast.AddImport(path, id)
 		return true
 	}

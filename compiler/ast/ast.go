@@ -38,7 +38,7 @@ type Import struct {
 func NewImport(path, ident string) Import {
 	if len(ident) == 0 {
 		i := strings.LastIndex(path, "/")
-		ident = path[i+1:]
+		ident = path[i+1 : len(path)-1]
 	}
 	return Import{
 		path,
