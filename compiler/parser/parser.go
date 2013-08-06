@@ -46,6 +46,7 @@ func (p *Parser) expect(t token.Token) bool {
 func (p *Parser) module() {
 	p.ast = ast.NewModule(p.filename)
 	p.importStmt()
+	p.stmtList()
 }
 
 func (p *Parser) importStmt() bool {
@@ -83,4 +84,12 @@ func (p *Parser) importSpec() bool {
 		return true
 	}
 	return false
+}
+
+func (p *Parser) stmtList() bool {
+	one := false
+	for p.statement() {
+		one = true
+	}
+	return one
 }
