@@ -65,14 +65,14 @@ func (s *Scanner) next() {
 		r, w := rune(s.src[s.rdOffset]), 1
 		switch {
 		case r == 0:
-			s.error("illegal character NUL")
+			s.Error("illegal character NUL")
 		case r >= 0x80:
 			// not ASCII
 			r, w = utf8.DecodeRune(s.src[s.rdOffset:])
 			if r == utf8.RuneError && w == 1 {
-				s.error("illegal UTF-8 encoding")
+				s.Error("illegal UTF-8 encoding")
 			} else if r == bom && s.offset > 0 {
-				s.error("illegal byte order mark")
+				s.Error("illegal byte order mark")
 			}
 		}
 		s.rdOffset += w
@@ -125,7 +125,7 @@ func (s *Scanner) Init(filename string, src []byte, err ErrorHandler) {
 	}
 }
 
-func (s *Scanner) error(msg string) {
+func (s *Scanner) Error(msg string) {
 	if s.err != nil {
 		s.err(token.Position{s.filename, s.offset, s.line, s.col}, msg)
 	}
@@ -163,7 +163,7 @@ func (s *Scanner) scanComment() string {
 		}
 	}
 
-	s.error("comment not terminated")
+	s.Error("comment not terminated")
 
 exit:
 	lit := s.src[offs:s.offset]
@@ -274,7 +274,7 @@ func (s *Scanner) scanNumber(seenDecimalPoint bool) (token.Token, string) {
 			s.scanMantissa(16)
 			if s.offset-offs <= 2 {
 				// only scanned "0x" or "0X"
-				s.error("illegal hexadecimal number")
+				s.Error("illegal hexadecimal number")
 			}
 		} else {
 			// octal int or float
@@ -290,7 +290,7 @@ func (s *Scanner) scanNumber(seenDecimalPoint bool) (token.Token, string) {
 			}
 			// octal int
 			if seenDecimalDigit {
-				s.error("illegal octal number")
+				s.Error("illegal octal number")
 			}
 		}
 		goto exit
@@ -339,7 +339,7 @@ func (s *Scanner) scanEscape(quote rune) {
 		i, base, max = 8, 16, unicode.MaxRune
 	default:
 		s.next() // always make progress
-		s.error("unknown escape sequence")
+		s.Error("unknown escape sequence")
 		return
 	}
 
@@ -347,7 +347,7 @@ func (s *Scanner) scanEscape(quote rune) {
 	for ; i > 0 && s.ch != quote && s.ch >= 0; i-- {
 		d := uint32(digitVal(s.ch))
 		if d >= base {
-			s.error("illegal character in escape sequence")
+			s.Error("illegal character in escape sequence")
 			break
 		}
 		x = x*base + d
@@ -358,7 +358,7 @@ func (s *Scanner) scanEscape(quote rune) {
 		s.next()
 	}
 	if x > max || 0xD800 <= x && x < 0xE000 {
-		s.error("escape sequence is invalid Unicode code point")
+		s.Error("escape sequence is invalid Unicode code point")
 	}
 }
 
@@ -370,7 +370,7 @@ func (s *Scanner) scanString() string {
 		ch := s.ch
 		s.next()
 		if ch == '\n' || ch < 0 {
-			s.error("string not terminated")
+			s.Error("string not terminated")
 			break
 		}
 		if ch == '\\' {
@@ -407,7 +407,7 @@ func (s *Scanner) scanRawString() string {
 			hasCR = true
 		}
 		if ch < 0 {
-			s.error("string not terminated")
+			s.Error("string not terminated")
 			break
 		}
 	}
@@ -628,7 +628,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 		default:
 			// next reports unexpected BOMs - don't repeat
 			if ch != bom {
-				s.error(fmt.Sprintf("illegal character %#U", ch))
+				s.Error(fmt.Sprintf("illegal character %#U", ch))
 			}
 			insertSemi = s.insertSemi
 			tok = token.ILLEGAL

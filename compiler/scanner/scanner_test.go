@@ -649,6 +649,21 @@ return a.b.c.d
 				token.NOT,
 			},
 		},
+		17: {
+			src: []byte(`
+						øï 12.34 123e-23 123i45.78e+23 ñåòô
+`),
+			exp: []token.Token{
+				token.IDENT,
+				token.FLOAT,
+				token.FLOAT,
+				token.INT,
+				token.IDENT,
+				token.FLOAT,
+				token.IDENT,
+				token.SEMICOLON,
+			},
+		},
 	}
 
 	isolateCase = -1
@@ -689,7 +704,6 @@ func TestScan(t *testing.T) {
 		}
 		if e := err.Err(); e != nil && testing.Verbose() {
 			fmt.Printf("case %d - got scanning errors: %s\n", i, e)
-			//t.Errorf("case %d - got scanning errors: %s", i, e)
 		}
 	}
 }

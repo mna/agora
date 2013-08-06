@@ -38,7 +38,7 @@
 // 				i.e. if a.(String) {...}
 Module = [ ImportStmt ] StmtList .
 
-ImportStmt = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) .
+ImportStmt = "import" ( ImportSpec ";" | "(" { ImportSpec ";" } ")" ) .
 ImportSpec = [ identifier ] ImportPath .
 ImportPath = string_lit .
 
