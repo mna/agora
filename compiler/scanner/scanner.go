@@ -36,12 +36,13 @@ type Scanner struct {
 	err      ErrorHandler // error reporting; or nil
 
 	// scanning state
-	ch         rune // current character
-	offset     int  // character offset
-	rdOffset   int  // reading offset (position after current character)
-	lineOffset int  // current line offset
-	insertSemi bool // insert a semicolon before next newline
-	line       int
+	ch             rune // current character
+	offset         int  // character offset
+	rdOffset       int  // reading offset (position after current character)
+	lineOffset     int  // current line offset
+	tokStartOffset int  // character offset of the start of the current token
+	insertSemi     bool // insert a semicolon before next newline
+	line           int
 
 	// public state - ok to modify
 	ErrorCount int // number of errors encountered
@@ -111,6 +112,7 @@ func (s *Scanner) Init(filename string, src []byte, err ErrorHandler) {
 	s.offset = 0
 	s.rdOffset = 0
 	s.lineOffset = 0
+	s.tokStartOffset = 0
 	s.insertSemi = false
 	s.ErrorCount = 0
 	s.line = 1
@@ -123,7 +125,7 @@ func (s *Scanner) Init(filename string, src []byte, err ErrorHandler) {
 
 func (s *Scanner) Error(msg string) {
 	if s.err != nil {
-		s.err(s.getPosition(""), msg)
+		s.err(s.getPosition(), msg)
 	}
 	s.ErrorCount++
 }
@@ -466,12 +468,12 @@ func (s *Scanner) switch4(tok0, tok1 token.Token, ch2 rune, tok2, tok3 token.Tok
 	return tok0
 }
 
-func (s *Scanner) getPosition(lit string) token.Position {
+func (s *Scanner) getPosition() token.Position {
 	return token.Position{
 		s.filename,
 		s.offset,
 		s.line,
-		s.offset - s.lineOffset - len(lit),
+		s.tokStartOffset - s.lineOffset + 1,
 	}
 }
 
@@ -511,6 +513,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 
 	// determine token value
 	insertSemi := false
+	s.tokStartOffset = s.offset
 	switch ch := s.ch; {
 	case isLetter(ch):
 		lit = s.scanIdentifier()
@@ -534,7 +537,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 		case -1:
 			if s.insertSemi {
 				s.insertSemi = false // EOF consumed
-				return token.SEMICOLON, "\n", s.getPosition("\n")
+				return token.SEMICOLON, "\n", s.getPosition()
 			}
 			tok = token.EOF
 		case '\n':
@@ -542,7 +545,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 			// set in the first place and exited early
 			// from s.skipWhitespace()
 			s.insertSemi = false // newline consumed
-			return token.SEMICOLON, "\n", s.getPosition("\n")
+			return token.SEMICOLON, "\n", s.getPosition()
 		case '"':
 			insertSemi = true
 			tok = token.STRING
@@ -595,15 +598,13 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 		case '/':
 			if s.ch == '/' || s.ch == '*' {
 				// comment
-				pos := s.offset - 1
 				if s.insertSemi && s.findLineEnd() {
 					// reset position to the beginning of the comment
 					s.ch = '/'
-					//s.offset = s.file.Offset(pos) // TODO : Next line ok?
-					s.offset = pos
+					s.offset = s.tokStartOffset
 					s.rdOffset = s.offset + 1
 					s.insertSemi = false // newline consumed
-					return token.SEMICOLON, "\n", s.getPosition("\n")
+					return token.SEMICOLON, "\n", s.getPosition()
 				}
 				lit = s.scanComment()
 				tok = token.COMMENT
@@ -641,5 +642,5 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 		}
 	}
 	s.insertSemi = insertSemi
-	return tok, lit, s.getPosition(lit)
+	return tok, lit, s.getPosition()
 }
