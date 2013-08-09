@@ -42,7 +42,6 @@ type Scanner struct {
 	lineOffset int  // current line offset
 	insertSemi bool // insert a semicolon before next newline
 	line       int
-	col        int
 
 	// public state - ok to modify
 	ErrorCount int // number of errors encountered
@@ -60,7 +59,6 @@ func (s *Scanner) next() {
 			s.lineOffset = s.offset
 			//s.file.AddLine(s.offset)
 			s.line++
-			s.col = 0
 		}
 		r, w := rune(s.src[s.rdOffset]), 1
 		switch {
@@ -83,7 +81,6 @@ func (s *Scanner) next() {
 			s.lineOffset = s.offset
 			//s.file.AddLine(s.offset)
 			s.line++
-			s.col = 0
 		}
 		s.ch = -1 // eof
 	}
@@ -117,7 +114,6 @@ func (s *Scanner) Init(filename string, src []byte, err ErrorHandler) {
 	s.insertSemi = false
 	s.ErrorCount = 0
 	s.line = 1
-	s.col = 0
 
 	s.next()
 	if s.ch == bom {
@@ -127,7 +123,7 @@ func (s *Scanner) Init(filename string, src []byte, err ErrorHandler) {
 
 func (s *Scanner) Error(msg string) {
 	if s.err != nil {
-		s.err(token.Position{s.filename, s.offset, s.line, s.col}, msg)
+		s.err(s.getPosition(""), msg)
 	}
 	s.ErrorCount++
 }
@@ -470,6 +466,15 @@ func (s *Scanner) switch4(tok0, tok1 token.Token, ch2 rune, tok2, tok3 token.Tok
 	return tok0
 }
 
+func (s *Scanner) getPosition(lit string) token.Position {
+	return token.Position{
+		s.filename,
+		s.offset,
+		s.line,
+		s.offset - s.lineOffset - len(lit),
+	}
+}
+
 // Scan scans the next token and returns the token position, the token,
 // and its literal string if applicable. The source end is indicated by
 // token.EOF.
@@ -501,7 +506,7 @@ func (s *Scanner) switch4(tok0, tok1 token.Token, ch2 rune, tok2, tok3 token.Tok
 // set with Init. Token positions are relative to that file
 // and thus relative to the file set.
 //
-func (s *Scanner) Scan() (tok token.Token, lit string) {
+func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 	s.skipWhitespace()
 
 	// determine token value
@@ -529,7 +534,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 		case -1:
 			if s.insertSemi {
 				s.insertSemi = false // EOF consumed
-				return token.SEMICOLON, "\n"
+				return token.SEMICOLON, "\n", s.getPosition("\n")
 			}
 			tok = token.EOF
 		case '\n':
@@ -537,7 +542,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 			// set in the first place and exited early
 			// from s.skipWhitespace()
 			s.insertSemi = false // newline consumed
-			return token.SEMICOLON, "\n"
+			return token.SEMICOLON, "\n", s.getPosition("\n")
 		case '"':
 			insertSemi = true
 			tok = token.STRING
@@ -598,7 +603,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 					s.offset = pos
 					s.rdOffset = s.offset + 1
 					s.insertSemi = false // newline consumed
-					return token.SEMICOLON, "\n"
+					return token.SEMICOLON, "\n", s.getPosition("\n")
 				}
 				lit = s.scanComment()
 				tok = token.COMMENT
@@ -636,5 +641,5 @@ func (s *Scanner) Scan() (tok token.Token, lit string) {
 		}
 	}
 	s.insertSemi = insertSemi
-	return
+	return tok, lit, s.getPosition(lit)
 }

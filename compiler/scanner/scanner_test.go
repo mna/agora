@@ -681,10 +681,10 @@ func TestScan(t *testing.T) {
 		s.Init("test", c.src, err.Add)
 		j := 0
 		gotErr := false
-		for tok, lit := s.Scan(); tok != token.EOF; tok, lit = s.Scan() {
+		for tok, lit, pos := s.Scan(); tok != token.EOF; tok, lit, pos = s.Scan() {
 			if isolateCase >= 0 && testing.Verbose() {
 				// Print the results
-				fmt.Println(tok, lit)
+				fmt.Println(tok, lit, pos)
 			}
 
 			if j < len(c.exp) && tok != c.exp[j] {
