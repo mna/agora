@@ -14,6 +14,7 @@ var (
 	symtbl  map[string]symbol // Symbol table
 	curTok  tokenSymbol       // Current token in symbol representation
 	Scanner *scanner.Scanner
+	curScp  scope
 )
 
 type arity int
@@ -31,6 +32,65 @@ const (
 	arStatement
 	arThis
 )
+
+type scope struct {
+	def    map[string]scopedSymbol
+	parent *scope
+}
+
+func (s *scope) define(n symbol) scopedSymbol {
+	t, ok := s.def[n.val]
+	if ok {
+		if t.reserved {
+			error("already reserved")
+		} else {
+			error("already defined")
+		}
+		panic("unreachable")
+	}
+	ss := scopedSymbol{
+		n,
+		false,
+		s,
+	}
+	ss.lbp = 0
+	s.def[n.val] = ss
+	return ss
+}
+
+// The find method is used to find the definition of a name. It starts with the
+// current scope and seeks, if necessary, back through the chain of parent scopes
+// and ultimately to the symbol table. It returns symbol_table["(name)"] if it
+// cannot find a definition.
+func (s *scope) find(id string) symbol {
+	for scp := s; scp != nil; scp = scp.parent {
+		if o, ok := scp.def[id]; ok {
+			return o
+		}
+	}
+	if o, ok := symtbl[id]; ok {
+		return o
+	}
+	return symtbl["(name)"]
+}
+
+func (s *scope) pop() {
+	curScp = s.parent
+}
+
+func (s *scope) reserve(n scopedSymbol) {
+
+}
+
+type scopedSymbol struct {
+	symbol
+	reserved bool
+	scp      *scope
+}
+
+func (s *scopedSymbol) nud() symbol {
+	return s.symbol
+}
 
 type tokenSymbol struct {
 	symbol
@@ -98,6 +158,9 @@ func advance(id string) tokenSymbol {
 	} else if tok.IsLiteral() { // Excluding IDENT, part of the first if
 		ar = arLiteral
 		o = symtbl["(literal)"]
+	} else if tok == token.EOF {
+		o = symtbl["(end)"]
+		return o
 	} else {
 		error("unexpected token " + id)
 	}
