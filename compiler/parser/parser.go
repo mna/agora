@@ -99,7 +99,36 @@ func (p *Parser) statement() bool {
 }
 
 func (p *Parser) simpleStmt() bool {
-	// TODO : Later...
+	return p.incDecStmt || p.assignment || p.shortVarDecl || p.expressionStmt
+}
+
+func (p *Parser) expressionStmt() bool {
+	return p.expression
+}
+
+func (p *Parser) incDecStmt() bool {
+	if p.expression() {
+		if p.match(token.INC) || p.match(token.DEC) {
+			return true
+		}
+	}
+	// TODO : Rollback?
+	return false
+}
+
+func (p *Parser) shortVarDecl() bool {
+	if p.identifierList() {
+		p.expect(token.DEFINE)
+		p.expressionList()
+		return true
+	}
+	return false
+}
+
+func (p *Parser) assignment() bool {
+	if p.expressionList() {
+
+	}
 }
 
 func (p *Parser) returnStmt() bool {

@@ -43,8 +43,7 @@ ImportSpec = [ identifier ] ImportPath .
 ImportPath = string_lit .
 
 StmtList = { Statement ";" } .
-Statement = SimpleStmt | ReturnStmt | BreakStmt | ContinueStmt |
-						IfStmt | ForStmt .
+Statement = SimpleStmt | ReturnStmt | IfStmt | ForStmt .
 
 SimpleStmt = ExpressionStmt | IncDecStmt | Assignment | ShortVarDecl .
 ExpressionStmt = Expression .
@@ -53,16 +52,11 @@ Assignment = ExpressionList assign_op ExpressionList .
 ShortVarDecl = IdentifierList ":=" ExpressionList .
 
 ReturnStmt = "return" [ Expression ] .
-BreakStmt = "break" .
-ContinueStmt = "continue" .
 
 IfStmt = "if" Expression Block [ "else" ( IfStmt | Block ) ] .
+Block = "{" StmtList "}" .
 
-ForStmt = "for" [ Condition | ForClause | RangeClause ] Block .
-Condition = Expression .
-ForClause = [ InitStmt ] ";" [ Condition ] ";" [ PostStmt ] .
-InitStmt = SimpleStmt .
-PostStmt = SimpleStmt .
+ForStmt = "for" RangeClause Block .
 RangeClause = ( ExpressionList "=" | IdentifierList ":=" ) "range" Expression .
 
 IdentifierList = identifier { "," identifier } .
