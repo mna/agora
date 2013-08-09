@@ -75,10 +75,6 @@ const (
 
 	keyword_beg
 	// Keywords
-	TRUE
-	FALSE
-	BREAK
-	CONTINUE
 	ELSE
 	FOR
 	FUNC
@@ -86,20 +82,19 @@ const (
 	IMPORT
 	RANGE
 	RETURN
-	THIS
 	keyword_end
 )
 
 var tokens = [...]string{
-	ILLEGAL: "ILLEGAL",
+	ILLEGAL: "(illegal)",
 
-	EOF:     "EOF",
-	COMMENT: "COMMENT",
+	EOF:     "(eof)",
+	COMMENT: "(comment)",
 
-	IDENT:  "IDENT",
-	INT:    "INT",
-	FLOAT:  "FLOAT",
-	STRING: "STRING",
+	IDENT:  "(name)",
+	INT:    "(int)",
+	FLOAT:  "(float)",
+	STRING: "(string",
 
 	ADD: "+",
 	SUB: "-",
@@ -141,18 +136,13 @@ var tokens = [...]string{
 	SEMICOLON: ";",
 	COLON:     ":",
 
-	TRUE:     "true",
-	FALSE:    "false",
-	BREAK:    "break",
-	CONTINUE: "continue",
-	ELSE:     "else",
-	FOR:      "for",
-	FUNC:     "func",
-	IF:       "if",
-	IMPORT:   "import",
-	RANGE:    "range",
-	RETURN:   "return",
-	THIS:     "this",
+	ELSE:   "else",
+	FOR:    "for",
+	FUNC:   "func",
+	IF:     "if",
+	IMPORT: "import",
+	RANGE:  "range",
+	RETURN: "return",
 }
 
 // String returns the string corresponding to the token tok.
