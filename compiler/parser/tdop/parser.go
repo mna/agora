@@ -31,6 +31,7 @@ const (
 	arTernary
 	arStatement
 	arThis
+	arFunction
 )
 
 type scope struct {
@@ -38,12 +39,20 @@ type scope struct {
 	parent *scope
 }
 
+func newScope() *scope {
+	curScp = &scope{
+		make(map[string]*symbol),
+		curScp,
+	}
+	return curScp
+}
+
 func itself(s *symbol) *symbol {
 	return s
 }
 
 func (s *scope) define(n *symbol) *symbol {
-	t, ok := s.def[n.val]
+	t, ok := s.def[n.val.(string)]
 	if ok {
 		if t.res {
 			error("already reserved")
@@ -52,7 +61,7 @@ func (s *scope) define(n *symbol) *symbol {
 		}
 		panic("unreachable")
 	}
-	s.def[n.val] = n
+	s.def[n.val.(string)] = n
 	n.res = false
 	n.lbp = 0
 	n.scp = s
@@ -86,7 +95,7 @@ func (s *scope) reserve(n *symbol) {
 	if n.ar != arName || n.res {
 		return
 	}
-	if t, ok := s.def[n.val]; ok {
+	if t, ok := s.def[n.val.(string)]; ok {
 		if t.res {
 			return
 		}
@@ -94,7 +103,7 @@ func (s *scope) reserve(n *symbol) {
 			error("already defined")
 		}
 	}
-	s.def[n.val] = n
+	s.def[n.val.(string)] = n
 	n.res = true
 }
 
@@ -102,10 +111,16 @@ func clone(ori *symbol) *symbol {
 	return &symbol{
 		ori.id,
 		ori.val,
+		ori.name,
+		ori.key,
 		ori.lbp,
 		ori.ar,
 		ori.res,
+		ori.asg,
 		ori.scp,
+		ori.first,
+		ori.second,
+		ori.third,
 		ori.nudfn,
 		ori.ledfn,
 		ori.stdfn,
@@ -113,16 +128,43 @@ func clone(ori *symbol) *symbol {
 }
 
 type symbol struct {
-	id  string
-	val string
-	lbp int
-	ar  arity
-	res bool
-	scp *scope
+	id     string
+	val    interface{}
+	name   string
+	key    interface{}
+	lbp    int
+	ar     arity
+	res    bool
+	asg    bool
+	scp    *scope
+	first  interface{} // May all be []*symbol or *symbol
+	second interface{}
+	third  interface{}
 
 	nudfn func(*symbol) *symbol
 	ledfn func(*symbol, *symbol) *symbol
-	stdfn func(*symbol) *symbol
+	stdfn func(*symbol) interface{} // May return []*symbol or *symbol
+}
+
+func (s *symbol) nud() *symbol {
+	if s.nudfn == nil {
+		error("invalid operation")
+	}
+	return s.nudfn(s)
+}
+
+func (s *symbol) led(left *symbol) *symbol {
+	if s.ledfn == nil {
+		error("invalid operation")
+	}
+	return s.ledfn(s, left)
+}
+
+func (s *symbol) std() interface{} {
+	if s.stdfn == nil {
+		error("invalid operation")
+	}
+	return s.stdfn(s)
 }
 
 func makeSymbol(id string, bp int) *symbol {
@@ -178,6 +220,148 @@ func advance(id string) *symbol {
 	return curTok
 }
 
+func expression(rbp int) *symbol {
+	t := curTok
+	advance("")
+	left := t.nud()
+	for rbp < curTok.lbp {
+		t = curTok
+		advance("")
+		left = t.led(left)
+	}
+	return left
+}
+
+func infix(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
+	s := makeSymbol(id, bp)
+	if ledfn != nil {
+		s.ledfn = ledfn
+	} else {
+		s.ledfn = func(sym, left *symbol) *symbol {
+			sym.first = left
+			sym.second = expression(bp)
+			sym.ar = arBinary
+			return sym
+		}
+	}
+	return s
+}
+
+func infixr(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
+	s := makeSymbol(id, bp)
+	if ledfn != nil {
+		s.ledfn = ledfn
+	} else {
+		s.ledfn = func(sym, left *symbol) *symbol {
+			sym.first = left
+			sym.second = expression(bp - 1)
+			sym.ar = arBinary
+			return sym
+		}
+	}
+	return s
+}
+
+func prefix(id string, nudfn func(*symbol) *symbol) *symbol {
+	s := makeSymbol(id, 0)
+	if nudfn != nil {
+		s.nudfn = nudfn
+	} else {
+		s.nudfn = func(sym *symbol) *symbol {
+			curScp.reserve(sym)
+			sym.first = expression(70)
+			sym.ar = arUnary
+			return sym
+		}
+	}
+	return s
+}
+
+func assignment(id string) *symbol {
+	return infixr(id, 10, func(sym, left *symbol) *symbol {
+		if left.id != "." && left.id != "[" && left.ar != arName {
+			error("bad lvalue")
+		}
+		sym.first = left
+		sym.second = expression(9)
+		sym.asg = true
+		sym.ar = arBinary
+		return sym
+	})
+}
+
+// TODO : For now, it doesn't support a list of vars followed by a matching list of expressions (a, b, c := 1, 2, 3)
+func define(id string) *symbol {
+	return infixr(id, 10, func(sym, left *symbol) *symbol {
+		if left.ar != arName {
+			error("expected variable name")
+		}
+		curScp.define(left)
+		sym.first = left
+		sym.second = expression(0)
+		sym.ar = arBinary
+		return sym
+	})
+}
+
+func constant(id string, v interface{}) *symbol {
+	s := makeSymbol(id, 0)
+	s.nudfn = func(sym *symbol) *symbol {
+		curScp.reserve(sym)
+		sym.val = symtbl[sym.id].val
+		sym.ar = arLiteral
+		return sym
+	}
+	s.val = v
+	return s
+}
+
+func statement() interface{} {
+	n := curTok
+	if n.stdfn != nil {
+		advance("")
+		curScp.reserve(n)
+		return n.std()
+	}
+	v := expression(0)
+	if !v.asg && v.id != "(" {
+		error("bad expression statement")
+	}
+	advance(";")
+	return v
+}
+
+func statements() []*symbol {
+	var a []*symbol
+	for {
+		if curTok.id == "}" || curTok.id == "(end)" {
+			break
+		}
+		s := statement()
+		switch v := s.(type) {
+		case []*symbol:
+			a = append(a, v...)
+		case *symbol:
+			a = append(a, v)
+		default:
+			panic("unexpected type")
+		}
+	}
+	return a
+}
+
+func stmt(id string, stdfn func(*symbol) interface{}) *symbol {
+	s := makeSymbol(id, 0)
+	s.stdfn = stdfn
+	return s
+}
+
+func block() interface{} {
+	t := curTok
+	advance("{")
+	return t.std()
+}
+
 func error(msg string) {
 	panic(msg)
 }
@@ -192,4 +376,209 @@ func init() {
 	makeSymbol("else", 0)
 	makeSymbol("(end)", 0)
 	makeSymbol("(name)", 0)
+
+	infix("+", 50, nil)
+	infix("-", 50, nil)
+	infix("*", 60, nil)
+	infix("/", 60, nil)
+	infix("%", 60, nil)
+	infix("==", 40, nil)
+	infix("<", 40, nil)
+	infix(">", 40, nil)
+	infix("!=", 40, nil)
+	infix("<=", 40, nil)
+	infix(">=", 40, nil)
+	// Ternary operator?
+	infix("?", 20, func(sym, left *symbol) *symbol {
+		sym.first = left
+		sym.second = expression(0)
+		advance(":")
+		sym.third = expression(0)
+		sym.ar = arTernary
+		return sym
+	})
+	// The dot (selector) operator
+	infix(".", 80, func(sym, left *symbol) *symbol {
+		sym.first = left
+		if curTok.ar != arName {
+			error("expected a field name")
+		}
+		curTok.ar = arLiteral
+		sym.second = curTok
+		sym.ar = arBinary
+		advance("")
+		return sym
+	})
+	// The array-notation field selector operator
+	infix("[", 80, func(sym, left *symbol) *symbol {
+		sym.first = left
+		sym.second = expression(0)
+		sym.ar = arBinary
+		advance("]")
+		return sym
+	})
+	// The logical operators
+	infixr("&&", 30, nil)
+	infixr("||", 30, nil)
+
+	prefix("-", nil)
+	prefix("!", nil)
+	prefix("(", func(sym *symbol) *symbol {
+		e := expression(0)
+		advance(")")
+		return e
+	})
+
+	assignment("=")
+	assignment("+=")
+	assignment("-=")
+	assignment("*=")
+	assignment("/=")
+	assignment("%=")
+
+	constant("true", true)
+	constant("false", false)
+	constant("nil", nil)
+
+	makeSymbol("(literal)", 0).nudfn = itself
+
+	stmt("{", func(sym *symbol) interface{} {
+		// TODO : New scope? Runtime would have to handle this, so for now, no new scope in blocks.
+		a := statements()
+		advance("}")
+		return a
+	})
+	define(":=")
+	// TODO : This supports the for [condition] notation, nothing else
+	stmt("for", func(sym *symbol) interface{} {
+		sym.first = expression(0)
+		sym.second = block()
+		sym.ar = arStatement
+		return sym
+	})
+	stmt("if", func(sym *symbol) interface{} {
+		sym.first = expression(0)
+		sym.second = block()
+		if curTok.id == "else" {
+			curScp.reserve(curTok)
+			advance("else")
+			if curTok.id == "if" {
+				sym.third = statement()
+			} else {
+				sym.third = block()
+			}
+		}
+		sym.ar = arStatement
+		return sym
+	})
+	stmt("break", func(sym *symbol) interface{} {
+		advance(";")
+		if curTok.id != "}" {
+			error("unreachable statement")
+		}
+		sym.ar = arStatement
+		return sym
+	})
+	stmt("return", func(sym *symbol) interface{} {
+		if curTok.id != ";" {
+			sym.first = expression(0)
+		}
+		advance(";")
+		if curTok.id != "}" {
+			error("unreachable statement")
+		}
+		sym.ar = arStatement
+		return sym
+	})
+	prefix("func", func(sym *symbol) *symbol {
+		var a []*symbol
+		newScope()
+		if curTok.ar == arName {
+			curScp.define(curTok)
+			sym.name = curTok.val.(string)
+			advance("")
+		}
+		advance("(")
+		if curTok.id != ")" {
+			for {
+				if curTok.ar != arName {
+					error("expected a parameter name")
+				}
+				curScp.define(curTok)
+				a = append(a, curTok)
+				advance("")
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		sym.first = a
+		advance(")")
+		advance("{")
+		sym.second = statements
+		advance("}")
+		sym.ar = arFunction
+		curScp.pop()
+		return sym
+	})
+	infix("(", 80, func(sym, left *symbol) *symbol {
+		var a []*symbol
+		if curTok.id != ")" {
+			for {
+				a = append(a, expression(0))
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		advance(")")
+		if left.id == "." || left.id == "[" {
+			sym.ar = arTernary
+			sym.first = left.first
+			sym.second = left.second
+			sym.third = a
+		} else {
+			sym.ar = arBinary
+			sym.first = left
+			sym.second = a
+			if (left.ar != arUnary || left.id != "func") &&
+				left.ar != arName && left.id != "(" &&
+				left.id != "&&" && left.id != "||" && left.id != "?" {
+				error("expected a variable name")
+			}
+		}
+		return sym
+	})
+	makeSymbol("this", 0).nudfn = func(sym *symbol) *symbol {
+		curScp.reserve(sym)
+		sym.ar = arThis
+		return sym
+	}
+	prefix("{", func(sym *symbol) *symbol {
+		var a []*symbol
+		if curTok.id != "}" {
+			for {
+				n := curTok
+				if n.ar != arName && n.ar != arLiteral {
+					error("bad key")
+				}
+				advance("")
+				advance(":")
+				v := expression(0)
+				v.key = n.val
+				a = append(a, v)
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		advance("}")
+		sym.first = a
+		sym.ar = arUnary
+		return sym
+	})
+	// TODO : No array literal ("[14, 83, "toto"]") for now
 }
