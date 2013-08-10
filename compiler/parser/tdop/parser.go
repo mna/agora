@@ -3,6 +3,7 @@
 package tdop
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/PuerkitoBio/goblin/compiler/scanner"
@@ -11,11 +12,23 @@ import (
 
 var (
 	// TODO : For now, package-level scope, but should be in a Parser struct
-	symtbl  map[string]*symbol // Symbol table
-	curTok  *symbol            // Current token in symbol representation
+	symtbl  = make(map[string]*symbol) // Symbol table
+	curTok  *symbol                    // Current token in symbol representation
 	Scanner *scanner.Scanner
 	curScp  *scope
 )
+
+func Parse(fn string, src []byte) {
+	Scanner.Init(fn, src, nil)
+	newScope()
+	advance("")
+	s := statements()
+	advance("(end)")
+	curScp.pop()
+	for _, v := range s {
+		fmt.Println(v)
+	}
+}
 
 type arity int
 
@@ -148,9 +161,24 @@ type symbol struct {
 
 func (s *symbol) nud() *symbol {
 	if s.nudfn == nil {
-		error("invalid operation")
+		error("invalid operation on " + s.id)
 	}
 	return s.nudfn(s)
+}
+
+func (s *symbol) String() string {
+	buf := bytes.NewBuffer(nil)
+	buf.WriteString(fmt.Sprintf("__ %s __ (val: %s)\n", s.id, s.val))
+	if s.first != nil {
+		buf.WriteString(fmt.Sprintf("[1]  %s", s.first))
+	}
+	if s.second != nil {
+		buf.WriteString(fmt.Sprintf("[2]  %s", s.second))
+	}
+	if s.third != nil {
+		buf.WriteString(fmt.Sprintf("[3]  %s", s.third))
+	}
+	return buf.String()
 }
 
 func (s *symbol) led(left *symbol) *symbol {
@@ -170,12 +198,11 @@ func (s *symbol) std() interface{} {
 func makeSymbol(id string, bp int) *symbol {
 	s, ok := symtbl[id]
 	if ok {
-		fmt.Println("SYMBOL REDEFINED: ", id)
 		if bp >= s.lbp {
 			s.lbp = bp
 		}
 	} else {
-		s := &symbol{
+		s = &symbol{
 			id:  id,
 			val: id,
 			lbp: bp,
@@ -189,7 +216,8 @@ func advance(id string) *symbol {
 	if id != "" && curTok.id != id {
 		error("expected " + id)
 	}
-	tok, lit, _ := Scanner.Scan()
+	tok, lit, pos := Scanner.Scan()
+	fmt.Println("SCAN: ", tok, lit, pos)
 	// If the token is IDENT or any keyword, treat as "name" in Crockford's impl
 	var (
 		o  *symbol
@@ -201,18 +229,19 @@ func advance(id string) *symbol {
 		ar = arName
 	} else if tok.IsOperator() {
 		ar = arOperator
-		o, ok = symtbl[id]
+		o, ok = symtbl[tok.String()]
 		if !ok {
-			error("unknown operator " + id)
+			error("unknown operator " + tok.String())
 		}
 	} else if tok.IsLiteral() { // Excluding IDENT, part of the first if
 		ar = arLiteral
 		o = symtbl["(literal)"]
 	} else if tok == token.EOF {
 		o = symtbl["(end)"]
+		curTok = o
 		return o
 	} else {
-		error("unexpected token " + id)
+		error("unexpected token " + tok.String())
 	}
 	curTok = clone(o)
 	curTok.ar = ar
@@ -473,19 +502,22 @@ func init() {
 	})
 	stmt("break", func(sym *symbol) interface{} {
 		advance(";")
-		if curTok.id != "}" {
+		if curTok.id != "}" && curTok.id != "(end)" {
 			error("unreachable statement")
 		}
 		sym.ar = arStatement
 		return sym
 	})
 	stmt("return", func(sym *symbol) interface{} {
+		fmt.Println("return1 ", curTok.id)
 		if curTok.id != ";" {
 			sym.first = expression(0)
+			fmt.Println("return2 ", curTok.id)
 		}
 		advance(";")
-		if curTok.id != "}" {
-			error("unreachable statement")
+		fmt.Println("return3 ", curTok.id)
+		if curTok.id != "}" && curTok.id != "(end)" {
+			error("unreachable statement: " + curTok.id)
 		}
 		sym.ar = arStatement
 		return sym

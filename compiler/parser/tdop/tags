@@ -4,6 +4,9 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+Parse	parser.go	/^func Parse(fn string, src []byte) {$/;"	f
+String	parser.go	/^func (s *symbol) String() string {$/;"	f
+TestParse	parser_test.go	/^func TestParse(t *testing.T) {$/;"	f
 advance	parser.go	/^func advance(id string) *symbol {$/;"	f
 arity	parser.go	/^type arity int$/;"	t
 assignment	parser.go	/^func assignment(id string) *symbol {$/;"	f
