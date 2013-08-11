@@ -38,6 +38,14 @@ func Add(x, y) { // Essentially means var Add = func ...
 return Add(4, "198")
 `),
 		},
+		4: {
+			src: []byte(`
+Add := func(x, y) { // Essentially means var Add = func ...
+  return x + y
+}
+return Add(4, "198")
+`),
+		},
 	}
 
 	isolateCase = 3

@@ -556,13 +556,14 @@ func init() {
 	// TODO : Make this DRY and much cleaner
 	prefix("func", func(sym *symbol) *symbol {
 		var a []*symbol
-		newScope()
+		fmt.Println("FUNC PREFIX")
 		if curTok.ar == arName {
 			fmt.Println("FUNC define in scope name " + curTok.val.(string))
 			curScp.define(curTok)
 			sym.name = curTok.val.(string)
 			advance("")
 		}
+		newScope()
 		advance("(")
 		if curTok.id != ")" {
 			for {
@@ -590,6 +591,7 @@ func init() {
 	})
 	stmt("func", func(sym *symbol) interface{} {
 		var a []*symbol
+		fmt.Println("FUNC STMT")
 		// The func name (e.g. func Add(x, y)...) should be defined in both
 		// the parent scope and the inner scope of the function. But then, just
 		// define in the parent scope, which will make it available in the inner scope.
