@@ -216,7 +216,14 @@ func advance(id string) *symbol {
 	if id != "" && curTok.id != id {
 		error("expected " + id)
 	}
-	tok, lit, pos := Scanner.Scan()
+	var (
+		tok token.Token
+		lit string
+		pos token.Position
+	)
+	for tok, lit, pos = Scanner.Scan(); tok == token.ILLEGAL || tok == token.COMMENT; tok, lit, pos = Scanner.Scan() {
+		// Skip Illegal and Comment tokens
+	}
 	fmt.Println("SCAN: ", tok, lit, pos)
 	// If the token is IDENT or any keyword, treat as "name" in Crockford's impl
 	var (

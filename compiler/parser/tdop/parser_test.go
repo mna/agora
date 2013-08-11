@@ -17,9 +17,22 @@ var (
 			src: []byte(`aB := 5
 return aB`),
 		},
+		2: {
+			src: []byte(`
+a := 7
+b := 10
+add := a + b
+sub := a - b
+mul := a * b
+div := a / b // TODO : Should div return a float even for Int?
+mod := b % a
+not := !a
+unm := -a
+`),
+		},
 	}
 
-	isolateCase = 1
+	isolateCase = 2
 )
 
 func TestParse(t *testing.T) {
