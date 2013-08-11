@@ -161,7 +161,7 @@ type symbol struct {
 
 func (s *symbol) nud() *symbol {
 	if s.nudfn == nil {
-		error("invalid operation on " + s.id)
+		error(fmt.Sprintf("undefined %s: %s", s.id, s.val))
 	}
 	return s.nudfn(s)
 }
@@ -183,7 +183,7 @@ func (s *symbol) String() string {
 
 func (s *symbol) led(left *symbol) *symbol {
 	if s.ledfn == nil {
-		error("invalid operation")
+		error("missing operator")
 	}
 	return s.ledfn(s, left)
 }
@@ -252,7 +252,15 @@ func advance(id string) *symbol {
 func expression(rbp int) *symbol {
 	t := curTok
 	advance("")
-	left := t.nud()
+	// TODO : Special case if in the process of defining a new var:
+	// a := x
+	// then a.nudfn is nil, but will be defined once := is processed.
+	var left *symbol
+	if t.nudfn == nil && t.ar == arName && curTok.id == ":=" {
+		left = t
+	} else {
+		left = t.nud()
+	}
 	for rbp < curTok.lbp {
 		t = curTok
 		advance("")
@@ -327,7 +335,7 @@ func define(id string) *symbol {
 		}
 		curScp.define(left)
 		sym.first = left
-		sym.second = expression(0)
+		sym.second = expression(9)
 		sym.ar = arBinary
 		return sym
 	})
@@ -353,8 +361,8 @@ func statement() interface{} {
 		return n.std()
 	}
 	v := expression(0)
-	if !v.asg && v.id != "(" {
-		error("bad expression statement")
+	if !v.asg && v.id != "(" && v.id != ":=" {
+		error("bad expression statement: " + v.id)
 	}
 	advance(";")
 	return v
@@ -548,7 +556,7 @@ func init() {
 		sym.first = a
 		advance(")")
 		advance("{")
-		sym.second = statements
+		sym.second = statements()
 		advance("}")
 		sym.ar = arFunction
 		curScp.pop()

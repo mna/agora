@@ -13,9 +13,13 @@ var (
 		0: {
 			src: []byte(`return 5`),
 		},
+		1: {
+			src: []byte(`aB := 5
+return aB`),
+		},
 	}
 
-	isolateCase = 0
+	isolateCase = 1
 )
 
 func TestParse(t *testing.T) {
