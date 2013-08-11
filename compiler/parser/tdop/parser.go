@@ -5,6 +5,7 @@ package tdop
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/PuerkitoBio/goblin/compiler/scanner"
 	"github.com/PuerkitoBio/goblin/compiler/token"
@@ -167,17 +168,28 @@ func (s *symbol) nud() *symbol {
 }
 
 func (s *symbol) String() string {
+	return s.indentString(0)
+}
+
+func (s *symbol) indentString(ind int) string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(fmt.Sprintf("__ %s __ (val: %s)\n", s.id, s.val))
-	if s.first != nil {
-		buf.WriteString(fmt.Sprintf("[1]  %s", s.first))
+	buf.WriteString(fmt.Sprintf("%-20s; %s\n", s.id, s.val))
+
+	fmtChild := func(idx int, child interface{}) {
+		if child != nil {
+			switch v := child.(type) {
+			case []*symbol:
+				for i, c := range v {
+					buf.WriteString(fmt.Sprintf("%s[%d.%d] %s", strings.Repeat(" ", (ind+1)*3), idx, i+1, c.indentString(ind+1)))
+				}
+			case *symbol:
+				buf.WriteString(fmt.Sprintf("%s[%d] %s", strings.Repeat(" ", (ind+1)*3), idx, v.indentString(ind+1)))
+			}
+		}
 	}
-	if s.second != nil {
-		buf.WriteString(fmt.Sprintf("[2]  %s", s.second))
-	}
-	if s.third != nil {
-		buf.WriteString(fmt.Sprintf("[3]  %s", s.third))
-	}
+	fmtChild(1, s.first)
+	fmtChild(2, s.second)
+	fmtChild(3, s.third)
 	return buf.String()
 }
 
@@ -537,10 +549,16 @@ func init() {
 		sym.ar = arStatement
 		return sym
 	})
+	// func can be both an expression prefix:
+	//   fnAdd := func(x, y) {return x+y}
+	// or a statement:
+	//   func Add(x, y) {return x+y}
+	// TODO : Make this DRY and much cleaner
 	prefix("func", func(sym *symbol) *symbol {
 		var a []*symbol
 		newScope()
 		if curTok.ar == arName {
+			fmt.Println("FUNC define in scope name " + curTok.val.(string))
 			curScp.define(curTok)
 			sym.name = curTok.val.(string)
 			advance("")
@@ -565,6 +583,44 @@ func init() {
 		advance("{")
 		sym.second = statements()
 		advance("}")
+		// Don't consume the ending prefix when func is an expression
+		sym.ar = arFunction
+		curScp.pop()
+		return sym
+	})
+	stmt("func", func(sym *symbol) interface{} {
+		var a []*symbol
+		// The func name (e.g. func Add(x, y)...) should be defined in both
+		// the parent scope and the inner scope of the function. But then, just
+		// define in the parent scope, which will make it available in the inner scope.
+		if curTok.ar == arName {
+			fmt.Println("FUNC define in scope name " + curTok.val.(string))
+			curScp.define(curTok)
+			sym.name = curTok.val.(string)
+			advance("")
+		}
+		newScope()
+		advance("(")
+		if curTok.id != ")" {
+			for {
+				if curTok.ar != arName {
+					error("expected a parameter name")
+				}
+				curScp.define(curTok)
+				a = append(a, curTok)
+				advance("")
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		sym.first = a
+		advance(")")
+		advance("{")
+		sym.second = statements()
+		advance("}")
+		advance(";")
 		sym.ar = arFunction
 		curScp.pop()
 		return sym

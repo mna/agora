@@ -30,9 +30,17 @@ not := !a
 unm := -a
 `),
 		},
+		3: {
+			src: []byte(`
+func Add(x, y) { // Essentially means var Add = func ...
+  return x + y
+}
+return Add(4, "198")
+`),
+		},
 	}
 
-	isolateCase = 2
+	isolateCase = 3
 )
 
 func TestParse(t *testing.T) {
