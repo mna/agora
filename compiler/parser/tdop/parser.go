@@ -175,8 +175,10 @@ func (s *symbol) String() string {
 func (s *symbol) indentString(ind int) string {
 	buf := bytes.NewBuffer(nil)
 	buf.WriteString(fmt.Sprintf("%-20s; %s", s.id, s.val))
-	if s.ar == arFunction {
+	if s.name != "" {
 		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.name))
+	} else if s.key != nil {
+		buf.WriteString(fmt.Sprintf(" (key: %s)", s.key))
 	}
 	buf.WriteString("\n")
 
@@ -596,9 +598,11 @@ func init() {
 				sym.third = statement()
 			} else {
 				sym.third = block()
+				advance(";")
 			}
+		} else {
+			advance(";")
 		}
-		advance(";")
 		sym.ar = arStatement
 		return sym
 	})

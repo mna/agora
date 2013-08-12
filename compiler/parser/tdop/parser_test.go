@@ -145,9 +145,26 @@ func f() {
 f(17, "foo", false)
 `),
 		},
+		15: {
+			src: []byte(`
+a := {b: {c: {d: "allo"}}}
+return a.b.c.d
+`),
+		},
+		16: {
+			src: []byte(`
+if true {
+	return 1
+} else if false {
+	return 2
+} else {
+	return 3
+}
+`),
+		},
 	}
 
-	isolateCase = 14
+	isolateCase = -1
 )
 
 func TestParse(t *testing.T) {
