@@ -338,6 +338,18 @@ func prefix(id string, nudfn func(*symbol) *symbol) *symbol {
 	return s
 }
 
+func suffix(id string) *symbol {
+	return infixr(id, 10, func(sym, left *symbol) *symbol {
+		if left.id != "." && left.id != "[" && left.ar != arName {
+			error("bad lvalue")
+		}
+		sym.first = left
+		sym.asg = true
+		sym.ar = arUnary
+		return sym
+	})
+}
+
 func assignment(id string) *symbol {
 	return infixr(id, 10, func(sym, left *symbol) *symbol {
 		if left.id != "." && left.id != "[" && left.ar != arName {
@@ -386,7 +398,7 @@ func statement() interface{} {
 	}
 	v := expression(0)
 	if !v.asg && v.id != "(" && v.id != ":=" {
-		error("bad expression statement: " + v.id)
+		error(fmt.Sprintf("bad expression statement: %s (%s)", v.id, v.val))
 	}
 	advance(";")
 	return v
@@ -555,6 +567,7 @@ func init() {
 	constant("true", true)
 	constant("false", false)
 	constant("nil", nil)
+	constant("args", "args") // The special variable args
 
 	makeSymbol("(literal)", 0).nudfn = itself
 
@@ -569,6 +582,7 @@ func init() {
 	stmt("for", func(sym *symbol) interface{} {
 		sym.first = expression(0)
 		sym.second = block()
+		advance(";")
 		sym.ar = arStatement
 		return sym
 	})
@@ -759,4 +773,7 @@ func init() {
 		return sym
 	})
 	// TODO : No array literal ("[14, 83, "toto"]") for now
+
+	suffix("--")
+	suffix("++")
 }
