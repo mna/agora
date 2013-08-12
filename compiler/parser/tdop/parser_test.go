@@ -46,9 +46,26 @@ Add := func(x, y) { // Essentially means var Add = func ...
 return Add(4, "198")
 `),
 		},
+		5: {
+			src: []byte(`
+func Fib(n) {
+  if n < 2 {
+    return 1
+  }
+  return Fib(n-1) + Fib(n-2)
+}
+return Fib(30)
+`),
+		},
+		6: {
+			src: []byte(`
+import "fmt" // implicit fmt variable
+fmt.Println("Hello ", "world")
+`),
+		},
 	}
 
-	isolateCase = 3
+	isolateCase = 6
 )
 
 func TestParse(t *testing.T) {

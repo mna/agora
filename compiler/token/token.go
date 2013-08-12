@@ -94,7 +94,7 @@ var tokens = [...]string{
 	IDENT:  "(name)",
 	INT:    "(int)",
 	FLOAT:  "(float)",
-	STRING: "(string",
+	STRING: "(string)",
 
 	ADD: "+",
 	SUB: "-",

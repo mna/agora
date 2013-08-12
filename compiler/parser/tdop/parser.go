@@ -46,6 +46,7 @@ const (
 	arStatement
 	arThis
 	arFunction
+	arImport
 )
 
 type scope struct {
@@ -173,7 +174,11 @@ func (s *symbol) String() string {
 
 func (s *symbol) indentString(ind int) string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(fmt.Sprintf("%-20s; %s\n", s.id, s.val))
+	buf.WriteString(fmt.Sprintf("%-20s; %s", s.id, s.val))
+	if s.ar == arFunction {
+		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.name))
+	}
+	buf.WriteString("\n")
 
 	fmtChild := func(idx int, child interface{}) {
 		if child != nil {
@@ -418,6 +423,61 @@ func block() interface{} {
 	return t.std()
 }
 
+// Returns a slice of imports, in pairs (one import = 2 items, first the identifier,
+// then the path).
+func importMany() []*symbol {
+	var a []*symbol
+	fmt.Println("IMPORTMANY")
+	for curTok.id != ")" {
+		id, p := importOne()
+		a = append(a, id, p)
+	}
+	advance(")")
+	advance(";")
+	return a
+}
+
+// Return a pair of symbols, the identifier and the path
+func importOne() (id *symbol, pth *symbol) {
+	fmt.Println("IMPORTONE")
+	if curTok.ar == arName {
+		// Define in scope
+		fmt.Println("explicit define: " + curTok.val.(string))
+		curScp.define(curTok)
+		id = curTok
+		advance("")
+	}
+	var path string
+	var ok bool
+	if path, ok = curTok.val.(string); curTok.ar != arLiteral || !ok {
+		error("import path must be a string literal")
+	}
+	if id == nil {
+		// No explicit identifier for the import, use the last portion of the import path
+		path = path[1 : len(path)-1] // Remove \"
+		if strings.HasSuffix(path, "/") {
+			path = path[:len(path)-1]
+		}
+		idx := strings.LastIndex(path, "/")
+		nm := path[idx+1:]
+		if len(nm) == 0 {
+			error("invalid import path")
+		}
+		// Create new name symbol for this identifier
+		o := symtbl["(name)"]
+		sym := clone(o)
+		sym.ar = arName
+		sym.val = nm
+		fmt.Println("implicit define: " + sym.val.(string))
+		curScp.define(sym)
+		id = sym
+	}
+	pth = curTok
+	advance("")
+	advance(";")
+	return
+}
+
 func error(msg string) {
 	panic(msg)
 }
@@ -524,6 +584,7 @@ func init() {
 				sym.third = block()
 			}
 		}
+		advance(";")
 		sym.ar = arStatement
 		return sym
 	})
@@ -547,6 +608,18 @@ func init() {
 			error("unreachable statement: " + curTok.id)
 		}
 		sym.ar = arStatement
+		return sym
+	})
+	// TODO : Must be the first statement(s) in a file
+	stmt("import", func(sym *symbol) interface{} {
+		if curTok.id == "(" {
+			advance("(")
+			sym.first = importMany()
+		} else {
+			id, p := importOne()
+			sym.first = []*symbol{id, p}
+		}
+		sym.ar = arImport
 		return sym
 	})
 	// func can be both an expression prefix:
