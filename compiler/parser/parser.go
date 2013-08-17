@@ -13,13 +13,14 @@ import (
 
 var (
 	// TODO : For now, package-level scope, but should be in a Parser struct
-	symtbl  = make(map[string]*symbol) // Symbol table
-	curTok  *symbol                    // Current token in symbol representation
+	symtbl  = make(map[string]*Symbol) // Symbol table
+	curTok  *Symbol                    // Current token in Symbol representation
 	Scanner *scanner.Scanner
 	curScp  *scope
 )
 
-func Parse(fn string, src []byte) {
+// TODO : Error handling, a-la Scanner?
+func Parse(fn string, src []byte) []*Symbol {
 	Scanner.Init(fn, src, nil)
 	newScope()
 	advance("")
@@ -29,6 +30,7 @@ func Parse(fn string, src []byte) {
 	for _, v := range s {
 		fmt.Println(v)
 	}
+	return s
 }
 
 type arity int
@@ -50,23 +52,23 @@ const (
 )
 
 type scope struct {
-	def    map[string]*symbol
+	def    map[string]*Symbol
 	parent *scope
 }
 
 func newScope() *scope {
 	curScp = &scope{
-		make(map[string]*symbol),
+		make(map[string]*Symbol),
 		curScp,
 	}
 	return curScp
 }
 
-func itself(s *symbol) *symbol {
+func itself(s *Symbol) *Symbol {
 	return s
 }
 
-func (s *scope) define(n *symbol) *symbol {
+func (s *scope) define(n *Symbol) *Symbol {
 	t, ok := s.def[n.val.(string)]
 	if ok {
 		if t.res {
@@ -88,9 +90,9 @@ func (s *scope) define(n *symbol) *symbol {
 
 // The find method is used to find the definition of a name. It starts with the
 // current scope and seeks, if necessary, back through the chain of parent scopes
-// and ultimately to the symbol table. It returns symbol_table["(name)"] if it
+// and ultimately to the Symbol table. It returns Symbol_table["(name)"] if it
 // cannot find a definition.
-func (s *scope) find(id string) *symbol {
+func (s *scope) find(id string) *Symbol {
 	for scp := s; scp != nil; scp = scp.parent {
 		if o, ok := scp.def[id]; ok {
 			return o
@@ -106,7 +108,7 @@ func (s *scope) pop() {
 	curScp = s.parent
 }
 
-func (s *scope) reserve(n *symbol) {
+func (s *scope) reserve(n *Symbol) {
 	if n.ar != arName || n.res {
 		return
 	}
@@ -122,8 +124,8 @@ func (s *scope) reserve(n *symbol) {
 	n.res = true
 }
 
-func clone(ori *symbol) *symbol {
-	return &symbol{
+func clone(ori *Symbol) *Symbol {
+	return &Symbol{
 		ori.id,
 		ori.val,
 		ori.name,
@@ -142,7 +144,7 @@ func clone(ori *symbol) *symbol {
 	}
 }
 
-type symbol struct {
+type Symbol struct {
 	id     string
 	val    interface{}
 	name   string
@@ -152,27 +154,27 @@ type symbol struct {
 	res    bool
 	asg    bool
 	scp    *scope
-	first  interface{} // May all be []*symbol or *symbol
+	first  interface{} // May all be []*Symbol or *Symbol
 	second interface{}
 	third  interface{}
 
-	nudfn func(*symbol) *symbol
-	ledfn func(*symbol, *symbol) *symbol
-	stdfn func(*symbol) interface{} // May return []*symbol or *symbol
+	nudfn func(*Symbol) *Symbol
+	ledfn func(*Symbol, *Symbol) *Symbol
+	stdfn func(*Symbol) interface{} // May return []*Symbol or *Symbol
 }
 
-func (s *symbol) nud() *symbol {
+func (s *Symbol) nud() *Symbol {
 	if s.nudfn == nil {
 		error(fmt.Sprintf("undefined %s: %s", s.id, s.val))
 	}
 	return s.nudfn(s)
 }
 
-func (s *symbol) String() string {
+func (s *Symbol) String() string {
 	return s.indentString(0)
 }
 
-func (s *symbol) indentString(ind int) string {
+func (s *Symbol) indentString(ind int) string {
 	buf := bytes.NewBuffer(nil)
 	buf.WriteString(fmt.Sprintf("%-20s; %s", s.id, s.val))
 	if s.name != "" {
@@ -185,11 +187,11 @@ func (s *symbol) indentString(ind int) string {
 	fmtChild := func(idx int, child interface{}) {
 		if child != nil {
 			switch v := child.(type) {
-			case []*symbol:
+			case []*Symbol:
 				for i, c := range v {
 					buf.WriteString(fmt.Sprintf("%s[%d.%d] %s", strings.Repeat(" ", (ind+1)*3), idx, i+1, c.indentString(ind+1)))
 				}
-			case *symbol:
+			case *Symbol:
 				buf.WriteString(fmt.Sprintf("%s[%d] %s", strings.Repeat(" ", (ind+1)*3), idx, v.indentString(ind+1)))
 			}
 		}
@@ -200,28 +202,28 @@ func (s *symbol) indentString(ind int) string {
 	return buf.String()
 }
 
-func (s *symbol) led(left *symbol) *symbol {
+func (s *Symbol) led(left *Symbol) *Symbol {
 	if s.ledfn == nil {
 		error("missing operator")
 	}
 	return s.ledfn(s, left)
 }
 
-func (s *symbol) std() interface{} {
+func (s *Symbol) std() interface{} {
 	if s.stdfn == nil {
 		error("invalid operation")
 	}
 	return s.stdfn(s)
 }
 
-func makeSymbol(id string, bp int) *symbol {
+func makeSymbol(id string, bp int) *Symbol {
 	s, ok := symtbl[id]
 	if ok {
 		if bp >= s.lbp {
 			s.lbp = bp
 		}
 	} else {
-		s = &symbol{
+		s = &Symbol{
 			id:  id,
 			val: id,
 			lbp: bp,
@@ -231,7 +233,7 @@ func makeSymbol(id string, bp int) *symbol {
 	return s
 }
 
-func advance(id string) *symbol {
+func advance(id string) *Symbol {
 	if id != "" && curTok.id != id {
 		error("expected " + id)
 	}
@@ -246,7 +248,7 @@ func advance(id string) *symbol {
 	fmt.Println("SCAN: ", tok, lit, pos)
 	// If the token is IDENT or any keyword, treat as "name" in Crockford's impl
 	var (
-		o  *symbol
+		o  *Symbol
 		ok bool
 		ar arity
 	)
@@ -275,13 +277,13 @@ func advance(id string) *symbol {
 	return curTok
 }
 
-func expression(rbp int) *symbol {
+func expression(rbp int) *Symbol {
 	t := curTok
 	advance("")
 	// TODO : Special case if in the process of defining a new var:
 	// a := x
 	// then a.nudfn is nil, but will be defined once := is processed.
-	var left *symbol
+	var left *Symbol
 	if t.nudfn == nil && t.ar == arName && curTok.id == ":=" {
 		left = t
 	} else {
@@ -295,12 +297,12 @@ func expression(rbp int) *symbol {
 	return left
 }
 
-func infix(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
+func infix(id string, bp int, ledfn func(*Symbol, *Symbol) *Symbol) *Symbol {
 	s := makeSymbol(id, bp)
 	if ledfn != nil {
 		s.ledfn = ledfn
 	} else {
-		s.ledfn = func(sym, left *symbol) *symbol {
+		s.ledfn = func(sym, left *Symbol) *Symbol {
 			sym.first = left
 			sym.second = expression(bp)
 			sym.ar = arBinary
@@ -310,12 +312,12 @@ func infix(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
 	return s
 }
 
-func infixr(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
+func infixr(id string, bp int, ledfn func(*Symbol, *Symbol) *Symbol) *Symbol {
 	s := makeSymbol(id, bp)
 	if ledfn != nil {
 		s.ledfn = ledfn
 	} else {
-		s.ledfn = func(sym, left *symbol) *symbol {
+		s.ledfn = func(sym, left *Symbol) *Symbol {
 			sym.first = left
 			sym.second = expression(bp - 1)
 			sym.ar = arBinary
@@ -325,12 +327,12 @@ func infixr(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
 	return s
 }
 
-func prefix(id string, nudfn func(*symbol) *symbol) *symbol {
+func prefix(id string, nudfn func(*Symbol) *Symbol) *Symbol {
 	s := makeSymbol(id, 0)
 	if nudfn != nil {
 		s.nudfn = nudfn
 	} else {
-		s.nudfn = func(sym *symbol) *symbol {
+		s.nudfn = func(sym *Symbol) *Symbol {
 			curScp.reserve(sym)
 			sym.first = expression(70)
 			sym.ar = arUnary
@@ -340,8 +342,8 @@ func prefix(id string, nudfn func(*symbol) *symbol) *symbol {
 	return s
 }
 
-func suffix(id string) *symbol {
-	return infixr(id, 10, func(sym, left *symbol) *symbol {
+func suffix(id string) *Symbol {
+	return infixr(id, 10, func(sym, left *Symbol) *Symbol {
 		if left.id != "." && left.id != "[" && left.ar != arName {
 			error("bad lvalue")
 		}
@@ -352,8 +354,8 @@ func suffix(id string) *symbol {
 	})
 }
 
-func assignment(id string) *symbol {
-	return infixr(id, 10, func(sym, left *symbol) *symbol {
+func assignment(id string) *Symbol {
+	return infixr(id, 10, func(sym, left *Symbol) *Symbol {
 		if left.id != "." && left.id != "[" && left.ar != arName {
 			error("bad lvalue")
 		}
@@ -366,8 +368,8 @@ func assignment(id string) *symbol {
 }
 
 // TODO : For now, it doesn't support a list of vars followed by a matching list of expressions (a, b, c := 1, 2, 3)
-func define(id string) *symbol {
-	return infixr(id, 10, func(sym, left *symbol) *symbol {
+func define(id string) *Symbol {
+	return infixr(id, 10, func(sym, left *Symbol) *Symbol {
 		if left.ar != arName {
 			error("expected variable name")
 		}
@@ -379,9 +381,9 @@ func define(id string) *symbol {
 	})
 }
 
-func constant(id string, v interface{}) *symbol {
+func constant(id string, v interface{}) *Symbol {
 	s := makeSymbol(id, 0)
-	s.nudfn = func(sym *symbol) *symbol {
+	s.nudfn = func(sym *Symbol) *Symbol {
 		curScp.reserve(sym)
 		sym.val = symtbl[sym.id].val
 		sym.ar = arLiteral
@@ -406,17 +408,17 @@ func statement() interface{} {
 	return v
 }
 
-func statements() []*symbol {
-	var a []*symbol
+func statements() []*Symbol {
+	var a []*Symbol
 	for {
 		if curTok.id == "}" || curTok.id == "(end)" {
 			break
 		}
 		s := statement()
 		switch v := s.(type) {
-		case []*symbol:
+		case []*Symbol:
 			a = append(a, v...)
-		case *symbol:
+		case *Symbol:
 			a = append(a, v)
 		default:
 			panic("unexpected type")
@@ -425,7 +427,7 @@ func statements() []*symbol {
 	return a
 }
 
-func stmt(id string, stdfn func(*symbol) interface{}) *symbol {
+func stmt(id string, stdfn func(*Symbol) interface{}) *Symbol {
 	s := makeSymbol(id, 0)
 	s.stdfn = stdfn
 	return s
@@ -439,8 +441,8 @@ func block() interface{} {
 
 // Returns a slice of imports, in pairs (one import = 2 items, first the identifier,
 // then the path).
-func importMany() []*symbol {
-	var a []*symbol
+func importMany() []*Symbol {
+	var a []*Symbol
 	fmt.Println("IMPORTMANY")
 	for curTok.id != ")" {
 		id, p := importOne()
@@ -451,8 +453,8 @@ func importMany() []*symbol {
 	return a
 }
 
-// Return a pair of symbols, the identifier and the path
-func importOne() (id *symbol, pth *symbol) {
+// Return a pair of Symbols, the identifier and the path
+func importOne() (id *Symbol, pth *Symbol) {
 	fmt.Println("IMPORTONE")
 	if curTok.ar == arName {
 		// Define in scope
@@ -477,7 +479,7 @@ func importOne() (id *symbol, pth *symbol) {
 		if len(nm) == 0 {
 			error("invalid import path")
 		}
-		// Create new name symbol for this identifier
+		// Create new name Symbol for this identifier
 		o := symtbl["(name)"]
 		sym := clone(o)
 		sym.ar = arName
@@ -519,7 +521,7 @@ func init() {
 	infix("<=", 40, nil)
 	infix(">=", 40, nil)
 	// Ternary operator?
-	infix("?", 20, func(sym, left *symbol) *symbol {
+	infix("?", 20, func(sym, left *Symbol) *Symbol {
 		sym.first = left
 		sym.second = expression(0)
 		advance(":")
@@ -528,7 +530,7 @@ func init() {
 		return sym
 	})
 	// The dot (selector) operator
-	infix(".", 80, func(sym, left *symbol) *symbol {
+	infix(".", 80, func(sym, left *Symbol) *Symbol {
 		sym.first = left
 		if curTok.ar != arName {
 			error("expected a field name")
@@ -540,7 +542,7 @@ func init() {
 		return sym
 	})
 	// The array-notation field selector operator
-	infix("[", 80, func(sym, left *symbol) *symbol {
+	infix("[", 80, func(sym, left *Symbol) *Symbol {
 		sym.first = left
 		sym.second = expression(0)
 		sym.ar = arBinary
@@ -553,7 +555,7 @@ func init() {
 
 	prefix("-", nil)
 	prefix("!", nil)
-	prefix("(", func(sym *symbol) *symbol {
+	prefix("(", func(sym *Symbol) *Symbol {
 		e := expression(0)
 		advance(")")
 		return e
@@ -573,21 +575,21 @@ func init() {
 
 	makeSymbol("(literal)", 0).nudfn = itself
 
-	stmt("{", func(sym *symbol) interface{} {
+	stmt("{", func(sym *Symbol) interface{} {
 		a := statements()
 		advance("}")
 		return a
 	})
 	define(":=")
 	// TODO : This supports the for [condition] notation, nothing else
-	stmt("for", func(sym *symbol) interface{} {
+	stmt("for", func(sym *Symbol) interface{} {
 		sym.first = expression(0)
 		sym.second = block()
 		advance(";")
 		sym.ar = arStatement
 		return sym
 	})
-	stmt("if", func(sym *symbol) interface{} {
+	stmt("if", func(sym *Symbol) interface{} {
 		sym.first = expression(0)
 		sym.second = block()
 		if curTok.id == "else" {
@@ -605,7 +607,7 @@ func init() {
 		sym.ar = arStatement
 		return sym
 	})
-	stmt("break", func(sym *symbol) interface{} {
+	stmt("break", func(sym *Symbol) interface{} {
 		advance(";")
 		if curTok.id != "}" && curTok.id != "(end)" {
 			error("unreachable statement")
@@ -613,7 +615,7 @@ func init() {
 		sym.ar = arStatement
 		return sym
 	})
-	stmt("return", func(sym *symbol) interface{} {
+	stmt("return", func(sym *Symbol) interface{} {
 		fmt.Println("return1 ", curTok.id)
 		if curTok.id != ";" {
 			sym.first = expression(0)
@@ -628,13 +630,13 @@ func init() {
 		return sym
 	})
 	// TODO : Must be the first statement(s) in a file
-	stmt("import", func(sym *symbol) interface{} {
+	stmt("import", func(sym *Symbol) interface{} {
 		if curTok.id == "(" {
 			advance("(")
 			sym.first = importMany()
 		} else {
 			id, p := importOne()
-			sym.first = []*symbol{id, p}
+			sym.first = []*Symbol{id, p}
 		}
 		sym.ar = arImport
 		return sym
@@ -644,8 +646,8 @@ func init() {
 	// or a statement:
 	//   func Add(x, y) {return x+y}
 	// TODO : Make this DRY and much cleaner
-	prefix("func", func(sym *symbol) *symbol {
-		var a []*symbol
+	prefix("func", func(sym *Symbol) *Symbol {
+		var a []*Symbol
 		fmt.Println("FUNC PREFIX")
 		if curTok.ar == arName {
 			fmt.Println("FUNC define in scope name " + curTok.val.(string))
@@ -679,8 +681,8 @@ func init() {
 		curScp.pop()
 		return sym
 	})
-	stmt("func", func(sym *symbol) interface{} {
-		var a []*symbol
+	stmt("func", func(sym *Symbol) interface{} {
+		var a []*Symbol
 		fmt.Println("FUNC STMT")
 		// The func name (e.g. func Add(x, y)...) should be defined in both
 		// the parent scope and the inner scope of the function. But then, just
@@ -717,8 +719,8 @@ func init() {
 		curScp.pop()
 		return sym
 	})
-	infix("(", 80, func(sym, left *symbol) *symbol {
-		var a []*symbol
+	infix("(", 80, func(sym, left *Symbol) *Symbol {
+		var a []*Symbol
 		if curTok.id != ")" {
 			for {
 				a = append(a, expression(0))
@@ -746,13 +748,13 @@ func init() {
 		}
 		return sym
 	})
-	makeSymbol("this", 0).nudfn = func(sym *symbol) *symbol {
+	makeSymbol("this", 0).nudfn = func(sym *Symbol) *Symbol {
 		curScp.reserve(sym)
 		sym.ar = arThis
 		return sym
 	}
-	prefix("{", func(sym *symbol) *symbol {
-		var a []*symbol
+	prefix("{", func(sym *Symbol) *Symbol {
+		var a []*Symbol
 		if curTok.id != "}" {
 			for {
 				n := curTok

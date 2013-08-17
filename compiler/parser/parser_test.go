@@ -9,13 +9,43 @@ import (
 var (
 	cases = []struct {
 		src []byte
+		exp []*Symbol
 	}{
 		0: {
 			src: []byte(`return 5`),
+			exp: []*Symbol{
+				&Symbol{
+					id: "return",
+				},
+				&Symbol{
+					id:  "(literal)",
+					val: "5",
+				},
+			},
 		},
 		1: {
 			src: []byte(`aB := 5
 return aB`),
+			exp: []*Symbol{
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "aB",
+				},
+				&Symbol{
+					id:  "(literal)",
+					val: "5",
+				},
+				&Symbol{
+					id: "return",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "aB",
+				},
+			},
 		},
 		2: {
 			src: []byte(`
@@ -29,6 +59,148 @@ mod := b % a
 not := !a
 unm := -a
 `),
+			exp: []*Symbol{
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id:  "(literal)",
+					val: "7",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "b",
+				},
+				&Symbol{
+					id:  "(literal)",
+					val: "10",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "add",
+				},
+				&Symbol{
+					id: "+",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "b",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "sub",
+				},
+				&Symbol{
+					id: "-",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "b",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "mul",
+				},
+				&Symbol{
+					id: "*",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "b",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "div",
+				},
+				&Symbol{
+					id: "/",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "b",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "mod",
+				},
+				&Symbol{
+					id: "%",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "b",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "not",
+				},
+				&Symbol{
+					id: "!",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+				&Symbol{
+					id: ":=",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "unm",
+				},
+				&Symbol{
+					id: "-",
+				},
+				&Symbol{
+					id:  "(name)",
+					val: "a",
+				},
+			},
 		},
 		3: {
 			src: []byte(`
@@ -164,7 +336,7 @@ if true {
 		},
 	}
 
-	isolateCase = -1
+	isolateCase = 3
 )
 
 func TestParse(t *testing.T) {
@@ -174,6 +346,42 @@ func TestParse(t *testing.T) {
 			continue
 		}
 
-		Parse("test", c.src)
+		s := Parse("test", c.src)
+		ix := -1
+		var check func(interface{})
+		check = func(root interface{}) {
+			switch v := root.(type) {
+			case *Symbol:
+				ix++
+				if v.id != c.exp[ix].id {
+					t.Errorf("[%d] - expected symbol id %s, got %s", i, c.exp[ix].id, v.id)
+				}
+				if c.exp[ix].val != nil && v.val != c.exp[ix].val {
+					t.Errorf("[%d] - expected symbol value %s, got %s", i, c.exp[ix].val, v.val)
+				}
+				if v.first != nil {
+					check(v.first)
+				}
+				if v.second != nil {
+					check(v.second)
+				}
+				if v.third != nil {
+					check(v.third)
+				}
+			case []*Symbol:
+				for _, s := range v {
+					check(s)
+				}
+			case nil:
+			default:
+				panic("unkown type")
+			}
+		}
+		if c.exp != nil {
+			check(s)
+		}
+		if len(c.exp) != (ix + 1) {
+			t.Errorf("[%d] - expected %d symbols, got %d", i, len(c.exp), ix+1)
+		}
 	}
 }
