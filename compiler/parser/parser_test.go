@@ -1,97 +1,179 @@
-// +build ignore
-
 package parser
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/PuerkitoBio/goblin/compiler/scanner"
 )
 
 var (
 	cases = []struct {
-		nm  string
 		src []byte
-		exp string
-		err bool
 	}{
 		0: {
-			nm: "single-with-ident",
-			src: []byte(`
-import abc "this/is/a/path"
-`),
-			exp: "module single-with-ident\n  \"this/is/a/path\" (abc)\n",
+			src: []byte(`return 5`),
 		},
 		1: {
-			nm: "single-without-ident",
-			src: []byte(`
-import "this/is/a/path"
-`),
-			exp: "module single-without-ident\n  \"this/is/a/path\" (path)\n",
+			src: []byte(`aB := 5
+return aB`),
 		},
 		2: {
-			nm: "single-empty",
 			src: []byte(`
-import
+a := 7
+b := 10
+add := a + b
+sub := a - b
+mul := a * b
+div := a / b // TODO : Should div return a float even for Int?
+mod := b % a
+not := !a
+unm := -a
 `),
-			exp: "module single-empty\n",
-			err: true,
 		},
 		3: {
-			nm: "multi-empty",
 			src: []byte(`
-import ()
+func Add(x, y) { // Essentially means var Add = func ...
+  return x + y
+}
+return Add(4, "198")
 `),
-			exp: "module multi-empty\n",
 		},
 		4: {
-			nm: "multi-one-noident",
 			src: []byte(`
-import (
-	"this/is/a/path"
-)
+Add := func(x, y) { // Essentially means var Add = func ...
+  return x + y
+}
+return Add(4, "198")
 `),
-			exp: "module multi-one-noident\n  \"this/is/a/path\" (path)\n",
 		},
 		5: {
-			nm: "multi-one-ident",
 			src: []byte(`
-import (
-	xyz   	"this/is/a/path"
-)
+func Fib(n) {
+  if n < 2 {
+    return 1
+  }
+  return Fib(n-1) + Fib(n-2)
+}
+return Fib(30)
 `),
-			exp: "module multi-one-ident\n  \"this/is/a/path\" (xyz)\n",
 		},
 		6: {
-			nm: "multi-many",
 			src: []byte(`
-import (
-	"path/one"
-	xyz   	"this/is/a/path"
-	"path/two"
-)
+import "fmt" // implicit fmt variable
+fmt.Println("Hello ", "world")
 `),
-			exp: "module multi-many\n  \"path/one\" (one)\n  \"this/is/a/path\" (xyz)\n  \"path/two\" (two)\n",
+		},
+		7: {
+			src: []byte(`
+a := 5
+sum := 0
+for a > 0 { 
+  sum += a
+  a-- // implicit constant 1
+}
+return sum
+`),
+		},
+		8: {
+			src: []byte(`
+import "fmt"
+a := "ok"
+if a { 
+  fmt.Println("true")
+} else {
+  fmt.Println("false")
+}
+`),
+		},
+		9: {
+			src: []byte(`
+a := true
+if (3 + 5) > 4 && ("foo" > "bar") && a { 
+  return 1
+} else {
+  return -1
+}
+`),
+		},
+		10: {
+			src: []byte(`
+a := {}
+a.b = "6"
+a.c = 4
+a.d = a.b + a.c
+return a.d
+`),
+		},
+		11: {
+			src: []byte(`
+import "fmt"
+a := {}
+a.b = func(greet) {
+  fmt.Println(this.c)
+  return this.c + ", " + greet
+}
+a.c = "hi"
+return a.b("you")
+`),
+		},
+		12: {
+			src: []byte(`
+import "fmt"
+a := {}
+a.__noSuchMethod = func(nm) {
+  fmt.Println("not found:" + nm)
+}
+a.b(12)
+`),
+		},
+		13: {
+			src: []byte(`
+a := 5
+func b(delta) {
+  a += delta
+}
+b(3)
+return a
+`),
+		},
+		14: {
+			src: []byte(`
+import "fmt"
+func f() {
+  fmt.Println(args[0], args[1], args[2]) // Compiler translates this to PUSH AA ix, no need for Ks
+}
+f(17, "foo", false)
+`),
+		},
+		15: {
+			src: []byte(`
+a := {b: {c: {d: "allo"}}}
+return a.b.c.d
+`),
+		},
+		16: {
+			src: []byte(`
+if true {
+	return 1
+} else if false {
+	return 2
+} else {
+	return 3
+}
+`),
 		},
 	}
+
+	isolateCase = -1
 )
 
-func TestParser(t *testing.T) {
-	p := new(Parser)
-	for _, c := range cases {
-		if testing.Verbose() {
-			fmt.Printf("testing %s...\n", c.nm)
+func TestParse(t *testing.T) {
+	Scanner = new(scanner.Scanner)
+	for i, c := range cases {
+		if isolateCase >= 0 && i != isolateCase {
+			continue
 		}
-		a, err := p.Parse(c.nm, c.src)
-		if a.String() != c.exp {
-			t.Errorf("expected %s, got %s", c.exp, a)
-		}
-		if err != nil {
-			if !c.err {
-				t.Errorf("expected no error, got %s", err)
-			}
-			if testing.Verbose() {
-				fmt.Println(err)
-			}
-		}
+
+		Parse("test", c.src)
 	}
 }

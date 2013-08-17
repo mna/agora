@@ -1,217 +1,782 @@
-// +build ignore
-
+// Top-down operator precedence parser
+// Totally based on http://javascript.crockford.com/tdop/tdop.html
 package parser
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 
-	"github.com/PuerkitoBio/goblin/compiler/ast"
 	"github.com/PuerkitoBio/goblin/compiler/scanner"
 	"github.com/PuerkitoBio/goblin/compiler/token"
 )
 
-type Parser struct {
-	scanner.Scanner
-	filename   string
-	tok        token.Token
-	lit        string
-	matchedLit string
-	ast        *ast.Module
-}
+var (
+	// TODO : For now, package-level scope, but should be in a Parser struct
+	symtbl  = make(map[string]*symbol) // Symbol table
+	curTok  *symbol                    // Current token in symbol representation
+	Scanner *scanner.Scanner
+	curScp  *scope
+)
 
-func (p *Parser) Parse(fn string, src []byte) (*ast.Module, error) {
-	errl := new(scanner.ErrorList)
-	p.Init(fn, src, errl.Add)
-	p.filename = fn
-	p.tok, p.lit = p.Scan()
-	p.module()
-	return p.ast, errl.Err()
-}
-
-func (p *Parser) match(t token.Token) bool {
-	if p.tok == t {
-		p.matchedLit = p.lit
-		p.tok, p.lit = p.Scan()
-		return true
+func Parse(fn string, src []byte) {
+	Scanner.Init(fn, src, nil)
+	newScope()
+	advance("")
+	s := statements()
+	advance("(end)")
+	curScp.pop()
+	for _, v := range s {
+		fmt.Println(v)
 	}
-	return false
 }
 
-func (p *Parser) expect(t token.Token) bool {
-	if p.match(t) {
-		return true
+type arity int
+
+const (
+	// Initial possible arities, until we know more about the context
+	arName arity = iota
+	arLiteral
+	arOperator
+
+	// Then it can be set to something more precise
+	arUnary
+	arBinary
+	arTernary
+	arStatement
+	arThis
+	arFunction
+	arImport
+)
+
+type scope struct {
+	def    map[string]*symbol
+	parent *scope
+}
+
+func newScope() *scope {
+	curScp = &scope{
+		make(map[string]*symbol),
+		curScp,
 	}
-	p.Error(fmt.Sprintf("expected %s, found %s", t, p.tok))
-	return false
+	return curScp
 }
 
-func (p *Parser) module() {
-	p.ast = ast.NewModule(p.filename)
-	p.importStmt()
-	p.stmtList()
+func itself(s *symbol) *symbol {
+	return s
 }
 
-func (p *Parser) importStmt() bool {
-	if p.match(token.IMPORT) {
-		if p.match(token.LPAREN) {
-			// Possible list of imports
-			for p.importSpec() {
-			}
-			p.expect(token.RPAREN)
-			p.expect(token.SEMICOLON)
+func (s *scope) define(n *symbol) *symbol {
+	t, ok := s.def[n.val.(string)]
+	if ok {
+		if t.res {
+			error("already reserved")
 		} else {
-			// Single import
-			if !p.importSpec() {
-				p.Error("ImportStmt : expected import path")
+			error("already defined")
+		}
+		panic("unreachable")
+	}
+	s.def[n.val.(string)] = n
+	n.res = false
+	n.lbp = 0
+	n.scp = s
+	n.nudfn = itself
+	n.ledfn = nil
+	n.stdfn = nil
+	return n
+}
+
+// The find method is used to find the definition of a name. It starts with the
+// current scope and seeks, if necessary, back through the chain of parent scopes
+// and ultimately to the symbol table. It returns symbol_table["(name)"] if it
+// cannot find a definition.
+func (s *scope) find(id string) *symbol {
+	for scp := s; scp != nil; scp = scp.parent {
+		if o, ok := scp.def[id]; ok {
+			return o
+		}
+	}
+	if o, ok := symtbl[id]; ok {
+		return o
+	}
+	return symtbl["(name)"]
+}
+
+func (s *scope) pop() {
+	curScp = s.parent
+}
+
+func (s *scope) reserve(n *symbol) {
+	if n.ar != arName || n.res {
+		return
+	}
+	if t, ok := s.def[n.val.(string)]; ok {
+		if t.res {
+			return
+		}
+		if t.ar == arName {
+			error("already defined")
+		}
+	}
+	s.def[n.val.(string)] = n
+	n.res = true
+}
+
+func clone(ori *symbol) *symbol {
+	return &symbol{
+		ori.id,
+		ori.val,
+		ori.name,
+		ori.key,
+		ori.lbp,
+		ori.ar,
+		ori.res,
+		ori.asg,
+		ori.scp,
+		ori.first,
+		ori.second,
+		ori.third,
+		ori.nudfn,
+		ori.ledfn,
+		ori.stdfn,
+	}
+}
+
+type symbol struct {
+	id     string
+	val    interface{}
+	name   string
+	key    interface{}
+	lbp    int
+	ar     arity
+	res    bool
+	asg    bool
+	scp    *scope
+	first  interface{} // May all be []*symbol or *symbol
+	second interface{}
+	third  interface{}
+
+	nudfn func(*symbol) *symbol
+	ledfn func(*symbol, *symbol) *symbol
+	stdfn func(*symbol) interface{} // May return []*symbol or *symbol
+}
+
+func (s *symbol) nud() *symbol {
+	if s.nudfn == nil {
+		error(fmt.Sprintf("undefined %s: %s", s.id, s.val))
+	}
+	return s.nudfn(s)
+}
+
+func (s *symbol) String() string {
+	return s.indentString(0)
+}
+
+func (s *symbol) indentString(ind int) string {
+	buf := bytes.NewBuffer(nil)
+	buf.WriteString(fmt.Sprintf("%-20s; %s", s.id, s.val))
+	if s.name != "" {
+		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.name))
+	} else if s.key != nil {
+		buf.WriteString(fmt.Sprintf(" (key: %s)", s.key))
+	}
+	buf.WriteString("\n")
+
+	fmtChild := func(idx int, child interface{}) {
+		if child != nil {
+			switch v := child.(type) {
+			case []*symbol:
+				for i, c := range v {
+					buf.WriteString(fmt.Sprintf("%s[%d.%d] %s", strings.Repeat(" ", (ind+1)*3), idx, i+1, c.indentString(ind+1)))
+				}
+			case *symbol:
+				buf.WriteString(fmt.Sprintf("%s[%d] %s", strings.Repeat(" ", (ind+1)*3), idx, v.indentString(ind+1)))
 			}
 		}
-		return true
 	}
-	return false
+	fmtChild(1, s.first)
+	fmtChild(2, s.second)
+	fmtChild(3, s.third)
+	return buf.String()
 }
 
-func (p *Parser) importSpec() bool {
-	var id, path string
-	if p.match(token.IDENT) {
-		id = p.matchedLit
+func (s *symbol) led(left *symbol) *symbol {
+	if s.ledfn == nil {
+		error("missing operator")
 	}
-	if p.match(token.STRING) {
-		path = p.matchedLit
-	} else if id != "" {
-		p.Error("ImportSpec : missing import path")
+	return s.ledfn(s, left)
+}
+
+func (s *symbol) std() interface{} {
+	if s.stdfn == nil {
+		error("invalid operation")
 	}
-	if path != "" || id != "" {
-		p.expect(token.SEMICOLON)
-		p.ast.AddImport(path, id)
-		return true
+	return s.stdfn(s)
+}
+
+func makeSymbol(id string, bp int) *symbol {
+	s, ok := symtbl[id]
+	if ok {
+		if bp >= s.lbp {
+			s.lbp = bp
+		}
+	} else {
+		s = &symbol{
+			id:  id,
+			val: id,
+			lbp: bp,
+		}
+		symtbl[id] = s
 	}
-	return false
+	return s
 }
 
-func (p *Parser) stmtList() bool {
-	one := false
-	for p.statement() {
-		one = true
+func advance(id string) *symbol {
+	if id != "" && curTok.id != id {
+		error("expected " + id)
 	}
-	return one
+	var (
+		tok token.Token
+		lit string
+		pos token.Position
+	)
+	for tok, lit, pos = Scanner.Scan(); tok == token.ILLEGAL || tok == token.COMMENT; tok, lit, pos = Scanner.Scan() {
+		// Skip Illegal and Comment tokens
+	}
+	fmt.Println("SCAN: ", tok, lit, pos)
+	// If the token is IDENT or any keyword, treat as "name" in Crockford's impl
+	var (
+		o  *symbol
+		ok bool
+		ar arity
+	)
+	if tok == token.IDENT || tok.IsKeyword() {
+		o = curScp.find(lit)
+		ar = arName
+	} else if tok.IsOperator() {
+		ar = arOperator
+		o, ok = symtbl[tok.String()]
+		if !ok {
+			error("unknown operator " + tok.String())
+		}
+	} else if tok.IsLiteral() { // Excluding IDENT, part of the first if
+		ar = arLiteral
+		o = symtbl["(literal)"]
+	} else if tok == token.EOF {
+		o = symtbl["(end)"]
+		curTok = o
+		return o
+	} else {
+		error("unexpected token " + tok.String())
+	}
+	curTok = clone(o)
+	curTok.ar = ar
+	curTok.val = lit
+	return curTok
 }
 
-func (p *Parser) statement() bool {
-	return p.simpleStmt || p.returnStmt || p.breakStmt || p.continueStmt || p.ifStmt || p.forStmt
+func expression(rbp int) *symbol {
+	t := curTok
+	advance("")
+	// TODO : Special case if in the process of defining a new var:
+	// a := x
+	// then a.nudfn is nil, but will be defined once := is processed.
+	var left *symbol
+	if t.nudfn == nil && t.ar == arName && curTok.id == ":=" {
+		left = t
+	} else {
+		left = t.nud()
+	}
+	for rbp < curTok.lbp {
+		t = curTok
+		advance("")
+		left = t.led(left)
+	}
+	return left
 }
 
-func (p *Parser) simpleStmt() bool {
-	return p.incDecStmt || p.assignment || p.shortVarDecl || p.expressionStmt
-}
-
-func (p *Parser) expressionStmt() bool {
-	return p.expression
-}
-
-func (p *Parser) incDecStmt() bool {
-	if p.expression() {
-		if p.match(token.INC) || p.match(token.DEC) {
-			return true
+func infix(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
+	s := makeSymbol(id, bp)
+	if ledfn != nil {
+		s.ledfn = ledfn
+	} else {
+		s.ledfn = func(sym, left *symbol) *symbol {
+			sym.first = left
+			sym.second = expression(bp)
+			sym.ar = arBinary
+			return sym
 		}
 	}
-	// TODO : Rollback?
-	return false
+	return s
 }
 
-func (p *Parser) shortVarDecl() bool {
-	if p.identifierList() {
-		p.expect(token.DEFINE)
-		p.expressionList()
-		return true
-	}
-	return false
-}
-
-func (p *Parser) assignment() bool {
-	if p.expressionList() {
-
-	}
-}
-
-func (p *Parser) returnStmt() bool {
-	if p.match(token.RETURN) {
-		p.expression()
-		return true
-	}
-	return false
-}
-
-func (p *Parser) breakStmt() bool {
-	return p.match(token.BREAK)
-}
-
-func (p *Parser) continueStmt() bool {
-	return p.match(token.CONTINUE)
-}
-
-func (p *Parser) ifStmt() bool {
-	if p.match(token.IF) {
-		if !p.expression() {
-			p.Error("IfStmt : expected an expression")
+func infixr(id string, bp int, ledfn func(*symbol, *symbol) *symbol) *symbol {
+	s := makeSymbol(id, bp)
+	if ledfn != nil {
+		s.ledfn = ledfn
+	} else {
+		s.ledfn = func(sym, left *symbol) *symbol {
+			sym.first = left
+			sym.second = expression(bp - 1)
+			sym.ar = arBinary
+			return sym
 		}
-		if !p.block() {
-			p.Error("IfStmt : expected a body")
-		}
-		if p.match(token.ELSE) {
-			if !p.ifStmt() && !p.block() {
-				p.Error("IfStmt : expected an if or a body after the else keyword")
-			}
-		}
-		return true
 	}
-	return false
+	return s
 }
 
-func (p *Parser) forStmt() bool {
-	if p.match(token.FOR) {
-		// For Clause must be checked first, range next, and condition last
-		if !(p.forClause() || p.rangeClause() || p.condition) {
-			p.Error("ForStmt : expected a condition, a for clause or a range clause")
+func prefix(id string, nudfn func(*symbol) *symbol) *symbol {
+	s := makeSymbol(id, 0)
+	if nudfn != nil {
+		s.nudfn = nudfn
+	} else {
+		s.nudfn = func(sym *symbol) *symbol {
+			curScp.reserve(sym)
+			sym.first = expression(70)
+			sym.ar = arUnary
+			return sym
 		}
-		if !p.block() {
-			p.Error("ForStmt : expected a for body")
+	}
+	return s
+}
+
+func suffix(id string) *symbol {
+	return infixr(id, 10, func(sym, left *symbol) *symbol {
+		if left.id != "." && left.id != "[" && left.ar != arName {
+			error("bad lvalue")
 		}
-		return true
+		sym.first = left
+		sym.asg = true
+		sym.ar = arUnary
+		return sym
+	})
+}
+
+func assignment(id string) *symbol {
+	return infixr(id, 10, func(sym, left *symbol) *symbol {
+		if left.id != "." && left.id != "[" && left.ar != arName {
+			error("bad lvalue")
+		}
+		sym.first = left
+		sym.second = expression(9)
+		sym.asg = true
+		sym.ar = arBinary
+		return sym
+	})
+}
+
+// TODO : For now, it doesn't support a list of vars followed by a matching list of expressions (a, b, c := 1, 2, 3)
+func define(id string) *symbol {
+	return infixr(id, 10, func(sym, left *symbol) *symbol {
+		if left.ar != arName {
+			error("expected variable name")
+		}
+		curScp.define(left)
+		sym.first = left
+		sym.second = expression(9)
+		sym.ar = arBinary
+		return sym
+	})
+}
+
+func constant(id string, v interface{}) *symbol {
+	s := makeSymbol(id, 0)
+	s.nudfn = func(sym *symbol) *symbol {
+		curScp.reserve(sym)
+		sym.val = symtbl[sym.id].val
+		sym.ar = arLiteral
+		return sym
 	}
-	return false
+	s.val = v
+	return s
 }
 
-func (p *Parser) condition() bool {
-	return p.expression()
-}
-
-func (p *Parser) forClause() bool {
-	p.initStmt() // Optional
-	if !p.match(token.SEMICOLON) {
-		// TODO : Rewind the initStmt!
-		return false
+func statement() interface{} {
+	n := curTok
+	if n.stdfn != nil {
+		advance("")
+		curScp.reserve(n)
+		return n.std()
 	}
-	// Else, assume this is a for clause, the rest is expected
-	p.condition() // Optional
-	p.expect(token.SEMICOLON)
-	p.postStmt() // Optional
-	return true
+	v := expression(0)
+	if !v.asg && v.id != "(" && v.id != ":=" {
+		error(fmt.Sprintf("bad expression statement: %s (%s)", v.id, v.val))
+	}
+	advance(";")
+	return v
 }
 
-func (p *Parser) rangeClause() bool {
+func statements() []*symbol {
+	var a []*symbol
+	for {
+		if curTok.id == "}" || curTok.id == "(end)" {
+			break
+		}
+		s := statement()
+		switch v := s.(type) {
+		case []*symbol:
+			a = append(a, v...)
+		case *symbol:
+			a = append(a, v)
+		default:
+			panic("unexpected type")
+		}
+	}
+	return a
+}
+
+func stmt(id string, stdfn func(*symbol) interface{}) *symbol {
+	s := makeSymbol(id, 0)
+	s.stdfn = stdfn
+	return s
+}
+
+func block() interface{} {
+	t := curTok
+	advance("{")
+	return t.std()
+}
+
+// Returns a slice of imports, in pairs (one import = 2 items, first the identifier,
+// then the path).
+func importMany() []*symbol {
+	var a []*symbol
+	fmt.Println("IMPORTMANY")
+	for curTok.id != ")" {
+		id, p := importOne()
+		a = append(a, id, p)
+	}
+	advance(")")
+	advance(";")
+	return a
+}
+
+// Return a pair of symbols, the identifier and the path
+func importOne() (id *symbol, pth *symbol) {
+	fmt.Println("IMPORTONE")
+	if curTok.ar == arName {
+		// Define in scope
+		fmt.Println("explicit define: " + curTok.val.(string))
+		curScp.define(curTok)
+		id = curTok
+		advance("")
+	}
+	var path string
 	var ok bool
-	if p.expressionList() {
-		ok = p.expect(token.ASSIGN)
-	} else if p.identifierList() {
-		ok = p.expect(token.DEFINE)
+	if path, ok = curTok.val.(string); curTok.ar != arLiteral || !ok {
+		error("import path must be a string literal")
 	}
-	if !ok {
-		// TODO : Rewind?!?!?!
-		return false
+	if id == nil {
+		// No explicit identifier for the import, use the last portion of the import path
+		path = path[1 : len(path)-1] // Remove \"
+		if strings.HasSuffix(path, "/") {
+			path = path[:len(path)-1]
+		}
+		idx := strings.LastIndex(path, "/")
+		nm := path[idx+1:]
+		if len(nm) == 0 {
+			error("invalid import path")
+		}
+		// Create new name symbol for this identifier
+		o := symtbl["(name)"]
+		sym := clone(o)
+		sym.ar = arName
+		sym.val = nm
+		fmt.Println("implicit define: " + sym.val.(string))
+		curScp.define(sym)
+		id = sym
 	}
-	p.expect(token.RANGE)
-	if !p.expression() {
-		p.Error("RangeClause : expected an expression")
+	pth = curTok
+	advance("")
+	advance(";")
+	return
+}
+
+func error(msg string) {
+	panic(msg)
+}
+
+func init() {
+	makeSymbol(":", 0)
+	makeSymbol(";", 0)
+	makeSymbol(",", 0)
+	makeSymbol(")", 0)
+	makeSymbol("]", 0)
+	makeSymbol("}", 0)
+	makeSymbol("else", 0)
+	makeSymbol("(end)", 0)
+	makeSymbol("(name)", 0)
+
+	infix("+", 50, nil)
+	infix("-", 50, nil)
+	infix("*", 60, nil)
+	infix("/", 60, nil)
+	infix("%", 60, nil)
+	infix("==", 40, nil)
+	infix("<", 40, nil)
+	infix(">", 40, nil)
+	infix("!=", 40, nil)
+	infix("<=", 40, nil)
+	infix(">=", 40, nil)
+	// Ternary operator?
+	infix("?", 20, func(sym, left *symbol) *symbol {
+		sym.first = left
+		sym.second = expression(0)
+		advance(":")
+		sym.third = expression(0)
+		sym.ar = arTernary
+		return sym
+	})
+	// The dot (selector) operator
+	infix(".", 80, func(sym, left *symbol) *symbol {
+		sym.first = left
+		if curTok.ar != arName {
+			error("expected a field name")
+		}
+		curTok.ar = arLiteral
+		sym.second = curTok
+		sym.ar = arBinary
+		advance("")
+		return sym
+	})
+	// The array-notation field selector operator
+	infix("[", 80, func(sym, left *symbol) *symbol {
+		sym.first = left
+		sym.second = expression(0)
+		sym.ar = arBinary
+		advance("]")
+		return sym
+	})
+	// The logical operators
+	infixr("&&", 30, nil)
+	infixr("||", 30, nil)
+
+	prefix("-", nil)
+	prefix("!", nil)
+	prefix("(", func(sym *symbol) *symbol {
+		e := expression(0)
+		advance(")")
+		return e
+	})
+
+	assignment("=")
+	assignment("+=")
+	assignment("-=")
+	assignment("*=")
+	assignment("/=")
+	assignment("%=")
+
+	constant("true", true)
+	constant("false", false)
+	constant("nil", nil)
+	constant("args", "args") // The special variable args
+
+	makeSymbol("(literal)", 0).nudfn = itself
+
+	stmt("{", func(sym *symbol) interface{} {
+		a := statements()
+		advance("}")
+		return a
+	})
+	define(":=")
+	// TODO : This supports the for [condition] notation, nothing else
+	stmt("for", func(sym *symbol) interface{} {
+		sym.first = expression(0)
+		sym.second = block()
+		advance(";")
+		sym.ar = arStatement
+		return sym
+	})
+	stmt("if", func(sym *symbol) interface{} {
+		sym.first = expression(0)
+		sym.second = block()
+		if curTok.id == "else" {
+			curScp.reserve(curTok)
+			advance("else")
+			if curTok.id == "if" {
+				sym.third = statement()
+			} else {
+				sym.third = block()
+				advance(";")
+			}
+		} else {
+			advance(";")
+		}
+		sym.ar = arStatement
+		return sym
+	})
+	stmt("break", func(sym *symbol) interface{} {
+		advance(";")
+		if curTok.id != "}" && curTok.id != "(end)" {
+			error("unreachable statement")
+		}
+		sym.ar = arStatement
+		return sym
+	})
+	stmt("return", func(sym *symbol) interface{} {
+		fmt.Println("return1 ", curTok.id)
+		if curTok.id != ";" {
+			sym.first = expression(0)
+			fmt.Println("return2 ", curTok.id)
+		}
+		advance(";")
+		fmt.Println("return3 ", curTok.id)
+		if curTok.id != "}" && curTok.id != "(end)" {
+			error("unreachable statement: " + curTok.id)
+		}
+		sym.ar = arStatement
+		return sym
+	})
+	// TODO : Must be the first statement(s) in a file
+	stmt("import", func(sym *symbol) interface{} {
+		if curTok.id == "(" {
+			advance("(")
+			sym.first = importMany()
+		} else {
+			id, p := importOne()
+			sym.first = []*symbol{id, p}
+		}
+		sym.ar = arImport
+		return sym
+	})
+	// func can be both an expression prefix:
+	//   fnAdd := func(x, y) {return x+y}
+	// or a statement:
+	//   func Add(x, y) {return x+y}
+	// TODO : Make this DRY and much cleaner
+	prefix("func", func(sym *symbol) *symbol {
+		var a []*symbol
+		fmt.Println("FUNC PREFIX")
+		if curTok.ar == arName {
+			fmt.Println("FUNC define in scope name " + curTok.val.(string))
+			curScp.define(curTok)
+			sym.name = curTok.val.(string)
+			advance("")
+		}
+		newScope()
+		advance("(")
+		if curTok.id != ")" {
+			for {
+				if curTok.ar != arName {
+					error("expected a parameter name")
+				}
+				curScp.define(curTok)
+				a = append(a, curTok)
+				advance("")
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		sym.first = a
+		advance(")")
+		advance("{")
+		sym.second = statements()
+		advance("}")
+		// Don't consume the ending prefix when func is an expression
+		sym.ar = arFunction
+		curScp.pop()
+		return sym
+	})
+	stmt("func", func(sym *symbol) interface{} {
+		var a []*symbol
+		fmt.Println("FUNC STMT")
+		// The func name (e.g. func Add(x, y)...) should be defined in both
+		// the parent scope and the inner scope of the function. But then, just
+		// define in the parent scope, which will make it available in the inner scope.
+		if curTok.ar == arName {
+			fmt.Println("FUNC define in scope name " + curTok.val.(string))
+			curScp.define(curTok)
+			sym.name = curTok.val.(string)
+			advance("")
+		}
+		newScope()
+		advance("(")
+		if curTok.id != ")" {
+			for {
+				if curTok.ar != arName {
+					error("expected a parameter name")
+				}
+				curScp.define(curTok)
+				a = append(a, curTok)
+				advance("")
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		sym.first = a
+		advance(")")
+		advance("{")
+		sym.second = statements()
+		advance("}")
+		advance(";")
+		sym.ar = arFunction
+		curScp.pop()
+		return sym
+	})
+	infix("(", 80, func(sym, left *symbol) *symbol {
+		var a []*symbol
+		if curTok.id != ")" {
+			for {
+				a = append(a, expression(0))
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		advance(")")
+		if left.id == "." || left.id == "[" {
+			sym.ar = arTernary
+			sym.first = left.first
+			sym.second = left.second
+			sym.third = a
+		} else {
+			sym.ar = arBinary
+			sym.first = left
+			sym.second = a
+			if (left.ar != arUnary || left.id != "func") &&
+				left.ar != arName && left.id != "(" &&
+				left.id != "&&" && left.id != "||" && left.id != "?" {
+				error("expected a variable name")
+			}
+		}
+		return sym
+	})
+	makeSymbol("this", 0).nudfn = func(sym *symbol) *symbol {
+		curScp.reserve(sym)
+		sym.ar = arThis
+		return sym
 	}
-	return true
+	prefix("{", func(sym *symbol) *symbol {
+		var a []*symbol
+		if curTok.id != "}" {
+			for {
+				n := curTok
+				if n.ar != arName && n.ar != arLiteral {
+					error("bad key")
+				}
+				advance("")
+				advance(":")
+				v := expression(0)
+				v.key = n.val
+				a = append(a, v)
+				if curTok.id != "," {
+					break
+				}
+				advance(",")
+			}
+		}
+		advance("}")
+		sym.first = a
+		sym.ar = arUnary
+		return sym
+	})
+	// TODO : No array literal ("[14, 83, "toto"]") for now
+
+	suffix("--")
+	suffix("++")
 }
