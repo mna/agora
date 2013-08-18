@@ -138,6 +138,32 @@ func Fib(n) {
 }
 return Fib(30)
 `),
+			exp: []*Symbol{
+				&Symbol{id: "func", name: "Fib"},
+				&Symbol{id: "(name)", val: "n"},
+				&Symbol{id: "if"},
+				&Symbol{id: "<"},
+				&Symbol{id: "(name)", val: "n"},
+				&Symbol{id: "(literal)", val: "2"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(literal)", val: "1"},
+				&Symbol{id: "return"},
+				&Symbol{id: "+"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "Fib"},
+				&Symbol{id: "-"},
+				&Symbol{id: "(name)", val: "n"},
+				&Symbol{id: "(literal)", val: "1"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "Fib"},
+				&Symbol{id: "-"},
+				&Symbol{id: "(name)", val: "n"},
+				&Symbol{id: "(literal)", val: "2"},
+				&Symbol{id: "return"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "Fib"},
+				&Symbol{id: "(literal)", val: "30"},
+			},
 		},
 		6: {
 			src: []byte(`
@@ -274,14 +300,16 @@ func TestParse(t *testing.T) {
 			switch v := root.(type) {
 			case *Symbol:
 				ix++
-				if v.id != c.exp[ix].id {
-					t.Errorf("[%d] - expected symbol id %s, got %s", i, c.exp[ix].id, v.id)
-				}
-				if c.exp[ix].val != nil && v.val != c.exp[ix].val {
-					t.Errorf("[%d] - expected symbol value %s, got %s", i, c.exp[ix].val, v.val)
-				}
-				if c.exp[ix].name != "" && v.name != c.exp[ix].name {
-					t.Errorf("[%d] - expected symbol name %s, got %s", i, c.exp[ix].name, v.name)
+				if ix < len(c.exp) {
+					if v.id != c.exp[ix].id {
+						t.Errorf("[%d] - expected symbol id %s, got %s", i, c.exp[ix].id, v.id)
+					}
+					if c.exp[ix].val != nil && v.val != c.exp[ix].val {
+						t.Errorf("[%d] - expected symbol value %s, got %s", i, c.exp[ix].val, v.val)
+					}
+					if c.exp[ix].name != "" && v.name != c.exp[ix].name {
+						t.Errorf("[%d] - expected symbol name %s, got %s", i, c.exp[ix].name, v.name)
+					}
 				}
 				check(v.first)
 				check(v.second)
