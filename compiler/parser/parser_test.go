@@ -14,37 +14,19 @@ var (
 		0: {
 			src: []byte(`return 5`),
 			exp: []*Symbol{
-				&Symbol{
-					id: "return",
-				},
-				&Symbol{
-					id:  "(literal)",
-					val: "5",
-				},
+				&Symbol{id: "return"},
+				&Symbol{id: "(literal)", val: "5"},
 			},
 		},
 		1: {
 			src: []byte(`aB := 5
 return aB`),
 			exp: []*Symbol{
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "aB",
-				},
-				&Symbol{
-					id:  "(literal)",
-					val: "5",
-				},
-				&Symbol{
-					id: "return",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "aB",
-				},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "aB"},
+				&Symbol{id: "(literal)", val: "5"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(name)", val: "aB"},
 			},
 		},
 		2: {
@@ -60,146 +42,45 @@ not := !a
 unm := -a
 `),
 			exp: []*Symbol{
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id:  "(literal)",
-					val: "7",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "b",
-				},
-				&Symbol{
-					id:  "(literal)",
-					val: "10",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "add",
-				},
-				&Symbol{
-					id: "+",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "b",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "sub",
-				},
-				&Symbol{
-					id: "-",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "b",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "mul",
-				},
-				&Symbol{
-					id: "*",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "b",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "div",
-				},
-				&Symbol{
-					id: "/",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "b",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "mod",
-				},
-				&Symbol{
-					id: "%",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "b",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "not",
-				},
-				&Symbol{
-					id: "!",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
-				&Symbol{
-					id: ":=",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "unm",
-				},
-				&Symbol{
-					id: "-",
-				},
-				&Symbol{
-					id:  "(name)",
-					val: "a",
-				},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(literal)", val: "7"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(literal)", val: "10"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "add"},
+				&Symbol{id: "+"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "sub"},
+				&Symbol{id: "-"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "mul"},
+				&Symbol{id: "*"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "div"},
+				&Symbol{id: "/"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "mod"},
+				&Symbol{id: "%"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "not"},
+				&Symbol{id: "!"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "unm"},
+				&Symbol{id: "-"},
+				&Symbol{id: "(name)", val: "a"},
 			},
 		},
 		3: {
@@ -209,6 +90,20 @@ func Add(x, y) { // Essentially means var Add = func ...
 }
 return Add(4, "198")
 `),
+			exp: []*Symbol{
+				&Symbol{id: "func", name: "Add"},
+				&Symbol{id: "(name)", val: "x"},
+				&Symbol{id: "(name)", val: "y"},
+				&Symbol{id: "return"},
+				&Symbol{id: "+"},
+				&Symbol{id: "(name)", val: "x"},
+				&Symbol{id: "(name)", val: "y"},
+				&Symbol{id: "return"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "Add"},
+				&Symbol{id: "(literal)", val: "4"},
+				&Symbol{id: "(literal)", val: `"198"`},
+			},
 		},
 		4: {
 			src: []byte(`
@@ -217,6 +112,22 @@ Add := func(x, y) { // Essentially means var Add = func ...
 }
 return Add(4, "198")
 `),
+			exp: []*Symbol{
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "Add"},
+				&Symbol{id: "func"},
+				&Symbol{id: "(name)", val: "x"},
+				&Symbol{id: "(name)", val: "y"},
+				&Symbol{id: "return"},
+				&Symbol{id: "+"},
+				&Symbol{id: "(name)", val: "x"},
+				&Symbol{id: "(name)", val: "y"},
+				&Symbol{id: "return"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "Add"},
+				&Symbol{id: "(literal)", val: "4"},
+				&Symbol{id: "(literal)", val: `"198"`},
+			},
 		},
 		5: {
 			src: []byte(`
@@ -336,7 +247,7 @@ if true {
 		},
 	}
 
-	isolateCase = 3
+	isolateCase = 5
 )
 
 func TestParse(t *testing.T) {
@@ -359,15 +270,12 @@ func TestParse(t *testing.T) {
 				if c.exp[ix].val != nil && v.val != c.exp[ix].val {
 					t.Errorf("[%d] - expected symbol value %s, got %s", i, c.exp[ix].val, v.val)
 				}
-				if v.first != nil {
-					check(v.first)
+				if c.exp[ix].name != "" && v.name != c.exp[ix].name {
+					t.Errorf("[%d] - expected symbol name %s, got %s", i, c.exp[ix].name, v.name)
 				}
-				if v.second != nil {
-					check(v.second)
-				}
-				if v.third != nil {
-					check(v.third)
-				}
+				check(v.first)
+				check(v.second)
+				check(v.third)
 			case []*Symbol:
 				for _, s := range v {
 					check(s)
@@ -379,9 +287,9 @@ func TestParse(t *testing.T) {
 		}
 		if c.exp != nil {
 			check(s)
-		}
-		if len(c.exp) != (ix + 1) {
-			t.Errorf("[%d] - expected %d symbols, got %d", i, len(c.exp), ix+1)
+			if len(c.exp) != (ix + 1) {
+				t.Errorf("[%d] - expected %d symbols, got %d", i, len(c.exp), ix+1)
+			}
 		}
 	}
 }
