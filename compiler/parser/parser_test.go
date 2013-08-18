@@ -1,9 +1,8 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
-
-	"github.com/PuerkitoBio/goblin/compiler/scanner"
 )
 
 var (
@@ -245,19 +244,30 @@ if true {
 }
 `),
 		},
+		17: {
+			src: []byte(`
+			Ceci est un gros n'importe quoi! @ # 234r3.112@O#Ihwev92h f9238f
+`),
+		},
 	}
 
 	isolateCase = 5
 )
 
 func TestParse(t *testing.T) {
-	Scanner = new(scanner.Scanner)
+	p := New()
+	if isolateCase >= 0 && testing.Verbose() {
+		p.Debug = true
+	}
 	for i, c := range cases {
 		if isolateCase >= 0 && i != isolateCase {
 			continue
 		}
+		if testing.Verbose() {
+			fmt.Printf("testing case %d...\n", i)
+		}
 
-		s := Parse("test", c.src)
+		syms, _, err := p.Parse("test", c.src)
 		ix := -1
 		var check func(interface{})
 		check = func(root interface{}) {
@@ -286,10 +296,17 @@ func TestParse(t *testing.T) {
 			}
 		}
 		if c.exp != nil {
-			check(s)
+			check(syms)
 			if len(c.exp) != (ix + 1) {
 				t.Errorf("[%d] - expected %d symbols, got %d", i, len(c.exp), ix+1)
 			}
+			if testing.Verbose() {
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		} else {
+			t.Errorf("no assertion")
 		}
 	}
 }
