@@ -15,6 +15,15 @@ const (
 	_SYM_NAME = "(name)"
 	_SYM_LIT  = "(literal)"
 	_SYM_ANY  = ""
+	_SYM_BAD  = "(bad)"
+)
+
+var (
+	reqSymbols = []string{
+		_SYM_END,
+		_SYM_NAME,
+		_SYM_LIT,
+	}
 )
 
 type Parser struct {
@@ -75,9 +84,12 @@ func (p *Parser) Parse(filename string, src []byte) ([]*Symbol, *Scope, error) {
 // - (literal)
 // - (end)
 func (p *Parser) defineRequiredSymbols() {
-	p.makeSymbol(_SYM_END, 0)
-	p.makeSymbol(_SYM_NAME, 0)
-	p.makeSymbol(_SYM_LIT, 0).nudfn = itself
+	for _, s := range reqSymbols {
+		sym := p.makeSymbol(s, 0)
+		if s == _SYM_LIT {
+			sym.nudfn = itselfNud
+		}
+	}
 }
 
 // Create a new scope, as a child of the current scope of the parser.
@@ -384,8 +396,15 @@ func (p *Parser) importOne() (id *Symbol, pth *Symbol) {
 }
 
 func (p *Parser) error(s *Symbol, msg string) {
-	p.err.Add(s.pos, fmt.Sprintf("[tok: %s ; sym: %s ; val: %v] %s", s.tok, s.id, s.val, msg))
-	if p.Debug {
-		fmt.Println(p.err)
+	if s.id != _SYM_END {
+		p.err.Add(s.pos, fmt.Sprintf("[tok: %s ; sym: %s ; val: %v] %s", s.tok, s.id, s.val, msg))
+		// Change the symbol to a (bad) symbol, returning itself in all conditions
+		s.id = _SYM_BAD
+		s.ledfn = itselfLed
+		s.nudfn = itselfNud
+		s.stdfn = itselfStd
+		if p.Debug {
+			fmt.Println((*p.err)[p.err.Len()-1])
+		}
 	}
 }

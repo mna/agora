@@ -26,7 +26,15 @@ const (
 	arImport
 )
 
-func itself(s *Symbol) *Symbol {
+func itselfLed(s, left *Symbol) *Symbol {
+	return left
+}
+
+func itselfNud(s *Symbol) *Symbol {
+	return s
+}
+
+func itselfStd(s *Symbol) interface{} {
 	return s
 }
 
@@ -76,7 +84,6 @@ func (s Symbol) clone() *Symbol {
 func (s *Symbol) led(left *Symbol) *Symbol {
 	if s.ledfn == nil {
 		s.p.error(s, "missing operator")
-		return nil
 	}
 	return s.ledfn(s, left)
 }
@@ -84,7 +91,6 @@ func (s *Symbol) led(left *Symbol) *Symbol {
 func (s *Symbol) std() interface{} {
 	if s.stdfn == nil {
 		s.p.error(s, "invalid operation")
-		return nil
 	}
 	return s.stdfn(s)
 }
@@ -92,7 +98,6 @@ func (s *Symbol) std() interface{} {
 func (s *Symbol) nud() *Symbol {
 	if s.nudfn == nil {
 		s.p.error(s, "undefined")
-		return nil
 	}
 	return s.nudfn(s)
 }

@@ -18,7 +18,7 @@ func (s *Scope) define(n *Symbol) *Symbol {
 	s.def[n.val.(string)] = n
 	n.res = false
 	n.lbp = 0
-	n.nudfn = itself
+	n.nudfn = itselfNud
 	n.ledfn = nil
 	n.stdfn = nil
 	return n
