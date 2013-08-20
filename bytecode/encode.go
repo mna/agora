@@ -94,7 +94,7 @@ func (enc *Encoder) write(v interface{}) {
 				enc.err = ErrUnexpectedKValType
 				return
 			}
-			enc.write([]byte(kval))
+			enc.write(kval)
 		case int64:
 			if val.Type != KtInteger && val.Type != KtBoolean {
 				enc.err = ErrUnexpectedKValType

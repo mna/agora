@@ -152,6 +152,50 @@ var (
 			}},
 			err: ErrUnknownOpcode,
 		},
+		9: {
+			// Multiple functions
+			f: &File{Name: "test", Fns: []Fn{
+				Fn{
+					Header: H{
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+					Ks: []K{
+						K{
+							Type: KtInteger,
+							Val:  int64(7),
+						},
+					},
+					Is: []Instr{
+						NewInstr(OP_ADD, FLG_K, 12),
+						NewInstr(OP_DUMP, FLG_S, 0),
+					},
+				},
+				Fn{
+					Header: H{
+						Name:      "f2",
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+					Ks: []K{
+						K{
+							Type: KtString,
+							Val:  "const",
+						},
+					},
+					Is: []Instr{
+						NewInstr(OP_RET, FLG__, 0),
+					},
+				},
+			}},
+			exp: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B, int64ToByteSlice(2), 'f', '2', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtString), int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+		},
 	}
 
 	isolateCase = -1
