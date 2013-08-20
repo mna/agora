@@ -23,6 +23,8 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 func (enc *Encoder) Encode(f *File) (err error) {
+	// Reset error
+	enc.err = nil
 	// 1- Signature
 	enc.write(_SIGNATURE)
 	// 2- Version (must match exactly that of the compiler)
