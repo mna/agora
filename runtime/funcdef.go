@@ -1,5 +1,9 @@
 package runtime
 
+import (
+	"github.com/PuerkitoBio/goblin/bytecode"
+)
+
 // FuncFn represents the Func signature for native functions.
 type FuncFn func(...Val) Val
 
@@ -29,7 +33,7 @@ type GoblinFunc struct {
 	expArgs int
 	expVars int
 	kTable  []Val
-	code    []Instr
+	code    []bytecode.Instr
 }
 
 func newGoblinFunc(mod *goblinModule) *GoblinFunc {
