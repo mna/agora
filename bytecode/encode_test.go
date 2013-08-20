@@ -10,10 +10,10 @@ import (
 var (
 	// Useful prefilled expected byte slices
 	expSig          = []byte{0x2A, 0x60, 0x0A, 0x00}
-	expSigAndDefVer = append(expSig, makeVersionByte(_MAJOR_VERSION, _MINOR_VERSION))
+	expSigAndDefVer = append(expSig, encodeVersionByte(_MAJOR_VERSION, _MINOR_VERSION))
 	expZeroInt64    = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
-	cases = []struct {
+	enccases = []struct {
 		maj int
 		min int
 		f   *File
@@ -198,7 +198,7 @@ var (
 		},
 	}
 
-	isolateCase = -1
+	isolateEncCase = -1
 )
 
 func appendAny(b []byte, vals ...interface{}) []byte {
@@ -230,12 +230,12 @@ func int64ToByteSlice(i int64) []byte {
 func TestEncode(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	enc := NewEncoder(buf)
-	for i, c := range cases {
-		if isolateCase >= 0 && isolateCase != i {
+	for i, c := range enccases {
+		if isolateEncCase >= 0 && isolateEncCase != i {
 			continue
 		}
 		if testing.Verbose() {
-			fmt.Printf("testing case %d...\n", i)
+			fmt.Printf("testing encode case %d...\n", i)
 		}
 
 		// Arrange

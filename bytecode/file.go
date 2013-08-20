@@ -12,8 +12,12 @@ var (
 	_MINOR_VERSION = 0
 )
 
-func makeVersionByte(maj, min int) byte {
+func encodeVersionByte(maj, min int) byte {
 	return byte(maj)<<4 | byte(min)
+}
+
+func decodeVersionByte(v byte) (maj, min int) {
+	return int(v >> 4), int((v << 4) >> 4)
 }
 
 // The type tag that defines the constant's type.

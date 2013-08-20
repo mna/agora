@@ -29,7 +29,7 @@ func (enc *Encoder) Encode(f *File) (err error) {
 	enc.write(_SIGNATURE)
 	// 2- Version (must match exactly that of the compiler)
 	enc.assertVersion(f)
-	enc.write(makeVersionByte(f.MajorVersion, f.MinorVersion))
+	enc.write(encodeVersionByte(f.MajorVersion, f.MinorVersion))
 	// 3- Each function
 	for i, fn := range f.Fns {
 		// 4- Function header
@@ -62,12 +62,18 @@ func (enc *Encoder) Encode(f *File) (err error) {
 }
 
 func (enc *Encoder) assertOpcode(ins Instr) {
+	if enc.err != nil {
+		return
+	}
 	if ins.Opcode() >= op_max {
 		enc.err = ErrUnknownOpcode
 	}
 }
 
 func (enc *Encoder) assertKType(k K) {
+	if enc.err != nil {
+		return
+	}
 	switch k.Type {
 	case KtFloat, KtString, KtInteger, KtBoolean:
 	default:
@@ -76,6 +82,9 @@ func (enc *Encoder) assertKType(k K) {
 }
 
 func (enc *Encoder) assertVersion(f *File) {
+	if enc.err != nil {
+		return
+	}
 	if f.MajorVersion != _MAJOR_VERSION || f.MinorVersion != _MINOR_VERSION {
 		enc.err = ErrVersionMismatch
 	}
