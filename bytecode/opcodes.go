@@ -1,4 +1,4 @@
-package runtime
+package bytecode
 
 // The opcode takes 8 bytes, leaving 256 possible codes.
 type Opcode byte
@@ -33,6 +33,7 @@ const (
 	OP_CFLD
 	// Debugging
 	OP_DUMP
+	op_max
 	OP_INVL Opcode = 0xFF
 )
 

@@ -3,10 +3,18 @@ package bytecode
 // The binary signature that must be present at the start of
 // each compiled bytecode file.
 const (
-	_MAJOR_VERSION       = 0
-	_MINOR_VERSION       = 0
-	_SIGNATURE     int32 = 0x000A602A
+	_SIGNATURE int32 = 0x000A602A
 )
+
+var (
+	// Vars only to allow for testing, but are really constants
+	_MAJOR_VERSION = 0
+	_MINOR_VERSION = 0
+)
+
+func makeVersionByte(maj, min int) byte {
+	return byte(maj)<<4 | byte(min)
+}
 
 // The type tag that defines the constant's type.
 type KType byte
@@ -32,7 +40,7 @@ type File struct {
 type Fn struct {
 	Header H
 	Ks     []K
-	Is     []I
+	Is     []Instr
 }
 
 // The function header representation.
@@ -50,9 +58,3 @@ type K struct {
 	Type KType
 	Val  interface{}
 }
-
-// The representation of an instruction. For the bytecode format
-// definition (and to avoid depending on the runtime package),
-// there is no need to understand the internal composition of
-// the instruction.
-type I uint64
