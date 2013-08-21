@@ -31,19 +31,28 @@ const (
 	KtString  KType = 's'
 )
 
+var (
+	validKtypes = map[KType]struct{}{
+		KtInteger: struct{}{},
+		KtBoolean: struct{}{},
+		KtFloat:   struct{}{},
+		KtString:  struct{}{},
+	}
+)
+
 // The full representation of a bytecode file, as defined
 // in /compiler/bytecode.md.
 type File struct {
 	Name         string
 	MajorVersion int
 	MinorVersion int
-	Fns          []Fn
+	Fns          []*Fn
 }
 
 // The representation of a single function in a bytecode file.
 type Fn struct {
 	Header H
-	Ks     []K
+	Ks     []*K
 	Is     []Instr
 }
 

@@ -3,8 +3,10 @@ package bytecode
 import (
 	"bytes"
 	"fmt"
-	"reflect"
+	"io"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -16,9 +18,144 @@ var (
 		err error
 	}{
 		0: {
-			// Simplest case, encodes the file header only
+			// Simplest case, decodes the file header only
 			src: expSigAndDefVer,
 			exp: &File{},
+		},
+		1: {
+			// Decodes the file header and function header
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), expZeroInt64, expZeroInt64),
+			exp: &File{Name: "test", Fns: []*Fn{
+				&Fn{
+					Header: H{
+						Name:      "test",
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+				},
+			}},
+		},
+		2: {
+			// Invalid version
+			maj: 1,
+			min: 2,
+			src: appendAny(expSig, encodeVersionByte(2, 3), int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), expZeroInt64, expZeroInt64),
+			err: ErrVersionMismatch,
+		},
+		3: {
+			// Top-level function gets the file name
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64),
+			exp: &File{Name: "test", Fns: []*Fn{&Fn{Header: H{Name: "test"}}}},
+		},
+		4: {
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), expZeroInt64),
+			exp: &File{Name: "test", Fns: []*Fn{
+				&Fn{
+					Header: H{
+						Name:      "test",
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+					Ks: []*K{
+						&K{
+							Type: KtInteger,
+							Val:  int64(7),
+						},
+					},
+				},
+			}},
+		},
+		5: {
+			// Invalid K Type
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), 'z', int64ToByteSlice(7), expZeroInt64),
+			err: ErrInvalidKType,
+		},
+		6: {
+			// Impossible to reproduce same 6 as encode - cannot get invalid K value, it is
+			// necessarily read as a type corresponding to its K type.
+			err: io.EOF,
+		},
+		7: {
+			// Function with K and Is
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B),
+			exp: &File{Name: "test", Fns: []*Fn{
+				&Fn{
+					Header: H{
+						Name:      "test",
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+					Ks: []*K{
+						&K{
+							Type: KtInteger,
+							Val:  int64(7),
+						},
+					},
+					Is: []Instr{
+						NewInstr(OP_ADD, FLG_K, 12),
+						NewInstr(OP_DUMP, FLG_S, 0),
+					},
+				},
+			}},
+		},
+		8: {
+			// Invalid opcode
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
+			err: ErrUnknownOpcode,
+		},
+		9: {
+			// Multiple functions
+			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B, int64ToByteSlice(2), 'f', '2', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtString), int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+			exp: &File{Name: "test", Fns: []*Fn{
+				&Fn{
+					Header: H{
+						Name:      "test",
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+					Ks: []*K{
+						&K{
+							Type: KtInteger,
+							Val:  int64(7),
+						},
+					},
+					Is: []Instr{
+						NewInstr(OP_ADD, FLG_K, 12),
+						NewInstr(OP_DUMP, FLG_S, 0),
+					},
+				},
+				&Fn{
+					Header: H{
+						Name:      "f2",
+						StackSz:   2,
+						ExpArgs:   3,
+						ExpVars:   4,
+						LineStart: 5,
+						LineEnd:   6,
+					},
+					Ks: []*K{
+						&K{
+							Type: KtString,
+							Val:  "const",
+						},
+					},
+					Is: []Instr{
+						NewInstr(OP_RET, FLG__, 0),
+					},
+				},
+			}},
 		},
 	}
 
@@ -50,12 +187,78 @@ func TestDecode(t *testing.T) {
 			}
 		}
 		if c.exp != nil {
-			if !reflect.DeepEqual(f, c.exp) {
-				t.Errorf("[%d] - expected \n%#v\n, got \n%#v\n", i, c.exp, f)
+			if !equal(f, c.exp) {
+				t.Errorf("[%d] - expected\n", i)
+				t.Error(spew.Sdump(c.exp))
+				t.Error("got\n")
+				t.Error(spew.Sdump(f))
 			}
 		}
 		if c.err == nil && c.exp == nil {
 			t.Errorf("[%d] - no assertion", i)
 		}
 	}
+}
+
+func equal(f1, f2 *File) bool {
+	if f1 == nil && f2 == nil {
+		return true
+	}
+	if f1 == nil || f2 == nil {
+		return false
+	}
+	if f1.Name != f2.Name {
+		return false
+	}
+	if f1.MajorVersion != f2.MajorVersion {
+		return false
+	}
+	if f1.MinorVersion != f2.MinorVersion {
+		return false
+	}
+	if len(f1.Fns) != len(f2.Fns) {
+		return false
+	}
+	for i := 0; i < len(f1.Fns); i++ {
+		fn1, fn2 := f1.Fns[i], f2.Fns[i]
+		if fn1.Header.Name != fn2.Header.Name {
+			return false
+		}
+		if fn1.Header.StackSz != fn2.Header.StackSz {
+			return false
+		}
+		if fn1.Header.ExpArgs != fn2.Header.ExpArgs {
+			return false
+		}
+		if fn1.Header.ExpVars != fn2.Header.ExpVars {
+			return false
+		}
+		if fn1.Header.LineStart != fn2.Header.LineStart {
+			return false
+		}
+		if fn1.Header.LineEnd != fn2.Header.LineEnd {
+			return false
+		}
+		if len(fn1.Ks) != len(fn2.Ks) {
+			return false
+		}
+		for j := 0; j < len(fn1.Ks); j++ {
+			k1, k2 := fn1.Ks[j], fn2.Ks[j]
+			if k1.Type != k2.Type {
+				return false
+			}
+			if k1.Val != k2.Val {
+				return false
+			}
+		}
+		if len(fn1.Is) != len(fn2.Is) {
+			return false
+		}
+		for j := 0; j < len(fn1.Is); j++ {
+			if fn1.Is[j] != fn2.Is[j] {
+				return false
+			}
+		}
+	}
+	return true
 }

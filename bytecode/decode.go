@@ -24,14 +24,14 @@ func (dec *Decoder) Decode() (*File, error) {
 	// 1- Read and assert the signature
 	sig := dec.readSignature()
 	dec.assertSignature(sig)
-	// 2- Read and assert the version
-	ver := dec.readVersion()
-	dec.assertVersion(ver)
 	// Do not create useless structures if the header is invalid
 	if dec.err != nil {
 		return nil, dec.err
 	}
 
+	// 2- Read and assert the version
+	ver := dec.readByte()
+	dec.assertVersion(ver)
 	// 3- Create the File structure
 	f := new(File)
 	f.MajorVersion, f.MinorVersion = decodeVersionByte(ver)
@@ -44,6 +44,10 @@ func (dec *Decoder) Decode() (*File, error) {
 		if len(f.Fns) == 1 {
 			f.Name = fn.Header.Name
 		}
+	}
+	// If the error is EOF at this point, cancel it
+	if dec.err == io.EOF {
+		dec.err = nil
 	}
 	return f, dec.err
 }
@@ -66,26 +70,80 @@ func (dec *Decoder) assertVersion(ver byte) {
 	}
 }
 
-func (dec *Decoder) readFunc() (Fn, bool) {
-	var fn Fn
+func (dec *Decoder) assertKType(kt KType) {
 	if dec.err != nil {
-		return fn, false
+		return
 	}
-	// This first read *may* return io.EOF, this means that
-	// there is no more function to read, return and cancel the error.
+	if _, ok := validKtypes[kt]; !ok {
+		dec.err = ErrInvalidKType
+	}
+}
+
+func (dec *Decoder) assertOpcode(ins Instr) {
+	if dec.err != nil {
+		return
+	}
+	if ins.Opcode() >= op_max {
+		dec.err = ErrUnknownOpcode
+	}
+}
+
+func (dec *Decoder) readFunc() (*Fn, bool) {
 	nm := dec.readString()
-	if dec.err == io.EOF {
-		dec.err = nil
-		return fn, false
+	if dec.err != nil {
+		return nil, false
 	}
+	fn := new(Fn)
+
+	// Function header
 	fn.Header.Name = nm
+	fn.Header.StackSz = dec.readInt64()
+	fn.Header.ExpArgs = dec.readInt64()
+	fn.Header.ExpVars = dec.readInt64()
+	fn.Header.LineStart = dec.readInt64()
+	fn.Header.LineEnd = dec.readInt64()
+
+	// K section
+	ks := dec.readInt64()
+	if ks > 0 {
+		fn.Ks = make([]*K, ks)
+		for i := int64(0); i < ks; i++ {
+			fn.Ks[i] = dec.readK()
+		}
+	}
+
+	// I section
+	is := dec.readInt64()
+	if is > 0 {
+		fn.Is = make([]Instr, is)
+		for i := int64(0); i < is; i++ {
+			fn.Is[i] = Instr(dec.readUInt64())
+			dec.assertOpcode(fn.Is[i])
+		}
+	}
 	return fn, true
 }
 
-func (dec *Decoder) readVersion() byte {
-	var ver byte
-	dec.read(&ver)
-	return ver
+func (dec *Decoder) readK() *K {
+	k := new(K)
+	k.Type = KType(dec.readByte())
+	dec.assertKType(k.Type)
+	switch k.Type {
+	case KtInteger, KtBoolean:
+		k.Val = dec.readInt64()
+	case KtFloat:
+		k.Val = dec.readFloat64()
+	case KtString:
+		k.Val = dec.readString()
+	}
+
+	return k
+}
+
+func (dec *Decoder) readByte() byte {
+	var b byte
+	dec.read(&b)
+	return b
 }
 
 func (dec *Decoder) readString() string {
@@ -102,6 +160,18 @@ func (dec *Decoder) readInt64() int64 {
 	var i int64
 	dec.read(&i)
 	return i
+}
+
+func (dec *Decoder) readUInt64() uint64 {
+	var u uint64
+	dec.read(&u)
+	return u
+}
+
+func (dec *Decoder) readFloat64() float64 {
+	var f float64
+	dec.read(&f)
+	return f
 }
 
 func (dec *Decoder) readSignature() int32 {

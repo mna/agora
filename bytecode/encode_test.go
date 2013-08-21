@@ -39,12 +39,12 @@ var (
 		},
 		3: {
 			// Top-level function gets the file name
-			f:   &File{Name: "test", Fns: []Fn{Fn{}}},
+			f:   &File{Name: "test", Fns: []*Fn{&Fn{}}},
 			exp: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64),
 		},
 		4: {
-			f: &File{Name: "test", Fns: []Fn{
-				Fn{
+			f: &File{Name: "test", Fns: []*Fn{
+				&Fn{
 					Header: H{
 						StackSz:   2,
 						ExpArgs:   3,
@@ -52,8 +52,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KtInteger,
 							Val:  int64(7),
 						},
@@ -64,8 +64,8 @@ var (
 		},
 		5: {
 			// Invalid KType
-			f: &File{Name: "test", Fns: []Fn{
-				Fn{
+			f: &File{Name: "test", Fns: []*Fn{
+				&Fn{
 					Header: H{
 						StackSz:   2,
 						ExpArgs:   3,
@@ -73,8 +73,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KType('z'),
 							Val:  int64(7),
 						},
@@ -85,8 +85,8 @@ var (
 		},
 		6: {
 			// Invalid K value type
-			f: &File{Name: "test", Fns: []Fn{
-				Fn{
+			f: &File{Name: "test", Fns: []*Fn{
+				&Fn{
 					Header: H{
 						StackSz:   2,
 						ExpArgs:   3,
@@ -94,8 +94,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KtInteger,
 							Val:  float64(3.5),
 						},
@@ -105,8 +105,8 @@ var (
 			err: ErrUnexpectedKValType,
 		},
 		7: {
-			f: &File{Name: "test", Fns: []Fn{
-				Fn{
+			f: &File{Name: "test", Fns: []*Fn{
+				&Fn{
 					Header: H{
 						StackSz:   2,
 						ExpArgs:   3,
@@ -114,8 +114,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KtInteger,
 							Val:  int64(7),
 						},
@@ -130,8 +130,8 @@ var (
 		},
 		// Invalid opcode
 		8: {
-			f: &File{Name: "test", Fns: []Fn{
-				Fn{
+			f: &File{Name: "test", Fns: []*Fn{
+				&Fn{
 					Header: H{
 						StackSz:   2,
 						ExpArgs:   3,
@@ -139,8 +139,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KtInteger,
 							Val:  int64(7),
 						},
@@ -154,8 +154,8 @@ var (
 		},
 		9: {
 			// Multiple functions
-			f: &File{Name: "test", Fns: []Fn{
-				Fn{
+			f: &File{Name: "test", Fns: []*Fn{
+				&Fn{
 					Header: H{
 						StackSz:   2,
 						ExpArgs:   3,
@@ -163,8 +163,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KtInteger,
 							Val:  int64(7),
 						},
@@ -174,7 +174,7 @@ var (
 						NewInstr(OP_DUMP, FLG_S, 0),
 					},
 				},
-				Fn{
+				&Fn{
 					Header: H{
 						Name:      "f2",
 						StackSz:   2,
@@ -183,8 +183,8 @@ var (
 						LineStart: 5,
 						LineEnd:   6,
 					},
-					Ks: []K{
-						K{
+					Ks: []*K{
+						&K{
 							Type: KtString,
 							Val:  "const",
 						},

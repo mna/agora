@@ -47,7 +47,7 @@ func (enc *Encoder) Encode(f *File) (err error) {
 		// 5- The K section
 		enc.write(int64(len(fn.Ks)))
 		for _, k := range fn.Ks {
-			enc.assertKType(k)
+			enc.assertKType(k.Type)
 			enc.write(k)
 		}
 
@@ -70,13 +70,11 @@ func (enc *Encoder) assertOpcode(ins Instr) {
 	}
 }
 
-func (enc *Encoder) assertKType(k K) {
+func (enc *Encoder) assertKType(kt KType) {
 	if enc.err != nil {
 		return
 	}
-	switch k.Type {
-	case KtFloat, KtString, KtInteger, KtBoolean:
-	default:
+	if _, ok := validKtypes[kt]; !ok {
 		enc.err = ErrInvalidKType
 	}
 }
@@ -95,7 +93,7 @@ func (enc *Encoder) write(v interface{}) {
 		return
 	}
 	switch val := v.(type) {
-	case K:
+	case *K:
 		enc.write(byte(val.Type))
 		switch kval := val.Val.(type) {
 		case string:
