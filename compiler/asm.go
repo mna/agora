@@ -3,208 +3,153 @@ package compiler
 import (
 	"bufio"
 	"bytes"
-	"encoding/binary"
 	"errors"
 	"io"
 	"strconv"
 	"strings"
 
-	"github.com/PuerkitoBio/goblin/runtime"
+	"github.com/PuerkitoBio/goblin/bytecode"
 )
 
 var (
-	ErrMissingStackSz   = errors.New("missing stack size")
-	ErrMissingArgsCnt   = errors.New("missing arguments count")
-	ErrMissingVarsCnt   = errors.New("missing variables count")
-	ErrMissingLineStart = errors.New("missing line start")
-	ErrMissingLineEnd   = errors.New("missing line end")
-	ErrMissingFnNm      = errors.New("missing function name")
+	ErrInvalidInstruction = errors.New("invalid instruction")
+	ErrNoInput            = errors.New("no input provided")
 )
 
-type fn struct {
-	stackSz   int64
-	args      int64
-	vars      int64
-	lineStart int64
-	lineEnd   int64
-}
-
 type Asm struct {
+	s     *bufio.Scanner
+	f     *bytecode.File
 	ended bool
+	err   error
 }
 
-func (ø *Asm) Compile(id string, r io.Reader) ([]byte, error) {
-	var line string
-
-	s := bufio.NewScanner(r)
+func (a *Asm) Compile(id string, r io.Reader) ([]byte, error) {
+	a.ended = false
+	a.err = nil
+	a.s = bufio.NewScanner(r)
+	// Ignore everything before the [f] section
+	a.findSection("[f]")
+	// Edge case: if no func section (empty input), don't create the File, return
+	if a.ended {
+		return nil, ErrNoInput
+	}
+	a.f = bytecode.NewFile(id)
+	// Read the first section, the other ones get called recursively as needed
+	a.readFn()
+	// Do not compile unnecessarily if there is an error
+	if a.err != nil {
+		return nil, a.err
+	}
+	// Compile to bytecode
 	buf := bytes.NewBuffer(nil)
+	err := bytecode.NewEncoder(buf).Encode(a.f)
+	return buf.Bytes(), err
+}
 
-	// Write the header signature (bytes 0x60B114)
-	if err := binary.Write(buf, binary.LittleEndian, runtime.SIG); err != nil {
-		return nil, err
-	}
-	// Write the module's id
-	if err := ø.writeString(buf, id); err != nil {
-		return nil, err
-	}
-	for ø.ended = !s.Scan(); !ø.ended; ø.ended = !s.Scan() {
-		line = strings.TrimSpace(s.Text())
-		if line == "[f]" || line == "[k]" || line == "[i]" {
+func (a *Asm) findSection(s string) {
+	for line, ok := a.getLine(); ok; line, ok = a.getLine() {
+		if line == s {
 			break
 		}
 	}
-	if err := s.Err(); err != nil {
-		return nil, err
-	}
+}
 
-	for !ø.ended {
-		switch line {
-		case "[f]":
-			// Read a func
-			f := new(fn)
-			if !ø.loadInt64(s, &f.stackSz) {
-				return nil, ErrMissingStackSz
-			}
-			if !ø.loadInt64(s, &f.args) {
-				return nil, ErrMissingArgsCnt
-			}
-			if !ø.loadInt64(s, &f.vars) {
-				return nil, ErrMissingVarsCnt
-			}
-			if !ø.loadInt64(s, &f.lineStart) {
-				return nil, ErrMissingLineStart
-			}
-			if !ø.loadInt64(s, &f.lineEnd) {
-				return nil, ErrMissingLineEnd
-			}
-			if err := binary.Write(buf, binary.LittleEndian, f); err != nil {
-				return nil, err
-			}
-			if !s.Scan() {
-				return nil, ErrMissingFnNm
-			}
-			nm := s.Text()
-			if err := ø.writeString(buf, nm); err != nil {
-				return nil, err
-			}
-			if !s.Scan() {
-				break
-			}
-			line = strings.TrimSpace(s.Text())
+func (a *Asm) readFn() {
+	fn := new(bytecode.Fn)
+	fn.Header.Name, _ = a.getLine()
+	fn.Header.StackSz = a.getInt64()
+	fn.Header.ExpArgs = a.getInt64()
+	fn.Header.ExpVars = a.getInt64()
+	fn.Header.LineStart = a.getInt64()
+	fn.Header.LineEnd = a.getInt64()
+	// Step to the K section (must be present, even if empty)
+	a.findSection("[k]")
+	a.readKs(fn)
+	a.f.Fns = append(a.f.Fns, fn)
+}
 
-		case "[k]":
-			cntK := int64(0)
-			bufK := bytes.NewBuffer(nil)
-			for {
-				if t, v, ok := ø.loadK(s); ok {
-					cntK++
-					// Write the K type
-					if err := binary.Write(bufK, binary.LittleEndian, t); err != nil {
-						return nil, err
-					}
-					if t == 's' {
-						// Write the string length
-						if err := binary.Write(bufK, binary.LittleEndian, int64(len(v.([]byte)))); err != nil {
-							return nil, err
-						}
-					}
-					if err := binary.Write(bufK, binary.LittleEndian, v); err != nil {
-						return nil, err
-					}
-				} else {
-					// Write the number of Ks
-					if err := binary.Write(buf, binary.LittleEndian, cntK); err != nil {
-						return nil, err
-					}
-					// Append the bufK
-					if _, err := buf.Write(bufK.Bytes()); err != nil {
-						return nil, err
-					}
-					line = strings.TrimSpace(s.Text())
-					break
-				}
-			}
-
-		case "[i]":
-			cntI := int64(0)
-			bufI := bytes.NewBuffer(nil)
-			for {
-				if i, ok := ø.loadI(s); ok {
-					cntI++
-					if err := binary.Write(bufI, binary.LittleEndian, i); err != nil {
-						return nil, err
-					}
-				} else {
-					//Write the number of instructions
-					if err := binary.Write(buf, binary.LittleEndian, cntI); err != nil {
-						return nil, err
-					}
-					// Append the bufI
-					if _, err := buf.Write(bufI.Bytes()); err != nil {
-						return nil, err
-					}
-					line = strings.TrimSpace(s.Text())
-					break
-				}
-			}
+func (a *Asm) readKs(fn *bytecode.Fn) {
+	// While the I section is not reached
+	for l, ok := a.getLine(); ok && l != "[i]"; l, ok = a.getLine() {
+		var err error
+		k := new(bytecode.K)
+		// The K Type is the first character of the line
+		k.Type = bytecode.KType(l[0])
+		switch k.Type {
+		case bytecode.KtInteger, bytecode.KtBoolean:
+			k.Val, err = strconv.ParseInt(l[1:], 10, 64)
+		case bytecode.KtFloat:
+			k.Val, err = strconv.ParseFloat(l[1:], 64)
+		default:
+			k.Val = l[1:]
+		}
+		fn.Ks = append(fn.Ks, k)
+		if err != nil && a.err == nil {
+			a.err = err
 		}
 	}
-	return buf.Bytes(), nil
+	a.readIs(fn)
 }
 
-func (ø *Asm) writeString(w io.Writer, s string) error {
-	if err := binary.Write(w, binary.LittleEndian, int64(len(s))); err != nil {
-		return err
+func (a *Asm) readIs(fn *bytecode.Fn) {
+	var l string
+	var ok bool
+	// While a new F section is not reached
+	for l, ok = a.getLine(); ok && l != "[f]"; l, ok = a.getLine() {
+		// Split in three parts
+		parts := strings.SplitN(l, " ", 3)
+		if a.assertIParts(parts) {
+			var ix uint64
+			o := bytecode.NewOpcode(parts[0])
+			f := bytecode.NewFlag(parts[1])
+			ix, a.err = strconv.ParseUint(parts[2], 10, 64)
+			fn.Is = append(fn.Is, bytecode.NewInstr(o, f, ix))
+		}
 	}
-	return binary.Write(w, binary.LittleEndian, []byte(s))
+	if ok {
+		a.readFn()
+	}
 }
 
-func (ø *Asm) loadI(s *bufio.Scanner) (uint64, bool) {
-	if !s.Scan() {
-		ø.ended = true
-		return 0, false
-	}
-	line := strings.TrimSpace(s.Text())
-	if line[0] == '[' {
-		return 0, false
-	}
-	flds := strings.Fields(s.Text())
-	op := runtime.NewOpcode(flds[0])
-	var f runtime.Flag
-	var ix uint64
-	if len(flds) > 1 {
-		f = runtime.NewFlag(flds[1])
-		i, _ := strconv.Atoi(flds[2])
-		ix = uint64(i)
-	}
-	return uint64(runtime.NewInstr(op, f, ix)), true
-}
-
-func (ø *Asm) loadK(s *bufio.Scanner) (byte, interface{}, bool) {
-	if !s.Scan() {
-		ø.ended = true
-		return byte(0), nil, false
-	}
-	line := strings.TrimSpace(s.Text())
-	switch line[0] {
-	case 'i', 'b':
-		v, _ := strconv.Atoi(line[1:])
-		return line[0], int64(v), true
-	case 'f':
-		v, _ := strconv.ParseFloat(line[1:], 64)
-		return line[0], v, true
-	case 's':
-		return line[0], []byte(line[1:]), true
-	}
-	return byte(0), nil, false
-}
-
-func (ø *Asm) loadInt64(s *bufio.Scanner, dest *int64) bool {
-	if !s.Scan() {
-		ø.ended = true
+func (a *Asm) assertIParts(p []string) bool {
+	if a.err != nil || a.ended {
 		return false
 	}
-	i, _ := strconv.Atoi(s.Text())
-	*dest = int64(i)
+	if len(p) != 3 {
+		a.err = ErrInvalidInstruction
+		return false
+	}
 	return true
+}
+
+func (a *Asm) getInt64() int64 {
+	if v, ok := a.getLine(); ok {
+		var i int64
+		i, a.err = strconv.ParseInt(v, 10, 64)
+		return i
+	}
+	return 0
+}
+
+func (a *Asm) getLine() (string, bool) {
+	if a.err != nil || a.ended {
+		return "", false
+	}
+	var l string
+	for l == "" { // Skip empty lines or comment-only lines
+		ok := a.s.Scan()
+		if !ok {
+			// In case of EOF, s.Scan() returns false, but s.Err() returns nil
+			a.err = a.s.Err()
+			a.ended = true
+			return "", false
+		}
+		l = strings.TrimSpace(a.s.Text())
+		// Ignore comments
+		i := strings.Index(l, "//")
+		if i >= 0 {
+			l = l[:i]
+		}
+	}
+	return l, true
 }

@@ -49,6 +49,14 @@ type File struct {
 	Fns          []*Fn
 }
 
+func NewFile(nm string) *File {
+	return &File{
+		Name:         nm,
+		MajorVersion: _MAJOR_VERSION,
+		MinorVersion: _MINOR_VERSION,
+	}
+}
+
 // The representation of a single function in a bytecode file.
 type Fn struct {
 	Header H
