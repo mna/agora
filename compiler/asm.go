@@ -64,8 +64,8 @@ func (a *Asm) readFn() {
 	fn.Header.LineEnd = a.getInt64()
 	// Step to the K section (must be present, even if empty)
 	a.findSection("[k]")
-	a.readKs(fn)
 	a.f.Fns = append(a.f.Fns, fn)
+	a.readKs(fn)
 }
 
 func (a *Asm) readKs(fn *bytecode.Fn) {

@@ -676,6 +676,9 @@ func TestScan(t *testing.T) {
 		if isolateCase >= 0 && i != isolateCase {
 			continue
 		}
+		if testing.Verbose() {
+			fmt.Printf("testing scanner case %d...\n", i)
+		}
 
 		err.Reset()
 		s.Init("test", c.src, err.Add)
@@ -688,22 +691,22 @@ func TestScan(t *testing.T) {
 			}
 
 			if j < len(c.exp) && tok != c.exp[j] {
-				t.Errorf("case %d - expected token %s at index %d, got %s", i, c.exp[j], j, tok)
+				t.Errorf("[%d] - expected token %s at index %d, got %s", i, c.exp[j], j, tok)
 				gotErr = true
 				break
 			} else if j >= len(c.exp) {
-				t.Errorf("case %d - unexpected superfluous token at index %d", i, j)
+				t.Errorf("[%d] - unexpected superfluous token at index %d", i, j)
 				gotErr = true
 				break
 			}
 			j++
 		}
 		if !gotErr && len(c.exp) > j {
-			t.Errorf("case %d - missing %d token(s)", i, len(c.exp)-j)
+			t.Errorf("[%d] - missing %d token(s)", i, len(c.exp)-j)
 			gotErr = true
 		}
 		if e := err.Err(); e != nil && testing.Verbose() {
-			fmt.Printf("case %d - got scanning errors: %s\n", i, e)
+			fmt.Printf("[%d] - got scanning errors: %s\n", i, e)
 		}
 	}
 }

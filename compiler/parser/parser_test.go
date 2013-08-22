@@ -170,6 +170,16 @@ return Fib(30)
 import "fmt" // implicit fmt variable
 fmt.Println("Hello ", "world")
 `),
+			exp: []*Symbol{
+				&Symbol{id: "import"},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(literal)", val: `"fmt"`},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(name)", val: "Println"},
+				&Symbol{id: "(literal)", val: `"Hello "`},
+				&Symbol{id: "(literal)", val: `"world"`},
+			},
 		},
 		7: {
 			src: []byte(`
@@ -290,7 +300,7 @@ func TestParse(t *testing.T) {
 			continue
 		}
 		if testing.Verbose() {
-			fmt.Printf("testing case %d...\n", i)
+			fmt.Printf("testing parser case %d...\n", i)
 		}
 
 		syms, _, err := p.Parse("test", c.src)
@@ -334,7 +344,7 @@ func TestParse(t *testing.T) {
 				}
 			}
 		} else {
-			t.Errorf("no assertion")
+			t.Errorf("[%d] - no assertion", i)
 		}
 	}
 }
