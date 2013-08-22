@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrInvalidData = errors.New("the data to decode is not valid goblin bytecode")
+	ErrInvalidData = errors.New("input data is not valid bytecode")
 )
 
 type Decoder struct {
@@ -52,40 +52,43 @@ func (dec *Decoder) Decode() (*File, error) {
 	return f, dec.err
 }
 
-func (dec *Decoder) assertSignature(sig int32) {
+func (dec *Decoder) guard(fn func()) {
 	if dec.err != nil {
 		return
 	}
-	if sig != _SIGNATURE {
-		dec.err = ErrInvalidData
-	}
+	fn()
+}
+
+func (dec *Decoder) assertSignature(sig int32) {
+	dec.guard(func() {
+		if sig != _SIGNATURE {
+			dec.err = ErrInvalidData
+		}
+	})
 }
 
 func (dec *Decoder) assertVersion(ver byte) {
-	if dec.err != nil {
-		return
-	}
-	if ver != encodeVersionByte(_MAJOR_VERSION, _MINOR_VERSION) {
-		dec.err = ErrVersionMismatch
-	}
+	dec.guard(func() {
+		if ver != encodeVersionByte(_MAJOR_VERSION, _MINOR_VERSION) {
+			dec.err = ErrVersionMismatch
+		}
+	})
 }
 
 func (dec *Decoder) assertKType(kt KType) {
-	if dec.err != nil {
-		return
-	}
-	if _, ok := validKtypes[kt]; !ok {
-		dec.err = ErrInvalidKType
-	}
+	dec.guard(func() {
+		if _, ok := validKtypes[kt]; !ok {
+			dec.err = ErrInvalidKType
+		}
+	})
 }
 
 func (dec *Decoder) assertOpcode(ins Instr) {
-	if dec.err != nil {
-		return
-	}
-	if ins.Opcode() >= op_max {
-		dec.err = ErrUnknownOpcode
-	}
+	dec.guard(func() {
+		if ins.Opcode() >= op_max {
+			dec.err = ErrUnknownOpcode
+		}
+	})
 }
 
 func (dec *Decoder) readFunc() (*Fn, bool) {
@@ -181,8 +184,7 @@ func (dec *Decoder) readSignature() int32 {
 }
 
 func (dec *Decoder) read(v interface{}) {
-	if dec.err != nil {
-		return
-	}
-	dec.err = binary.Read(dec.r, binary.LittleEndian, v)
+	dec.guard(func() {
+		dec.err = binary.Read(dec.r, binary.LittleEndian, v)
+	})
 }

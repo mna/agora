@@ -61,67 +61,70 @@ func (enc *Encoder) Encode(f *File) (err error) {
 	return enc.err
 }
 
-func (enc *Encoder) assertOpcode(ins Instr) {
+func (enc *Encoder) guard(fn func()) {
 	if enc.err != nil {
 		return
 	}
-	if ins.Opcode() >= op_max {
-		enc.err = ErrUnknownOpcode
-	}
+	fn()
+}
+
+func (enc *Encoder) assertOpcode(ins Instr) {
+	enc.guard(func() {
+		if ins.Opcode() >= op_max {
+			enc.err = ErrUnknownOpcode
+		}
+	})
 }
 
 func (enc *Encoder) assertKType(kt KType) {
-	if enc.err != nil {
-		return
-	}
-	if _, ok := validKtypes[kt]; !ok {
-		enc.err = ErrInvalidKType
-	}
+	enc.guard(func() {
+		if _, ok := validKtypes[kt]; !ok {
+			enc.err = ErrInvalidKType
+		}
+	})
 }
 
 func (enc *Encoder) assertVersion(f *File) {
-	if enc.err != nil {
-		return
-	}
-	if f.MajorVersion != _MAJOR_VERSION || f.MinorVersion != _MINOR_VERSION {
-		enc.err = ErrVersionMismatch
-	}
+	enc.guard(func() {
+		if f.MajorVersion != _MAJOR_VERSION || f.MinorVersion != _MINOR_VERSION {
+			enc.err = ErrVersionMismatch
+		}
+	})
 }
 
 func (enc *Encoder) write(v interface{}) {
-	if enc.err != nil {
-		return
-	}
-	switch val := v.(type) {
-	case *K:
-		enc.write(byte(val.Type))
-		switch kval := val.Val.(type) {
+	enc.guard(func() {
+		switch val := v.(type) {
+		case *K:
+			enc.write(byte(val.Type))
+			switch kval := val.Val.(type) {
+			case string:
+				if val.Type != KtString {
+					enc.err = ErrUnexpectedKValType
+					return
+				}
+				enc.write(kval)
+			case int64:
+				if val.Type != KtInteger && val.Type != KtBoolean {
+					enc.err = ErrUnexpectedKValType
+					return
+				}
+				enc.write(kval)
+			case float64:
+				if val.Type != KtFloat {
+					enc.err = ErrUnexpectedKValType
+					return
+				}
+				enc.write(kval)
+			default:
+				enc.err = ErrUnexpectedKValType
+				return
+			}
 		case string:
-			if val.Type != KtString {
-				enc.err = ErrUnexpectedKValType
-				return
-			}
-			enc.write(kval)
-		case int64:
-			if val.Type != KtInteger && val.Type != KtBoolean {
-				enc.err = ErrUnexpectedKValType
-				return
-			}
-			enc.write(kval)
-		case float64:
-			if val.Type != KtFloat {
-				enc.err = ErrUnexpectedKValType
-				return
-			}
-			enc.write(kval)
+			enc.write(int64(len(val)))
+			enc.write([]byte(val))
 		default:
-			enc.err = ErrUnexpectedKValType
-			return
+			enc.err = binary.Write(enc.w, binary.LittleEndian, val)
 		}
-	case string:
-		enc.write(int64(len(val)))
-		enc.write([]byte(val))
-	default:
-		enc.err = binary.Write(enc.w, binary.LittleEndian, val)
-	}
+	})
 }
