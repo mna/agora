@@ -12,6 +12,10 @@ var (
 	_MINOR_VERSION = 0
 )
 
+func Version() (int, int) {
+	return _MAJOR_VERSION, _MINOR_VERSION
+}
+
 func encodeVersionByte(maj, min int) byte {
 	return byte(maj)<<4 | byte(min)
 }

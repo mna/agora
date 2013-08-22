@@ -2,17 +2,13 @@ package bytecode
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"testing"
+
+	. "github.com/PuerkitoBio/goblin/bytecode/testing"
 )
 
 var (
-	// Useful prefilled expected byte slices
-	expSig          = []byte{0x2A, 0x60, 0x0A, 0x00}
-	expSigAndDefVer = append(expSig, encodeVersionByte(_MAJOR_VERSION, _MINOR_VERSION))
-	expZeroInt64    = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-
 	enccases = []struct {
 		maj int
 		min int
@@ -23,14 +19,14 @@ var (
 		0: {
 			// Simplest case, encodes the file header only
 			f:   &File{},
-			exp: expSigAndDefVer,
+			exp: SigVer(_MAJOR_VERSION, _MINOR_VERSION),
 		},
 		1: {
 			// Check version encoding, matching with compiler version
 			maj: 1,
 			min: 2,
 			f:   &File{MajorVersion: 1, MinorVersion: 2},
-			exp: append(expSig, 0x12),
+			exp: append(ExpSig, 0x12),
 		},
 		2: {
 			// Version mismatch error
@@ -40,7 +36,7 @@ var (
 		3: {
 			// Top-level function gets the file name
 			f:   &File{Name: "test", Fns: []*Fn{&Fn{}}},
-			exp: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64),
+			exp: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
 		},
 		4: {
 			f: &File{Name: "test", Fns: []*Fn{
@@ -60,7 +56,7 @@ var (
 					},
 				},
 			}},
-			exp: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), expZeroInt64),
+			exp: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64),
 		},
 		5: {
 			// Invalid KType
@@ -126,7 +122,7 @@ var (
 					},
 				},
 			}},
-			exp: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B),
+			exp: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B),
 		},
 		// Invalid opcode
 		8: {
@@ -194,38 +190,12 @@ var (
 					},
 				},
 			}},
-			exp: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B, int64ToByteSlice(2), 'f', '2', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtString), int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+			exp: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B, Int64ToByteSlice(2), 'f', '2', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', Int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		},
 	}
 
 	isolateEncCase = -1
 )
-
-func appendAny(b []byte, vals ...interface{}) []byte {
-	for i, v := range vals {
-		switch v := v.(type) {
-		case []byte:
-			b = append(b, v...)
-		case byte:
-			b = append(b, v)
-		case int32:
-			b = append(b, byte(v))
-		case int:
-			b = append(b, byte(v))
-		default:
-			panic(fmt.Sprintf("invalid type to append at pos %d", i))
-		}
-	}
-	return b
-}
-
-func int64ToByteSlice(i int64) []byte {
-	buf := bytes.NewBuffer(nil)
-	if err := binary.Write(buf, binary.LittleEndian, i); err != nil {
-		panic(err)
-	}
-	return buf.Bytes()
-}
 
 func TestEncode(t *testing.T) {
 	buf := bytes.NewBuffer(nil)

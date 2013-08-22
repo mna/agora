@@ -144,12 +144,13 @@ func (a *Asm) getLine() (string, bool) {
 			a.ended = true
 			return "", false
 		}
-		l = strings.TrimSpace(a.s.Text())
 		// Ignore comments
+		l = a.s.Text()
 		i := strings.Index(l, "//")
 		if i >= 0 {
 			l = l[:i]
 		}
+		l = strings.TrimSpace(l)
 	}
 	return l, true
 }

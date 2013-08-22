@@ -6,6 +6,7 @@ import (
 	"io"
 	"testing"
 
+	. "github.com/PuerkitoBio/goblin/bytecode/testing"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -19,12 +20,12 @@ var (
 	}{
 		0: {
 			// Simplest case, decodes the file header only
-			src: expSigAndDefVer,
+			src: SigVer(_MAJOR_VERSION, _MINOR_VERSION),
 			exp: &File{},
 		},
 		1: {
 			// Decodes the file header and function header
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), expZeroInt64, expZeroInt64),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
 			exp: &File{Name: "test", Fns: []*Fn{
 				&Fn{
 					Header: H{
@@ -42,16 +43,16 @@ var (
 			// Invalid version
 			maj: 1,
 			min: 2,
-			src: appendAny(expSig, encodeVersionByte(2, 3), int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), expZeroInt64, expZeroInt64),
+			src: AppendAny(ExpSig, encodeVersionByte(2, 3), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
 			err: ErrVersionMismatch,
 		},
 		3: {
 			// Top-level function gets the file name
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64, expZeroInt64),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
 			exp: &File{Name: "test", Fns: []*Fn{&Fn{Header: H{Name: "test"}}}},
 		},
 		4: {
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), expZeroInt64),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64),
 			exp: &File{Name: "test", Fns: []*Fn{
 				&Fn{
 					Header: H{
@@ -73,7 +74,7 @@ var (
 		},
 		5: {
 			// Invalid K Type
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), 'z', int64ToByteSlice(7), expZeroInt64),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64),
 			err: ErrInvalidKType,
 		},
 		6: {
@@ -83,7 +84,7 @@ var (
 		},
 		7: {
 			// Function with K and Is
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B),
 			exp: &File{Name: "test", Fns: []*Fn{
 				&Fn{
 					Header: H{
@@ -109,12 +110,12 @@ var (
 		},
 		8: {
 			// Invalid opcode
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
 			err: ErrUnknownOpcode,
 		},
 		9: {
 			// Multiple functions
-			src: appendAny(expSigAndDefVer, int64ToByteSlice(4), 't', 'e', 's', 't', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtInteger), int64ToByteSlice(7), int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B, int64ToByteSlice(2), 'f', '2', int64ToByteSlice(2), int64ToByteSlice(3), int64ToByteSlice(4), int64ToByteSlice(5), int64ToByteSlice(6), int64ToByteSlice(1), byte(KtString), int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x1B, Int64ToByteSlice(2), 'f', '2', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', Int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 			exp: &File{Name: "test", Fns: []*Fn{
 				&Fn{
 					Header: H{
