@@ -5,12 +5,12 @@
 // }
 //
 [f]
+<main>
 4
 0
 1
 0
 3
-<main>
 [k]
 sfmt
 si
@@ -25,7 +25,7 @@ PUSH K 2 // Loop initialization
 POP V 1
 PUSH V 1 // Loop start, compare
 PUSH K 4
-LT
+LT _ 0
 TEST J 9 // Exit condition, if false
 PUSH V 1 // Loop body
 PUSH K 5
@@ -33,9 +33,9 @@ PUSH V 0
 CFLD A 1
 PUSH V 1 // Increment
 PUSH K 3
-ADD
+ADD _ 0
 POP V 1
 JMPB J 12 // Jump back to loop start
 PUSH N 0 // Outside loop, return
 DUMP S 1
-RET
+RET _ 0

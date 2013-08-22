@@ -120,6 +120,7 @@ Sequence for loading, compiling, and bootstrapping execution:
 * If module is native (ctx.nativeMods), call Module.Load(ctx), cache and return the value, done.
 * If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
 * If Resolve returns an error, return nil, error, done.
+* TODO : if file is already bytecode, just decode
 * Call Compiler.Compile(id string, r io.Reader) ([]byte, error)
 * If Compile returns an error, return nil, error, done.
 * Call Undump(b) (Module, error)
@@ -142,8 +143,9 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	}
 	// If native module, get from native table
 	if m, ok := ø.nativeMods[id]; ok {
-		ø.loadedMods[id] = m.Load(ø)
-		return ø.loadedMods[id], nil
+		loaded := m.Load(ø)
+		ø.loadedMods[id] = loaded
+		return loaded, nil
 	}
 	// Else, resolve the matching file from the module id
 	r, err := ø.Resolver.Resolve(id)
@@ -155,19 +157,23 @@ func (ø *Ctx) Load(id string) (Val, error) {
 			rc.Close()
 		}
 	}()
+	// TODO : If already bytecode, skip
 	// Compile to bytecode
 	b, err := ø.Compiler.Compile(id, r)
 	if err != nil {
 		return nil, err
 	}
+	// TODO : Compile should return *bytecode.File, makes no sense to return bytecode,
+	// then decode it back to *bytecode.File...
 	// Load the bytecode in memory
 	m, err := Undump(bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
 	// Load the module, cache and return
-	ø.loadedMods[id] = m.Load(ø)
-	return ø.loadedMods[id], nil
+	loaded := m.Load(ø)
+	ø.loadedMods[id] = loaded
+	return loaded, nil
 }
 
 func (ø *Ctx) RegisterNativeModule(m Module) {

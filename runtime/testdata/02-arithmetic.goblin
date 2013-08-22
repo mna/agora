@@ -11,12 +11,12 @@
 //unm := -a
 //
 [f]
+<main>
 2
 0
 10
 0
 9
-<main>
 [k]
 sa
 i7
@@ -37,34 +37,34 @@ PUSH K 3
 POP V 2
 PUSH V 0
 PUSH V 2
-ADD
+ADD _ 0
 POP V 4
 PUSH V 0
 PUSH V 2
-SUB
+SUB _ 0
 POP V 5
 PUSH V 0
 PUSH V 2
-MUL
+MUL _ 0
 POP V 6
 PUSH V 0
 PUSH V 2
-DIV
+DIV _ 0
 POP V 7
 PUSH V 2
 PUSH V 0
-MOD
+MOD _ 0
 POP V 8
 PUSH V 0
 PUSH V 2
-POW
+POW _ 0
 POP V 9
 PUSH V 0
-NOT
+NOT _ 0
 POP V 10
 PUSH V 0
-UNM
+UNM _ 0
 POP V 11
 PUSH N 0
 DUMP S 1
-RET
+RET _ 0

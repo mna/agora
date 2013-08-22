@@ -3,12 +3,12 @@
 // fmt.Println("Hello ", "world")
 //
 [f]
+<main>
 4
 0
 1
 0
 1
-<main>
 [k]
 sfmt
 sPrintln
@@ -24,4 +24,4 @@ PUSH V 0 // <-"fmt"
 CFLD A 2
 PUSH N 0 // <-Nil
 DUMP S 3
-RET
+RET _ 0

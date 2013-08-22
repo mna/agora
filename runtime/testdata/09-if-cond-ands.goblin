@@ -7,12 +7,12 @@
 // }
 //
 [f]
+<main>
 3
 0
 1
 0
 5
-<main>
 [k]
 sa
 b1
@@ -28,19 +28,19 @@ PUSH K 1
 POP V 0
 PUSH K 2
 PUSH K 3
-ADD
+ADD _ 0
 PUSH K 4
-GT
+GT _ 0
 PUSH K 5
 PUSH K 6
-GT
-AND
+GT _ 0
+AND _ 0
 PUSH V 0
-AND
+AND _ 0
 TEST J 3
 PUSH K 7
 DUMP S 1
-RET
+RET _ 0
 PUSH K 8
 DUMP S 1
-RET
+RET _ 0

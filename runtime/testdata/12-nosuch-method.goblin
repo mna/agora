@@ -7,12 +7,12 @@
 // a.b(12)
 //
 [f]
+<main>
 3
 0
 2
 0
 5
-<main>
 [k]
 sfmt
 sa
@@ -22,26 +22,26 @@ i12
 [i]
 LOAD K 0
 POP V 0
-NEW
+NEW _ 0
 POP V 1
 PUSH F 1
 PUSH K 2
 PUSH V 1
-SFLD
+SFLD _ 0
 PUSH K 4
 PUSH K 3
 PUSH V 1
 CFLD A 1
 PUSH N 0
 DUMP S 1
-RET
+RET _ 0
 [f]
+a.__noSuchMethod
 3
 1
 1
 2
 4
-a.__noSuchMethod
 [k]
 snm
 sfmt
@@ -50,9 +50,9 @@ snot found:
 [i]
 PUSH K 3
 PUSH V 0
-ADD
+ADD _ 0
 PUSH K 2
 PUSH V 1
 CFLD A 1
 PUSH N 0
-RET
+RET _ 0

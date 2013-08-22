@@ -5,12 +5,12 @@
 // return Add(4, "198")
 //
 [f]
+<main>
 3
 0
 1
 0
 3
-<main>
 [k]
 sAdd
 i4
@@ -23,19 +23,19 @@ PUSH K 2
 PUSH V 0
 CALL A 2
 DUMP S 1
-RET
+RET _ 0
 [f]
+Add
 2
 2
 2
 0
 2
-Add
 [k]
 sx
 sy
 [i]
 PUSH V 0
 PUSH V 1
-ADD
-RET
+ADD _ 0
+RET _ 0

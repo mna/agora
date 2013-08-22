@@ -3,12 +3,12 @@
 // return 1
 //
 [f]
-1
-0
-0
-0
-1
 <main>
+1
+0
+0
+0
+1
 [k]
 sx16-import-cycle-b
 i1
@@ -16,4 +16,4 @@ i1
 LOAD K 0
 PUSH K 1
 DUMP S 1
-RET
+RET _ 0

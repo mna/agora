@@ -9,12 +9,12 @@
 // return a.b("you")
 //
 [f]
+<main>
 3
 0
 1
 0
 6
-<main>
 [k]
 sfmt
 sa
@@ -25,29 +25,29 @@ syou
 [i]
 LOAD K 0
 POP V 0
-NEW
+NEW _ 0
 POP V 1
 PUSH F 1 // Push func index 1 on stack
 PUSH K 2 // Push string 'b'
 PUSH V 1
-SFLD 
+SFLD _ 0
 PUSH K 4
 PUSH K 3
 PUSH V 1
-SFLD
+SFLD _ 0
 PUSH K 5
 PUSH K 2
 PUSH V 1
 CFLD A 1 // Call field sp-1[sp-2], pops 2, calls as method with the specified number of args
 DUMP S 1
-RET
+RET _ 0
 [f]
+a.b
 3
 1
 1
 2
 5
-a.b
 [k]
 sgreet
 sfmt
@@ -57,15 +57,15 @@ s,
 [i]
 PUSH K 3
 PUSH T 0 // Push "this", index unused
-GFLD
+GFLD _ 0
 PUSH K 2
 PUSH V 1
 CFLD A 1
 PUSH K 3
 PUSH T 0
-GFLD
+GFLD _ 0
 PUSH K 4
-ADD
+ADD _ 0
 PUSH V 0
-ADD
-RET
+ADD _ 0
+RET _ 0

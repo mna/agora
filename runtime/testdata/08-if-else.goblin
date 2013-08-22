@@ -8,12 +8,12 @@
 // }
 //
 [f]
+<main>
 3
 0
 2
 0
 6
-<main>
 [k]
 sfmt
 sa
@@ -39,4 +39,4 @@ PUSH V 0
 CFLD A 1
 PUSH N 0
 DUMP S 1
-RET
+RET _ 0

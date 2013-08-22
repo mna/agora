@@ -8,12 +8,12 @@
 // return Fib(30)
 //
 [f]
+<main>
 2
 0
 1
 0
 6
-<main>
 [k]
 sFib
 i30
@@ -24,14 +24,14 @@ PUSH K 1
 PUSH V 0
 CALL A 1
 DUMP S 1
-RET
+RET _ 0
 [f]
+Fib
 3
 1
 1
 0
 5
-Fib
 [k]
 sn
 i2
@@ -40,19 +40,19 @@ sFib
 [i]
 PUSH V 0
 PUSH K 1
-LT
+LT _ 0
 TEST J 2 // If false, jump over n instructions
 PUSH K 2 // Here test was true, put 1 on stack and return
-RET
+RET _ 0
 PUSH V 0 // Here test was false
 PUSH K 2
-SUB
+SUB _ 0
 PUSH V 3 // Push var identified by Fib - look in parent call stack
 CALL A 1 // Fib(n-1), the return value will replace the F and A
 PUSH V 0
 PUSH K 1
-SUB
+SUB _ 0
 PUSH V 3
 CALL A 1 // Fib(n-2)
-ADD
-RET
+ADD _ 0
+RET _ 0

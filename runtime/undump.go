@@ -62,7 +62,7 @@ func readK(r io.Reader, f *GoblinFunc) {
 			f.kTable = append(f.kTable, Int(v))
 		case 'b':
 			v := readInt64(r)
-			f.kTable = append(f.kTable, Bool(v == 1))
+			f.kTable = append(f.kTable, Bool(v != 0))
 		case 'f':
 			v := readFloat64(r)
 			f.kTable = append(f.kTable, Float(v))
@@ -70,59 +70,5 @@ func readK(r io.Reader, f *GoblinFunc) {
 			v := readString(r)
 			f.kTable = append(f.kTable, String(v))
 		}
-	}
-}
-
-func readFloat64(r io.Reader) float64 {
-	var v float64
-	if err := binary.Read(r, binary.LittleEndian, &v); err != nil {
-		panic(err)
-	}
-	return v
-}
-
-func readInt64(r io.Reader) int64 {
-	var v int64
-	if err := binary.Read(r, binary.LittleEndian, &v); err != nil {
-		panic(err)
-	}
-	return v
-}
-
-func readUint64(r io.Reader) uint64 {
-	var v uint64
-	if err := binary.Read(r, binary.LittleEndian, &v); err != nil {
-		panic(err)
-	}
-	return v
-}
-
-func readByte(r io.Reader) byte {
-	var b byte
-	if err := binary.Read(r, binary.LittleEndian, &b); err != nil {
-		panic(err)
-	}
-	return b
-}
-
-func readString(r io.Reader) string {
-	var l int64
-	if err := binary.Read(r, binary.LittleEndian, &l); err != nil {
-		panic(err)
-	}
-	s := make([]byte, l)
-	if err := binary.Read(r, binary.LittleEndian, s); err != nil {
-		panic(err)
-	}
-	return string(s)
-}
-
-func readSig(r io.Reader) {
-	var b [6]byte
-	if err := binary.Read(r, binary.LittleEndian, &b); err != nil {
-		panic(err)
-	}
-	if b != SIG {
-		panic(ErrInvalidFile)
 	}
 }

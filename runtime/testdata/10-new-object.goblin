@@ -6,12 +6,12 @@
 // return a.d
 //
 [f]
+<main>
 3
 0
 1
 0
 4
-<main>
 [k]
 sa
 sb
@@ -20,28 +20,28 @@ sc
 i4
 sd
 [i]
-NEW // Create new object on stack
+NEW _ 0 // Create new object on stack
 POP V 0
 PUSH K 2
 PUSH K 1
 PUSH V 0
-SFLD // Set field sp-1[sp-2]=sp-3 (pops 3 from stack)
+SFLD _ 0 // Set field sp-1[sp-2]=sp-3 (pops 3 from stack)
 PUSH K 4
 PUSH K 3
 PUSH V 0
-SFLD
+SFLD _ 0
 PUSH K 1
 PUSH V 0
-GFLD // Get field sp-1[sp-2], pops 2, pushes result on stack
+GFLD _ 0 // Get field sp-1[sp-2], pops 2, pushes result on stack
 PUSH K 3
 PUSH V 0
-GFLD
-ADD
+GFLD _ 0
+ADD _ 0
 PUSH K 5
 PUSH V 0
-SFLD
+SFLD _ 0
 PUSH K 5
 PUSH V 0
-GFLD
+GFLD _ 0
 DUMP S 1
-RET
+RET _ 0

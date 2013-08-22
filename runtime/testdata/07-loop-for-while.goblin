@@ -8,12 +8,12 @@
 // return sum
 //
 [f]
+<main>
 2
 0
 2
 0
 6
-<main>
 [k]
 sa
 i5
@@ -27,17 +27,17 @@ PUSH K 3
 POP V 2
 PUSH V 0 // Loop start, compare
 PUSH K 3
-GT
+GT _ 0
 TEST J 9 // Exit condition, if false
 PUSH V 2 // Loop body
 PUSH V 0
-ADD
+ADD _ 0
 POP V 2
 PUSH V 0 // Decrement a
 PUSH K 4
-SUB
+SUB _ 0
 POP V 0
 JMPB J 12 // Jump back to loop start
 PUSH V 2 // Outside loop, return
 DUMP S 1
-RET
+RET _ 0
