@@ -221,6 +221,24 @@ if a {
   fmt.Println("false")
 }
 `),
+			exp: []*Symbol{
+				&Symbol{id: "import"},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(literal)", val: `"fmt"`},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(literal)", val: `"ok"`},
+				&Symbol{id: "if"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(name)", val: "Println"},
+				&Symbol{id: "(literal)", val: `"true"`},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(name)", val: "Println"},
+				&Symbol{id: "(literal)", val: `"false"`},
+			},
 		},
 		9: {
 			src: []byte(`
@@ -231,6 +249,28 @@ if (3 + 5) > 4 && ("foo" > "bar") && a {
   return -1
 }
 `),
+			exp: []*Symbol{
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "true"},
+				&Symbol{id: "if"},
+				&Symbol{id: "&&"},
+				&Symbol{id: ">"},
+				&Symbol{id: "+"},
+				&Symbol{id: "(literal)", val: "3"},
+				&Symbol{id: "(literal)", val: "5"},
+				&Symbol{id: "(literal)", val: "4"},
+				&Symbol{id: "&&"},
+				&Symbol{id: ">"},
+				&Symbol{id: "(literal)", val: `"foo"`},
+				&Symbol{id: "(literal)", val: `"bar"`},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(literal)", val: "1"},
+				&Symbol{id: "return"},
+				&Symbol{id: "-"},
+				&Symbol{id: "(literal)", val: "1"},
+			},
 		},
 		10: {
 			src: []byte(`
@@ -240,6 +280,36 @@ a.c = 4
 a.d = a.b + a.c
 return a.d
 `),
+			exp: []*Symbol{
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "{"},
+				&Symbol{id: "="},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(literal)", val: `"6"`},
+				&Symbol{id: "="},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "c"},
+				&Symbol{id: "(literal)", val: "4"},
+				&Symbol{id: "="},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "d"},
+				&Symbol{id: "+"},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "c"},
+				&Symbol{id: "return"},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "d"},
+			},
 		},
 		11: {
 			src: []byte(`
@@ -252,6 +322,44 @@ a.b = func(greet) {
 a.c = "hi"
 return a.b("you")
 `),
+			exp: []*Symbol{
+				&Symbol{id: "import"},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(literal)", val: `"fmt"`},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "{"},
+				&Symbol{id: "="},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "func"},
+				&Symbol{id: "(name)", val: "greet"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(name)", val: "Println"},
+				&Symbol{id: "."},
+				&Symbol{id: "this"},
+				&Symbol{id: "(name)", val: "c"},
+				&Symbol{id: "return"},
+				&Symbol{id: "+"},
+				&Symbol{id: "+"},
+				&Symbol{id: "."},
+				&Symbol{id: "this"},
+				&Symbol{id: "(name)", val: "c"},
+				&Symbol{id: "(literal)", val: `", "`},
+				&Symbol{id: "(name)", val: "greet"},
+				&Symbol{id: "="},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "c"},
+				&Symbol{id: "(literal)", val: `"hi"`},
+				&Symbol{id: "return"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(literal)", val: `"you"`},
+			},
 		},
 		12: {
 			src: []byte(`
@@ -262,6 +370,30 @@ a.__noSuchMethod = func(nm) {
 }
 a.b(12)
 `),
+			exp: []*Symbol{
+				&Symbol{id: "import"},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(literal)", val: `"fmt"`},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "{"},
+				&Symbol{id: "="},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "__noSuchMethod"},
+				&Symbol{id: "func"},
+				&Symbol{id: "(name)", val: "nm"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(name)", val: "Println"},
+				&Symbol{id: "+"},
+				&Symbol{id: "(literal)", val: `"not found:"`},
+				&Symbol{id: "(name)", val: "nm"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(literal)", val: "12"},
+			},
 		},
 		13: {
 			src: []byte(`
@@ -306,7 +438,7 @@ if true {
 		},
 	}
 
-	isolateCase = -1
+	isolateCase = 12
 )
 
 func TestParse(t *testing.T) {
@@ -334,7 +466,7 @@ func TestParse(t *testing.T) {
 						t.Errorf("[%d] - expected symbol id %s, got %s", i, c.exp[ix].id, v.id)
 					}
 					if c.exp[ix].val != nil && v.val != c.exp[ix].val {
-						t.Errorf("[%d] - expected symbol value %s, got %s", i, c.exp[ix].val, v.val)
+						t.Errorf("[%d] - expected symbol value %v, got %v", i, c.exp[ix].val, v.val)
 					}
 					if c.exp[ix].name != "" && v.name != c.exp[ix].name {
 						t.Errorf("[%d] - expected symbol name %s, got %s", i, c.exp[ix].name, v.name)

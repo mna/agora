@@ -108,7 +108,7 @@ func (s *Symbol) String() string {
 
 func (s *Symbol) indentString(ind int) string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(fmt.Sprintf("%-20s; %s", s.id, s.val))
+	buf.WriteString(fmt.Sprintf("%-20s; %v", s.id, s.val))
 	if s.name != "" {
 		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.name))
 	} else if s.key != nil {
