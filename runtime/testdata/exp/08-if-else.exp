@@ -4,7 +4,7 @@ true
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 08-if-else.goblin (Func)
   Constants:
     [  0] "fmt" (String)
     [  1] "a" (String)

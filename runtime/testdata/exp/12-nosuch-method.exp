@@ -5,7 +5,7 @@ not found:b
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 12-nosuch-method.goblin (Func)
   Constants:
     [  0] "fmt" (String)
     [  1] "a" (String)

@@ -3,7 +3,7 @@ DEBUG expanding frames of ctx, current size: 1
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 13-global-var.goblin (Func)
   Constants:
     [  0] "a" (String)
     [  1] 5 (Int)

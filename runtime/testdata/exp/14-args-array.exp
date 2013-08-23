@@ -5,7 +5,7 @@ DEBUG expanding frames of ctx, current size: 2
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 14-args-array.goblin (Func)
   Constants:
     [  0] "fmt" (String)
     [  1] "f" (String)

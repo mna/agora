@@ -20,6 +20,8 @@ const (
 	expResFilePath    = "./exp/"
 	expectErrPrefix   = "x"
 	skipOnShortPrefix = "*"
+
+	isolateFileTest = ""
 )
 
 var (
@@ -46,6 +48,9 @@ func TestFiles(t *testing.T) {
 	// Test all files
 	for _, fi := range files {
 		if filepath.Ext(fi.Name()) == ".goblin" {
+			if isolateFileTest != "" && isolateFileTest != fi.Name() {
+				continue
+			}
 			runTestFile(t, fi.Name())
 		}
 	}
@@ -125,7 +130,7 @@ func runTestFile(t *testing.T, fnm string) {
 	}
 
 	// Add the PASS string to the output, since this will be printed by the execution
-	fmt.Fprintf(ctx.Stdout, "PASS - %v", v)
+	fmt.Fprintf(ctx.Stdout, "PASS - %v\n", v)
 	// Then compare both outputs
 	got := crc64.Checksum(ctx.Stdout.(*bytes.Buffer).Bytes(), ecmaTbl)
 	exp := crc64.Checksum(res, ecmaTbl)
@@ -134,5 +139,8 @@ func runTestFile(t *testing.T, fnm string) {
 	if exp != got {
 		t.Errorf("unexpected result for %s", fnm)
 		t.Log(ctx.Stdout)
+		if testing.Verbose() {
+			t.Log(string(res))
+		}
 	}
 }

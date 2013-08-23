@@ -4,7 +4,7 @@ Hello world
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 05-nativefunc.goblin (Func)
   Constants:
     [  0] "fmt" (String)
     [  1] "Println" (String)

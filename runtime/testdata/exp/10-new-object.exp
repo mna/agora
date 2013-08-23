@@ -2,7 +2,7 @@ DEBUG expanding frames of ctx, current size: 0
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 10-new-object.goblin (Func)
   Constants:
     [  0] "a" (String)
     [  1] "b" (String)

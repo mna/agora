@@ -2,12 +2,12 @@ DEBUG expanding frames of ctx, current size: 0
 DEBUG expanding frames of ctx, current size: 1
 0
 1
-DEBUG expanding stack of func <main>, current size: 4
+DEBUG expanding stack of func 06-loop-for-range.goblin, current size: 4
 2
 3
 4
 5
-DEBUG expanding stack of func <main>, current size: 8
+DEBUG expanding stack of func 06-loop-for-range.goblin, current size: 8
 6
 7
 8
@@ -15,7 +15,7 @@ DEBUG expanding stack of func <main>, current size: 8
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 06-loop-for-range.goblin (Func)
   Constants:
     [  0] "fmt" (String)
     [  1] "i" (String)

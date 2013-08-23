@@ -5,7 +5,7 @@ hi
 
 [Frame   0]
 ===========
-> <main> (Func)
+> 11-call-method.goblin (Func)
   Constants:
     [  0] "fmt" (String)
     [  1] "a" (String)
