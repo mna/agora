@@ -120,21 +120,3 @@ func TestInvalidOpBool(t *testing.T) {
 		panic(nil)
 	}()
 }
-
-func TestNotBool(t *testing.T) {
-	cases := []struct {
-		x   bool
-		exp bool
-	}{
-		{x: true, exp: false},
-		{x: false, exp: true},
-	}
-
-	for _, c := range cases {
-		vx := Bool(c.x)
-		res := vx.Not()
-		if bres := bool(res.(Bool)); c.exp != bres {
-			t.Errorf("!%v : expected %v, got %v", c.x, c.exp, bres)
-		}
-	}
-}

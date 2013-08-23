@@ -244,26 +244,6 @@ func TestPowInt(t *testing.T) {
 	}
 }
 
-func TestNotInt(t *testing.T) {
-	cases := []struct {
-		x   int
-		exp bool
-	}{
-		{x: 0, exp: true},
-		{x: 10, exp: false},
-		{x: 1, exp: false},
-		{x: -20, exp: false},
-	}
-
-	for _, c := range cases {
-		vx := Int(c.x)
-		res := vx.Not()
-		if bres := bool(res.(Bool)); c.exp != bres {
-			t.Errorf("!%d : expected %v, got %v", c.x, c.exp, bres)
-		}
-	}
-}
-
 func TestUnmInt(t *testing.T) {
 	cases := []struct {
 		x   int

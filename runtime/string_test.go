@@ -178,26 +178,6 @@ func TestMulString(t *testing.T) {
 		}()
 	}
 }
-func TestNotString(t *testing.T) {
-	cases := []struct {
-		x   string
-		exp bool
-	}{
-		{x: "", exp: true},
-		{x: " ", exp: false},
-		{x: "abc", exp: false},
-		{x: "\n", exp: false},
-	}
-
-	for _, c := range cases {
-		vx := String(c.x)
-		res := vx.Not()
-		if bres := res.Bool(); c.exp != bres {
-			t.Errorf("!%s : expected %v, got %v", c.x, c.exp, bres)
-		}
-	}
-}
-
 func TestInvalidOpString(t *testing.T) {
 	assert := func(exp error) {
 		if err := recover(); err != exp {

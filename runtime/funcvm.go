@@ -158,7 +158,7 @@ func (ø *funcVM) dump() string {
 
 func (ø *funcVM) run(args ...Val) Val {
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
-	for j, l := 0, len(args); j < ø.proto.expArgs; j++ {
+	for j, l := int64(0), int64(len(args)); j < ø.proto.expArgs; j++ {
 		if j < l {
 			ø.vars[ø.proto.kTable[j].String()] = args[j]
 		} else {

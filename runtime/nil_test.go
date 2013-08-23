@@ -18,13 +18,6 @@ func TestNilAsString(t *testing.T) {
 	}
 }
 
-func TestNotNil(t *testing.T) {
-	res := Nil.Not()
-	if res.Bool() != true {
-		t.Errorf("!Nil : expected %v, got %v", true, res)
-	}
-}
-
 func TestInvalidOpNil(t *testing.T) {
 	assert := func(exp error) {
 		if err := recover(); err != exp {

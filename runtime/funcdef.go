@@ -29,9 +29,9 @@ type GoblinFunc struct {
 
 	// Internal fields filled by the compiler
 	mod     *goblinModule
-	stackSz int
-	expArgs int
-	expVars int
+	stackSz int64
+	expArgs int64
+	expVars int64
 	kTable  []Val
 	code    []bytecode.Instr
 }

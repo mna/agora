@@ -249,27 +249,6 @@ func TestPowFloat(t *testing.T) {
 	}
 }
 
-func TestNotFloat(t *testing.T) {
-	cases := []struct {
-		x   float64
-		exp bool
-	}{
-		{x: 0.0, exp: true},
-		{x: 1.0, exp: false},
-		{x: 1.1, exp: false},
-		{x: -10.90, exp: false},
-		{x: 10.123, exp: false},
-	}
-
-	for _, c := range cases {
-		vx := Float(c.x)
-		res := vx.Not()
-		if res.Bool() != c.exp {
-			t.Errorf("!%f : expected %v, got %v", c.x, c.exp, res.Bool())
-		}
-	}
-}
-
 func TestUnmFloat(t *testing.T) {
 	cases := []struct {
 		x   float64

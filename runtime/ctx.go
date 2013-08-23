@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
-	"strings"
+
+	"github.com/PuerkitoBio/goblin/bytecode"
 )
 
 var (
@@ -15,59 +15,6 @@ var (
 	ErrModuleHasNoFunc = errors.New("module has no function")
 	ErrCyclicDepFound  = errors.New("cyclic module dependency found")
 )
-
-type Module interface {
-	ID() string
-	Load(*Ctx) Val
-}
-
-type goblinModule struct {
-	id  string
-	fns []*GoblinFunc
-}
-
-func newGoblinModule(id string) *goblinModule {
-	return &goblinModule{
-		id: id,
-	}
-}
-
-func (ø *goblinModule) Load(ctx *Ctx) Val {
-	if len(ø.fns) == 0 {
-		panic(ErrModuleHasNoFunc)
-	}
-	for i, _ := range ø.fns {
-		ø.fns[i].ctx = ctx
-	}
-	return ø.fns[0].Call(nil)
-}
-
-func (ø *goblinModule) ID() string {
-	return ø.id
-}
-
-type ModuleResolver interface {
-	Resolve(string) (io.Reader, error)
-}
-
-type FileResolver struct{}
-
-func (ø FileResolver) Resolve(id string) (io.Reader, error) {
-	var nm string
-	if filepath.IsAbs(id) {
-		nm = id
-	} else {
-		pwd, err := os.Getwd()
-		if err != nil {
-			return nil, err
-		}
-		nm = filepath.Join(pwd, id)
-	}
-	if !strings.HasSuffix(nm, ".goblin") {
-		nm += ".goblin"
-	}
-	return os.Open(nm)
-}
 
 type Compiler interface {
 	Compile(string, io.Reader) ([]byte, error)
@@ -166,12 +113,13 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	// TODO : Compile should return *bytecode.File, makes no sense to return bytecode,
 	// then decode it back to *bytecode.File...
 	// Load the bytecode in memory
-	m, err := Undump(bytes.NewReader(b))
+	f, err := bytecode.NewDecoder(bytes.NewReader(b)).Decode()
 	if err != nil {
 		return nil, err
 	}
+	gm := newGoblinModule(f)
 	// Load the module, cache and return
-	loaded := m.Load(ø)
+	loaded := gm.Load(ø)
 	ø.loadedMods[id] = loaded
 	return loaded, nil
 }
