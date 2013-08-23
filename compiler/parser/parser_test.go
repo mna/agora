@@ -191,6 +191,25 @@ for a > 0 {
 }
 return sum
 `),
+			exp: []*Symbol{
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(literal)", val: "5"},
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "sum"},
+				&Symbol{id: "(literal)", val: "0"},
+				&Symbol{id: "for"},
+				&Symbol{id: ">"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(literal)", val: "0"},
+				&Symbol{id: "+="},
+				&Symbol{id: "(name)", val: "sum"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "--"},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(name)", val: "sum"},
+			},
 		},
 		8: {
 			src: []byte(`
