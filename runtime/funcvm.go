@@ -8,7 +8,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/PuerkitoBio/goblin/bytecode"
+	"github.com/PuerkitoBio/agora/bytecode"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 )
 
 type funcVM struct {
-	proto *GoblinFunc
+	proto *AgoraFunc
 	pc    int
 	vars  map[string]Val
 	stack []Val
@@ -25,7 +25,7 @@ type funcVM struct {
 	args  []Val
 }
 
-func newFuncVM(proto *GoblinFunc) *funcVM {
+func newFuncVM(proto *AgoraFunc) *funcVM {
 	return &funcVM{
 		proto,
 		0,

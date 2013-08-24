@@ -3,7 +3,7 @@ DEBUG expanding frames of ctx, current size: 1
 
 [Frame   0]
 ===========
-> 03-callfunc.goblin (Func)
+> 03-callfunc.agora (Func)
   Constants:
     [  0] "Add" (String)
     [  1] 4 (Int)

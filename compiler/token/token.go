@@ -6,7 +6,7 @@
 // Package token defines constants representing the lexical tokens of the Go
 // programming language and basic operations on tokens (printing, predicates).
 //
-// Adapted from Go's stdlib for Goblin
+// Adapted from Go's stdlib for Agora
 package token
 
 import "strconv"

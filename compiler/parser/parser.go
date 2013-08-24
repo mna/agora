@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/PuerkitoBio/goblin/compiler/scanner"
-	"github.com/PuerkitoBio/goblin/compiler/token"
+	"github.com/PuerkitoBio/agora/compiler/scanner"
+	"github.com/PuerkitoBio/agora/compiler/token"
 )
 
 const (

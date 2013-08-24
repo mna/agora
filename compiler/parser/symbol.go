@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/PuerkitoBio/goblin/compiler/token"
+	"github.com/PuerkitoBio/agora/compiler/token"
 )
 
 type arity int

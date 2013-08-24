@@ -1,13 +1,13 @@
 package runtime
 
 import (
-	"github.com/PuerkitoBio/goblin/bytecode"
+	"github.com/PuerkitoBio/agora/bytecode"
 )
 
 // FuncFn represents the Func signature for native functions.
 type FuncFn func(...Val) Val
 
-// A Func value in Goblin is a Val that also implements the Func interface.
+// A Func value in Agora is a Val that also implements the Func interface.
 type Func interface {
 	Val
 	Call(this Val, args ...Val) Val
@@ -23,12 +23,12 @@ func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
 	}
 }
 
-type GoblinFunc struct {
+type AgoraFunc struct {
 	// Expose the default Func value's behaviour
 	*funcVal
 
 	// Internal fields filled by the compiler
-	mod     *goblinModule
+	mod     *agoraModule
 	stackSz int64
 	expArgs int64
 	expVars int64
@@ -36,8 +36,8 @@ type GoblinFunc struct {
 	code    []bytecode.Instr
 }
 
-func newGoblinFunc(mod *goblinModule) *GoblinFunc {
-	return &GoblinFunc{
+func newAgoraFunc(mod *agoraModule) *AgoraFunc {
+	return &AgoraFunc{
 		&funcVal{},
 		mod,
 		0,
@@ -48,18 +48,18 @@ func newGoblinFunc(mod *goblinModule) *GoblinFunc {
 	}
 }
 
-func (ø *GoblinFunc) Native() interface{} {
+func (ø *AgoraFunc) Native() interface{} {
 	return ø
 }
 
-func (ø *GoblinFunc) Cmp(v Val) int {
+func (ø *AgoraFunc) Cmp(v Val) int {
 	if ø == v {
 		return 0
 	}
 	return -1
 }
 
-func (ø *GoblinFunc) Call(this Val, args ...Val) Val {
+func (ø *AgoraFunc) Call(this Val, args ...Val) Val {
 	vm := newFuncVM(ø)
 	vm.this = this
 	ø.ctx.push(ø, vm)

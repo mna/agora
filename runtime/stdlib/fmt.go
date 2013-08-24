@@ -3,7 +3,7 @@ package stdlib
 import (
 	"fmt"
 
-	"github.com/PuerkitoBio/goblin/runtime"
+	"github.com/PuerkitoBio/agora/runtime"
 )
 
 type FmtMod struct {

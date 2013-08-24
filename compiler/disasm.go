@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/PuerkitoBio/goblin/bytecode"
+	"github.com/PuerkitoBio/agora/bytecode"
 )
 
 var (

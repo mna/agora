@@ -6,7 +6,7 @@ import (
 	"io"
 	"testing"
 
-	. "github.com/PuerkitoBio/goblin/bytecode/testing"
+	. "github.com/PuerkitoBio/agora/bytecode/testing"
 	"github.com/davecgh/go-spew/spew"
 )
 

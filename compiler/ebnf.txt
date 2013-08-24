@@ -13,8 +13,8 @@
 // is an implicit function). Because of this, there is no "block" production
 // available anywhere, only with complex statements.
 //
-// There is no goto/labels, nor goroutines and channels. Goblin is single-threaded,
-// although the host program can run different Goblin contexts in parallel
+// There is no goto/labels, nor goroutines and channels. Agora is single-threaded,
+// although the host program can run different Agora contexts in parallel
 // (contexts are fully isolated). There is no switch for now, and because
 // of the choice about channels, no select statement either.
 //

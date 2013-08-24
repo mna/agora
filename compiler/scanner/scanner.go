@@ -7,7 +7,7 @@
 // It takes a []byte as source which can then be tokenized
 // through repeated calls to the Scan method.
 //
-// Adapted from Go stdlib for Goblin
+// Adapted from Go stdlib for Agora
 package scanner
 
 import (
@@ -15,7 +15,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/PuerkitoBio/goblin/compiler/token"
+	"github.com/PuerkitoBio/agora/compiler/token"
 )
 
 // An ErrorHandler may be provided to Scanner.Init. If a syntax error is

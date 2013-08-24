@@ -2,7 +2,7 @@ DEBUG expanding frames of ctx, current size: 0
 
 [Frame   0]
 ===========
-> 09-if-cond-ands.goblin (Func)
+> 09-if-cond-ands.agora (Func)
   Constants:
     [  0] "a" (String)
     [  1] true (Bool)

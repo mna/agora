@@ -2,7 +2,7 @@ DEBUG expanding frames of ctx, current size: 0
 
 [Frame   0]
 ===========
-> 02-arithmetic.goblin (Func)
+> 02-arithmetic.agora (Func)
   Constants:
     [  0] "a" (String)
     [  1] 7 (Int)

@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 // http://golang.org/LICENSE
 
-// Adapted from Go stdlib for Goblin
+// Adapted from Go stdlib for Agora
 package scanner
 
 import (
@@ -11,7 +11,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/PuerkitoBio/goblin/compiler/token"
+	"github.com/PuerkitoBio/agora/compiler/token"
 )
 
 // In an ErrorList, an error is represented by an *Error.

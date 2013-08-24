@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/PuerkitoBio/goblin/compiler"
-	"github.com/PuerkitoBio/goblin/runtime"
+	"github.com/PuerkitoBio/agora/compiler"
+	"github.com/PuerkitoBio/agora/runtime"
 )
 
 func main() {

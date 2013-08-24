@@ -7,7 +7,7 @@ DEBUG expanding frames of ctx, current size: 16
 
 [Frame   0]
 ===========
-> *04-fib.goblin (Func)
+> *04-fib.agora (Func)
   Constants:
     [  0] "Fib" (String)
     [  1] 30 (Int)

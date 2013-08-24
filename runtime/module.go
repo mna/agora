@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/PuerkitoBio/goblin/bytecode"
+	"github.com/PuerkitoBio/agora/bytecode"
 )
 
 type Module interface {
@@ -14,18 +14,18 @@ type Module interface {
 	Load(*Ctx) Val
 }
 
-type goblinModule struct {
+type agoraModule struct {
 	id  string
-	fns []*GoblinFunc
+	fns []*AgoraFunc
 }
 
-func newGoblinModule(f *bytecode.File) *goblinModule {
-	gm := &goblinModule{
+func newAgoraModule(f *bytecode.File) *agoraModule {
+	gm := &agoraModule{
 		id: f.Name,
 	}
-	gm.fns = make([]*GoblinFunc, len(f.Fns))
+	gm.fns = make([]*AgoraFunc, len(f.Fns))
 	for i, fn := range f.Fns {
-		gf := newGoblinFunc(gm)
+		gf := newAgoraFunc(gm)
 		gf.name = fn.Header.Name
 		gf.stackSz = fn.Header.StackSz
 		gf.expArgs = fn.Header.ExpArgs
@@ -55,7 +55,7 @@ func newGoblinModule(f *bytecode.File) *goblinModule {
 	return gm
 }
 
-func (g *goblinModule) Load(ctx *Ctx) Val {
+func (g *agoraModule) Load(ctx *Ctx) Val {
 	if len(g.fns) == 0 {
 		panic(ErrModuleHasNoFunc)
 	}
@@ -65,7 +65,7 @@ func (g *goblinModule) Load(ctx *Ctx) Val {
 	return g.fns[0].Call(nil)
 }
 
-func (g *goblinModule) ID() string {
+func (g *agoraModule) ID() string {
 	return g.id
 }
 
@@ -86,8 +86,8 @@ func (f FileResolver) Resolve(id string) (io.Reader, error) {
 		}
 		nm = filepath.Join(pwd, id)
 	}
-	if !strings.HasSuffix(nm, ".goblin") {
-		nm += ".goblin"
+	if !strings.HasSuffix(nm, ".agora") {
+		nm += ".agora"
 	}
 	return os.Open(nm)
 }

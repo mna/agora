@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/PuerkitoBio/goblin/bytecode"
+	"github.com/PuerkitoBio/agora/bytecode"
 )
 
 var (
@@ -117,7 +117,7 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	gm := newGoblinModule(f)
+	gm := newAgoraModule(f)
 	// Load the module, cache and return
 	loaded := gm.Load(ø)
 	ø.loadedMods[id] = loaded

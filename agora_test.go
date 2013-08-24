@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/PuerkitoBio/goblin/compiler"
-	"github.com/PuerkitoBio/goblin/runtime"
-	"github.com/PuerkitoBio/goblin/runtime/stdlib"
+	"github.com/PuerkitoBio/agora/compiler"
+	"github.com/PuerkitoBio/agora/runtime"
+	"github.com/PuerkitoBio/agora/runtime/stdlib"
 )
 
 const (
@@ -47,7 +47,7 @@ func TestFiles(t *testing.T) {
 
 	// Test all files
 	for _, fi := range files {
-		if filepath.Ext(fi.Name()) == ".goblin" {
+		if filepath.Ext(fi.Name()) == ".agora" {
 			if isolateFileTest != "" && isolateFileTest != fi.Name() {
 				continue
 			}

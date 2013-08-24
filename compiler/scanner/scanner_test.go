@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/PuerkitoBio/goblin/compiler/token"
+	"github.com/PuerkitoBio/agora/compiler/token"
 )
 
 var (
