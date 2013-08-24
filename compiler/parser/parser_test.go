@@ -506,7 +506,7 @@ if true {
 		},
 	}
 
-	isolateCase = 17
+	isolateCase = -1
 )
 
 func TestParse(t *testing.T) {
