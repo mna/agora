@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/PuerkitoBio/agora/bytecode"
 	"github.com/PuerkitoBio/agora/compiler"
 	"github.com/jessevdk/go-flags"
 )
@@ -27,25 +29,31 @@ func (a *asm) Execute(args []string) error {
 		return err
 	}
 	defer inf.Close()
-	// Compile to bytecode
-	b, err := new(compiler.Asm).Compile(args[0], inf)
+	// Compile to bytecode File
+	f, err := new(compiler.Asm).Compile(args[0], inf)
 	if err != nil {
 		return err
 	}
 	// Write output
-	var f *os.File
-	f = os.Stdout
+	var outF *os.File
+	outF = os.Stdout
 	if a.Output != "" {
-		f, err = os.Create(a.Output)
+		outF, err = os.Create(a.Output)
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer outF.Close()
+	}
+	// Encode to bytecode
+	buf := bytes.NewBuffer(nil)
+	err = bytecode.NewEncoder(buf).Encode(f)
+	if err != nil {
+		return err
 	}
 	if a.Hexa {
-		_, err = io.WriteString(f, fmt.Sprintf("%x", b))
+		_, err = io.WriteString(outF, fmt.Sprintf("%x", buf.Bytes()))
 	} else {
-		_, err = f.Write(b)
+		_, err = outF.Write(buf.Bytes())
 	}
 	if err != nil {
 		return err
@@ -85,7 +93,21 @@ func (d *dasm) Execute(args []string) error {
 }
 
 // The build command struct
-type build struct{}
+type build struct {
+	Output string `short:"o" long:"output" description:"output file"`
+}
+
+func (b *build) Execute(args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("expected an input file")
+	}
+	f, err := os.Open(args[0])
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return nil
+}
 
 // The run command struct
 type run struct{}

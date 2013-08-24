@@ -1,7 +1,6 @@
 package runtime
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -17,7 +16,7 @@ var (
 )
 
 type Compiler interface {
-	Compile(string, io.Reader) ([]byte, error)
+	Compile(string, io.Reader) (*bytecode.File, error)
 }
 
 type frame struct {
@@ -67,11 +66,10 @@ Sequence for loading, compiling, and bootstrapping execution:
 * If module is native (ctx.nativeMods), call Module.Load(ctx), cache and return the value, done.
 * If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
 * If Resolve returns an error, return nil, error, done.
-* TODO : if file is already bytecode, just decode
-* Call Compiler.Compile(id string, r io.Reader) ([]byte, error)
+* If file is already bytecode, just decode
+* Otherwise call Compiler.Compile(id string, r io.Reader) (*bytecode.File, error)
 * If Compile returns an error, return nil, error, done.
-* Call Undump(b) (Module, error)
-* If Undump returns an error, return nil, error, done.
+* Create module from *bytecode.File
 * Call Module.Load(ctx), cache and return the value, done.
 */
 func (ø *Ctx) Load(id string) (Val, error) {
@@ -104,22 +102,21 @@ func (ø *Ctx) Load(id string) (Val, error) {
 			rc.Close()
 		}
 	}()
-	// TODO : If already bytecode, skip
-	// Compile to bytecode
-	b, err := ø.Compiler.Compile(id, r)
+	// If already bytecode, just decode
+	var f *bytecode.File
+	dec := bytecode.NewDecoder(r)
+	if dec.IsBytecode() {
+		f, err = dec.Decode()
+	} else {
+		// Compile to bytecode
+		f, err = ø.Compiler.Compile(id, r)
+	}
 	if err != nil {
 		return nil, err
 	}
-	// TODO : Compile should return *bytecode.File, makes no sense to return bytecode,
-	// then decode it back to *bytecode.File...
-	// Load the bytecode in memory
-	f, err := bytecode.NewDecoder(bytes.NewReader(b)).Decode()
-	if err != nil {
-		return nil, err
-	}
-	gm := newAgoraModule(f)
+	mod := newAgoraModule(f)
 	// Load the module, cache and return
-	loaded := gm.Load(ø)
+	loaded := mod.Load(ø)
 	ø.loadedMods[id] = loaded
 	return loaded, nil
 }

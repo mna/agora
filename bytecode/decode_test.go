@@ -3,7 +3,6 @@ package bytecode
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"testing"
 
 	. "github.com/PuerkitoBio/agora/bytecode/testing"
@@ -80,7 +79,7 @@ var (
 		6: {
 			// Impossible to reproduce same 6 as encode - cannot get invalid K value, it is
 			// necessarily read as a type corresponding to its K type.
-			err: io.EOF,
+			err: ErrInvalidData,
 		},
 		7: {
 			// Function with K and Is

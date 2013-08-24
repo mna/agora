@@ -194,7 +194,13 @@ func TestAsm(t *testing.T) {
 		}
 
 		// Act
-		got, err := a.Compile(c.id, strings.NewReader(c.src))
+		var got []byte
+		f, err := a.Compile(c.id, strings.NewReader(c.src))
+		if err == nil {
+			buf := bytes.NewBuffer(nil)
+			err = bytecode.NewEncoder(buf).Encode(f)
+			got = buf.Bytes()
+		}
 
 		// Assert
 		if err != c.err {

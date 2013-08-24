@@ -11,24 +11,29 @@ var (
 )
 
 type Decoder struct {
-	r   io.Reader
-	err error
+	r       io.Reader
+	err     error
+	sigRead bool
+	sigOk   bool
 }
 
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{r: r}
 }
 
-func (dec *Decoder) Decode() (*File, error) {
-	dec.err = nil
-	// 1- Read and assert the signature
-	sig := dec.readSignature()
-	dec.assertSignature(sig)
-	// Do not create useless structures if the header is invalid
-	if dec.err != nil {
-		return nil, dec.err
+func (dec *Decoder) IsBytecode() bool {
+	if !dec.sigRead {
+		sig := dec.readSignature()
+		dec.assertSignature(sig)
 	}
+	return dec.sigOk
+}
 
+func (dec *Decoder) Decode() (*File, error) {
+	// 1- Read and assert the signature
+	if !dec.IsBytecode() {
+		return nil, ErrInvalidData
+	}
 	// 2- Read and assert the version
 	ver := dec.readByte()
 	dec.assertVersion(ver)
@@ -61,7 +66,9 @@ func (dec *Decoder) guard(fn func()) {
 
 func (dec *Decoder) assertSignature(sig int32) {
 	dec.guard(func() {
+		dec.sigOk = true
 		if sig != _SIGNATURE {
+			dec.sigOk = false
 			dec.err = ErrInvalidData
 		}
 	})
@@ -180,6 +187,7 @@ func (dec *Decoder) readFloat64() float64 {
 func (dec *Decoder) readSignature() int32 {
 	var sig int32
 	dec.read(&sig)
+	dec.sigRead = true
 	return sig
 }
 

@@ -2,7 +2,6 @@ package compiler
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
 	"strconv"
@@ -23,7 +22,7 @@ type Asm struct {
 	err   error
 }
 
-func (a *Asm) Compile(id string, r io.Reader) ([]byte, error) {
+func (a *Asm) Compile(id string, r io.Reader) (*bytecode.File, error) {
 	a.ended = false
 	a.err = nil
 	a.s = bufio.NewScanner(r)
@@ -36,14 +35,7 @@ func (a *Asm) Compile(id string, r io.Reader) ([]byte, error) {
 	a.f = bytecode.NewFile(id)
 	// Read the first section, the other ones get called recursively as needed
 	a.readFn()
-	// Do not compile unnecessarily if there is an error
-	if a.err != nil {
-		return nil, a.err
-	}
-	// Compile to bytecode
-	buf := bytes.NewBuffer(nil)
-	err := bytecode.NewEncoder(buf).Encode(a.f)
-	return buf.Bytes(), err
+	return a.f, a.err
 }
 
 func (a *Asm) findSection(s string) {

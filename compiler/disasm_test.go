@@ -3,7 +3,6 @@ package compiler
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"testing"
 
 	"github.com/PuerkitoBio/agora/bytecode"
@@ -18,7 +17,7 @@ var (
 	}{
 		0: {
 			// No input
-			err: io.EOF,
+			err: bytecode.ErrInvalidData,
 		},
 		1: {
 			// Empty func
