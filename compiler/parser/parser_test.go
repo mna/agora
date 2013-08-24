@@ -9,6 +9,7 @@ var (
 	cases = []struct {
 		src []byte
 		exp []*Symbol
+		err bool
 	}{
 		0: {
 			src: []byte(`return 5`),
@@ -404,6 +405,21 @@ func b(delta) {
 b(3)
 return a
 `),
+			exp: []*Symbol{
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(literal)", val: "5"},
+				&Symbol{id: "func", name: "b"},
+				&Symbol{id: "(name)", val: "delta"},
+				&Symbol{id: "+="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "delta"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(literal)", val: "3"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(name)", val: "a"},
+			},
 		},
 		14: {
 			src: []byte(`
@@ -413,12 +429,51 @@ func f() {
 }
 f(17, "foo", false)
 `),
+			exp: []*Symbol{
+				&Symbol{id: "import"},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(literal)", val: `"fmt"`},
+				&Symbol{id: "func", name: "f"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "fmt"},
+				&Symbol{id: "(name)", val: "Println"},
+				&Symbol{id: "["},
+				&Symbol{id: "args"},
+				&Symbol{id: "(literal)", val: "0"},
+				&Symbol{id: "["},
+				&Symbol{id: "args"},
+				&Symbol{id: "(literal)", val: "1"},
+				&Symbol{id: "["},
+				&Symbol{id: "args"},
+				&Symbol{id: "(literal)", val: "2"},
+				&Symbol{id: "("},
+				&Symbol{id: "(name)", val: "f"},
+				&Symbol{id: "(literal)", val: "17"},
+				&Symbol{id: "(literal)", val: `"foo"`},
+				&Symbol{id: "false"},
+			},
 		},
 		15: {
 			src: []byte(`
 a := {b: {c: {d: "allo"}}}
 return a.b.c.d
 `),
+			exp: []*Symbol{
+				&Symbol{id: ":="},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "{", key: ""},
+				&Symbol{id: "{", key: "b"},
+				&Symbol{id: "{", key: "c"},
+				&Symbol{id: "(literal)", val: `"allo"`, key: "d"},
+				&Symbol{id: "return"},
+				&Symbol{id: "."},
+				&Symbol{id: "."},
+				&Symbol{id: "."},
+				&Symbol{id: "(name)", val: "a"},
+				&Symbol{id: "(name)", val: "b"},
+				&Symbol{id: "(name)", val: "c"},
+				&Symbol{id: "(name)", val: "d"},
+			},
 		},
 		16: {
 			src: []byte(`
@@ -430,15 +485,28 @@ if true {
 	return 3
 }
 `),
+			exp: []*Symbol{
+				&Symbol{id: "if"},
+				&Symbol{id: "true"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(literal)", val: "1"},
+				&Symbol{id: "if"},
+				&Symbol{id: "false"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(literal)", val: "2"},
+				&Symbol{id: "return"},
+				&Symbol{id: "(literal)", val: "3"},
+			},
 		},
 		17: {
 			src: []byte(`
 			Ceci est un gros n'importe quoi! @ # 234r3.112@O#Ihwev92h f9238f
 `),
+			err: true,
 		},
 	}
 
-	isolateCase = 12
+	isolateCase = 17
 )
 
 func TestParse(t *testing.T) {
@@ -471,6 +539,9 @@ func TestParse(t *testing.T) {
 					if c.exp[ix].name != "" && v.name != c.exp[ix].name {
 						t.Errorf("[%d] - expected symbol name %s, got %s", i, c.exp[ix].name, v.name)
 					}
+					if c.exp[ix].key != "" && v.key != c.exp[ix].key {
+						t.Errorf("[%d] - expected symbol key %s, got %s", i, c.exp[ix].key, v.key)
+					}
 				}
 				check(v.first)
 				check(v.second)
@@ -489,12 +560,15 @@ func TestParse(t *testing.T) {
 			if len(c.exp) != (ix + 1) {
 				t.Errorf("[%d] - expected %d symbols, got %d", i, len(c.exp), ix+1)
 			}
-			if testing.Verbose() {
-				if err != nil {
-					fmt.Println(err)
-				}
+		}
+		if (err != nil) != c.err {
+			if c.err {
+				t.Errorf("[%d] - expected error(s), got none", i)
+			} else {
+				t.Errorf("[%d] - expected no error, got %s", i, err)
 			}
-		} else {
+		}
+		if c.exp == nil && !c.err {
 			t.Errorf("[%d] - no assertion", i)
 		}
 	}
