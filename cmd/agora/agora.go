@@ -109,7 +109,7 @@ func (r *run) Execute(args []string) error {
 	if r.FromAsm {
 		c = new(compiler.Asm)
 	} else {
-		// TODO : Create the standard compiler
+		c = new(compiler.Compiler)
 	}
 	ctx := runtime.NewCtx(new(runtime.FileResolver), c)
 	if !r.NoStdlib {
