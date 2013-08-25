@@ -8,6 +8,8 @@ import (
 
 	"github.com/PuerkitoBio/agora/bytecode"
 	"github.com/PuerkitoBio/agora/compiler"
+	"github.com/PuerkitoBio/agora/runtime"
+	"github.com/PuerkitoBio/agora/runtime/stdlib"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -92,31 +94,44 @@ func (d *dasm) Execute(args []string) error {
 	return new(compiler.Disasm).Uncompile(inf, f)
 }
 
-// The build command struct
-type build struct {
-	Output string `short:"o" long:"output" description:"output file"`
+// The run command struct
+type run struct {
+	Output   string `short:"o" long:"output" description:"output file"`
+	FromAsm  bool   `short:"a" long:"from-asm" description:"run an assembly input"`
+	NoStdlib bool   `short:"S" long:"nostdlib" description:"do not import the stdlib"`
 }
 
-func (b *build) Execute(args []string) error {
+func (r *run) Execute(args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("expected an input file")
 	}
-	f, err := os.Open(args[0])
-	if err != nil {
-		return err
+	var c runtime.Compiler
+	if r.FromAsm {
+		c = new(compiler.Asm)
+	} else {
+		// TODO : Create the standard compiler
 	}
-	defer f.Close()
-	return nil
+	ctx := runtime.NewCtx(new(runtime.FileResolver), c)
+	if !r.NoStdlib {
+		// Register the standard lib's Fmt package
+		ctx.RegisterNativeModule(new(stdlib.FmtMod))
+	}
+	res, err := ctx.Load(args[0])
+	if err == nil {
+		fmt.Printf("\n\n= %v\n", res)
+	}
+	return err
 }
 
-// The run command struct
-type run struct{}
+// The build command struct
+type build struct{}
 
 func main() {
-	a, d := new(asm), new(dasm)
+	a, d, r := new(asm), new(dasm), new(run)
 	p := flags.NewParser(nil, flags.Default)
 	p.AddCommand("asm", "assembler", "compile source assembler to bytecode", a)
 	p.AddCommand("dasm", "disassembler", "disassemble bytecode to source assembly", d)
+	p.AddCommand("run", "run", "execute a source program", r)
 	// In case of errors, usage text is automatically displayed. In case of
 	// success, the Execute() method of the matching command is called.
 	p.Parse()
