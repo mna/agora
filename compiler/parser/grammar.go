@@ -3,36 +3,36 @@ package parser
 func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
 	return func(sym *Symbol) *Symbol {
 		var a []*Symbol
-		if !prefix && p.tkn.ar == arName { // Only for statement notation
+		if !prefix && p.tkn.Ar == ArName { // Only for statement notation
 			p.scp.define(p.tkn)
-			sym.name = p.tkn.val.(string)
+			sym.Name = p.tkn.Val.(string)
 			p.advance(_SYM_ANY)
 		}
 		p.newScope()
 		p.advance("(")
-		if p.tkn.id != ")" {
+		if p.tkn.Id != ")" {
 			for {
-				if p.tkn.ar != arName {
+				if p.tkn.Ar != ArName {
 					p.error(p.tkn, "expected a parameter name")
 				}
 				p.scp.define(p.tkn)
 				a = append(a, p.tkn)
 				p.advance(_SYM_ANY)
-				if p.tkn.id != "," {
+				if p.tkn.Id != "," {
 					break
 				}
 				p.advance(",")
 			}
 		}
-		sym.first = a
+		sym.First = a
 		p.advance(")")
 		p.advance("{")
-		sym.second = p.statements()
+		sym.Second = p.statements()
 		p.advance("}")
 		if !prefix { // Don't consume the ending semicolon when func is an expression
 			p.advance(";")
 		}
-		sym.ar = arFunction
+		sym.Ar = ArFunction
 		p.popScope()
 		return sym
 	}
@@ -70,32 +70,32 @@ func (p *Parser) defineGrammar() {
 
 	// Ternary operator
 	p.infix("?", 20, func(sym, left *Symbol) *Symbol {
-		sym.first = left
-		sym.second = p.expression(0)
+		sym.First = left
+		sym.Second = p.expression(0)
 		p.advance(":")
-		sym.third = p.expression(0)
-		sym.ar = arTernary
+		sym.Third = p.expression(0)
+		sym.Ar = ArTernary
 		return sym
 	})
 
 	// The dot (selector) operator
 	p.infix(".", 80, func(sym, left *Symbol) *Symbol {
-		sym.first = left
-		if p.tkn.ar != arName {
+		sym.First = left
+		if p.tkn.Ar != ArName {
 			p.error(p.tkn, "expected a field name")
 		}
-		p.tkn.ar = arLiteral
-		sym.second = p.tkn
-		sym.ar = arBinary
+		p.tkn.Ar = ArLiteral
+		sym.Second = p.tkn
+		sym.Ar = ArBinary
 		p.advance(_SYM_ANY)
 		return sym
 	})
 
 	// The array-notation field selector operator
 	p.infix("[", 80, func(sym, left *Symbol) *Symbol {
-		sym.first = left
-		sym.second = p.expression(0)
-		sym.ar = arBinary
+		sym.First = left
+		sym.Second = p.expression(0)
+		sym.Ar = ArBinary
 		p.advance("]")
 		return sym
 	})
@@ -142,67 +142,67 @@ func (p *Parser) defineGrammar() {
 	// TODO : This supports the for [condition] notation, nothing else
 	// For loop
 	p.stmt("for", func(sym *Symbol) interface{} {
-		sym.first = p.expression(0)
-		sym.second = p.block()
+		sym.First = p.expression(0)
+		sym.Second = p.block()
 		p.advance(";")
-		sym.ar = arStatement
+		sym.Ar = ArStatement
 		return sym
 	})
 
 	// If statement
 	p.stmt("if", func(sym *Symbol) interface{} {
-		sym.first = p.expression(0)
-		sym.second = p.block()
-		if p.tkn.id == "else" {
+		sym.First = p.expression(0)
+		sym.Second = p.block()
+		if p.tkn.Id == "else" {
 			p.scp.reserve(p.tkn)
 			p.advance("else")
-			if p.tkn.id == "if" {
-				sym.third = p.statement()
+			if p.tkn.Id == "if" {
+				sym.Third = p.statement()
 			} else {
-				sym.third = p.block()
+				sym.Third = p.block()
 				p.advance(";")
 			}
 		} else {
 			p.advance(";")
 		}
-		sym.ar = arStatement
+		sym.Ar = ArStatement
 		return sym
 	})
 
 	// break statement
 	p.stmt("break", func(sym *Symbol) interface{} {
 		p.advance(";")
-		if p.tkn.id != "}" && p.tkn.id != _SYM_END {
+		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")
 		}
-		sym.ar = arStatement
+		sym.Ar = ArStatement
 		return sym
 	})
 
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
-		if p.tkn.id != ";" {
-			sym.first = p.expression(0)
+		if p.tkn.Id != ";" {
+			sym.First = p.expression(0)
 		}
 		p.advance(";")
-		if p.tkn.id != "}" && p.tkn.id != _SYM_END {
+		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")
 		}
-		sym.ar = arStatement
+		sym.Ar = ArStatement
 		return sym
 	})
 
 	// TODO : Must be the first statement(s) in a file
 	// import statement
 	p.stmt("import", func(sym *Symbol) interface{} {
-		if p.tkn.id == "(" {
+		if p.tkn.Id == "(" {
 			p.advance("(")
-			sym.first = p.importMany()
+			sym.First = p.importMany()
 		} else {
 			id, pth := p.importOne()
-			sym.first = []*Symbol{id, pth}
+			sym.First = []*Symbol{id, pth}
 		}
-		sym.ar = arImport
+		sym.Ar = ArImport
 		return sym
 	})
 
@@ -216,28 +216,28 @@ func (p *Parser) defineGrammar() {
 	// The function/method call parser
 	p.infix("(", 80, func(sym, left *Symbol) *Symbol {
 		var a []*Symbol
-		if p.tkn.id != ")" {
+		if p.tkn.Id != ")" {
 			for {
 				a = append(a, p.expression(0))
-				if p.tkn.id != "," {
+				if p.tkn.Id != "," {
 					break
 				}
 				p.advance(",")
 			}
 		}
 		p.advance(")")
-		if left.id == "." || left.id == "[" {
-			sym.ar = arTernary
-			sym.first = left.first
-			sym.second = left.second
-			sym.third = a
+		if left.Id == "." || left.Id == "[" {
+			sym.Ar = ArTernary
+			sym.First = left.First
+			sym.Second = left.Second
+			sym.Third = a
 		} else {
-			sym.ar = arBinary
-			sym.first = left
-			sym.second = a
-			if (left.ar != arUnary || left.id != "func") &&
-				left.ar != arName && left.id != "(" &&
-				left.id != "&&" && left.id != "||" && left.id != "?" {
+			sym.Ar = ArBinary
+			sym.First = left
+			sym.Second = a
+			if (left.Ar != ArUnary || left.Id != "func") &&
+				left.Ar != ArName && left.Id != "(" &&
+				left.Id != "&&" && left.Id != "||" && left.Id != "?" {
 				p.error(left, "expected a variable name")
 			}
 		}
@@ -247,33 +247,33 @@ func (p *Parser) defineGrammar() {
 	// The `this` keyword
 	p.makeSymbol("this", 0).nudfn = func(sym *Symbol) *Symbol {
 		p.scp.reserve(sym)
-		sym.ar = arThis
+		sym.Ar = ArThis
 		return sym
 	}
 
 	// The object literal notation
 	p.prefix("{", func(sym *Symbol) *Symbol {
 		var a []*Symbol
-		if p.tkn.id != "}" {
+		if p.tkn.Id != "}" {
 			for {
 				n := p.tkn
-				if n.ar != arName && n.ar != arLiteral {
+				if n.Ar != ArName && n.Ar != ArLiteral {
 					p.error(n, "bad key")
 				}
 				p.advance(_SYM_ANY)
 				p.advance(":")
 				v := p.expression(0)
-				v.key = n.val
+				v.Key = n.Val
 				a = append(a, v)
-				if p.tkn.id != "," {
+				if p.tkn.Id != "," {
 					break
 				}
 				p.advance(",")
 			}
 		}
 		p.advance("}")
-		sym.first = a
-		sym.ar = arUnary
+		sym.First = a
+		sym.Ar = ArUnary
 		return sym
 	})
 	// TODO : No array literal ("[14, 83, "toto"]") for now

@@ -7,7 +7,7 @@ type Scope struct {
 }
 
 func (s *Scope) define(n *Symbol) *Symbol {
-	t, ok := s.def[n.val.(string)]
+	t, ok := s.def[n.Val.(string)]
 	if ok {
 		if t.res {
 			s.p.error(t, "already reserved")
@@ -15,7 +15,7 @@ func (s *Scope) define(n *Symbol) *Symbol {
 			s.p.error(t, "already defined")
 		}
 	}
-	s.def[n.val.(string)] = n
+	s.def[n.Val.(string)] = n
 	n.res = false
 	n.lbp = 0
 	n.nudfn = itselfNud
@@ -41,10 +41,10 @@ func (s *Scope) find(id string) *Symbol {
 }
 
 func (s *Scope) reserve(n *Symbol) {
-	if n.ar != arName || n.res {
+	if n.Ar != ArName || n.res {
 		return
 	}
-	val, ok := n.val.(string)
+	val, ok := n.Val.(string)
 	if !ok {
 		s.p.error(n, "expected a string value")
 	}
@@ -52,7 +52,7 @@ func (s *Scope) reserve(n *Symbol) {
 		if t.res {
 			return
 		}
-		if t.ar == arName {
+		if t.Ar == ArName {
 			s.p.error(n, "already defined")
 		}
 	}

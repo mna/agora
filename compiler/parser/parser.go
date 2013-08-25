@@ -118,8 +118,8 @@ func (p *Parser) makeSymbol(id string, bp int) *Symbol {
 	} else {
 		s = &Symbol{
 			p:   p,
-			id:  id,
-			val: id,
+			Id:  id,
+			Val: id,
 			lbp: bp,
 		}
 		p.tbl[id] = s
@@ -128,7 +128,7 @@ func (p *Parser) makeSymbol(id string, bp int) *Symbol {
 }
 
 func (p *Parser) advance(id string) *Symbol {
-	if id != _SYM_ANY && p.tkn.id != id {
+	if id != _SYM_ANY && p.tkn.Id != id {
 		p.error(p.tkn, "expected "+id)
 	}
 	var (
@@ -147,20 +147,20 @@ scan:
 	var (
 		o  *Symbol
 		ok bool
-		ar arity
+		ar Arity
 	)
 	if tok == token.IDENT || tok.IsKeyword() {
 		o = p.scp.find(lit)
-		ar = arName
+		ar = ArName
 	} else if tok.IsOperator() {
-		ar = arOperator
+		ar = ArOperator
 		o, ok = p.tbl[tok.String()]
 		if !ok {
 			p.err.Add(pos, "unknown operator "+tok.String())
 			goto scan
 		}
 	} else if tok.IsLiteral() { // Excluding IDENT, part of the first if
-		ar = arLiteral
+		ar = ArLiteral
 		o = p.tbl[_SYM_LIT]
 	} else if tok == token.EOF {
 		o = p.tbl[_SYM_END]
@@ -173,8 +173,8 @@ scan:
 		goto scan
 	}
 	p.tkn = o.clone()
-	p.tkn.ar = ar
-	p.tkn.val = lit
+	p.tkn.Ar = ar
+	p.tkn.Val = lit
 	p.tkn.tok = tok
 	p.tkn.pos = pos
 	return p.tkn
@@ -187,7 +187,7 @@ func (p *Parser) expression(rbp int) *Symbol {
 	//   `a := x`
 	// then a.nudfn is nil, but will be defined once := is processed.
 	var left *Symbol
-	if t.nudfn == nil && t.ar == arName && p.tkn.id == ":=" {
+	if t.nudfn == nil && t.Ar == ArName && p.tkn.Id == ":=" {
 		left = t
 	} else {
 		left = t.nud()
@@ -206,9 +206,9 @@ func (p *Parser) infix(id string, bp int, ledfn func(*Symbol, *Symbol) *Symbol) 
 		s.ledfn = ledfn
 	} else {
 		s.ledfn = func(sym, left *Symbol) *Symbol {
-			sym.first = left
-			sym.second = p.expression(bp)
-			sym.ar = arBinary
+			sym.First = left
+			sym.Second = p.expression(bp)
+			sym.Ar = ArBinary
 			return sym
 		}
 	}
@@ -221,9 +221,9 @@ func (p *Parser) infixr(id string, bp int, ledfn func(*Symbol, *Symbol) *Symbol)
 		s.ledfn = ledfn
 	} else {
 		s.ledfn = func(sym, left *Symbol) *Symbol {
-			sym.first = left
-			sym.second = p.expression(bp - 1)
-			sym.ar = arBinary
+			sym.First = left
+			sym.Second = p.expression(bp - 1)
+			sym.Ar = ArBinary
 			return sym
 		}
 	}
@@ -237,8 +237,8 @@ func (p *Parser) prefix(id string, nudfn func(*Symbol) *Symbol) *Symbol {
 	} else {
 		s.nudfn = func(sym *Symbol) *Symbol {
 			p.scp.reserve(sym)
-			sym.first = p.expression(70)
-			sym.ar = arUnary
+			sym.First = p.expression(70)
+			sym.Ar = ArUnary
 			return sym
 		}
 	}
@@ -247,25 +247,25 @@ func (p *Parser) prefix(id string, nudfn func(*Symbol) *Symbol) *Symbol {
 
 func (p *Parser) suffix(id string) *Symbol {
 	return p.infixr(id, 10, func(sym, left *Symbol) *Symbol {
-		if left.id != "." && left.id != "[" && left.ar != arName {
+		if left.Id != "." && left.Id != "[" && left.Ar != ArName {
 			p.error(left, "bad lvalue")
 		}
-		sym.first = left
+		sym.First = left
 		sym.asg = true
-		sym.ar = arUnary
+		sym.Ar = ArUnary
 		return sym
 	})
 }
 
 func (p *Parser) assignment(id string) *Symbol {
 	return p.infixr(id, 10, func(sym, left *Symbol) *Symbol {
-		if left.id != "." && left.id != "[" && left.ar != arName {
+		if left.Id != "." && left.Id != "[" && left.Ar != ArName {
 			p.error(left, "bad lvalue")
 		}
-		sym.first = left
-		sym.second = p.expression(9)
+		sym.First = left
+		sym.Second = p.expression(9)
 		sym.asg = true
-		sym.ar = arBinary
+		sym.Ar = ArBinary
 		return sym
 	})
 }
@@ -274,13 +274,13 @@ func (p *Parser) assignment(id string) *Symbol {
 // matching list of expressions (a, b, c := 1, 2, 3)
 func (p *Parser) define(id string) *Symbol {
 	return p.infixr(id, 10, func(sym, left *Symbol) *Symbol {
-		if left.ar != arName {
+		if left.Ar != ArName {
 			p.error(left, "expected variable name")
 		}
 		p.scp.define(left)
-		sym.first = left
-		sym.second = p.expression(9)
-		sym.ar = arBinary
+		sym.First = left
+		sym.Second = p.expression(9)
+		sym.Ar = ArBinary
 		return sym
 	})
 }
@@ -289,11 +289,11 @@ func (p *Parser) constant(id string, v interface{}) *Symbol {
 	s := p.makeSymbol(id, 0)
 	s.nudfn = func(sym *Symbol) *Symbol {
 		p.scp.reserve(sym)
-		sym.val = p.tbl[sym.id].val
-		sym.ar = arLiteral
+		sym.Val = p.tbl[sym.Id].Val
+		sym.Ar = ArLiteral
 		return sym
 	}
-	s.val = v
+	s.Val = v
 	return s
 }
 
@@ -305,7 +305,7 @@ func (p *Parser) statement() interface{} {
 		return n.std()
 	}
 	v := p.expression(0)
-	if !v.asg && v.id != "(" && v.id != ":=" {
+	if !v.asg && v.Id != "(" && v.Id != ":=" {
 		p.error(v, "bad expression statement")
 	}
 	p.advance(";")
@@ -315,7 +315,7 @@ func (p *Parser) statement() interface{} {
 func (p *Parser) statements() []*Symbol {
 	var a []*Symbol
 	for {
-		if p.tkn.id == "}" || p.tkn.id == _SYM_END {
+		if p.tkn.Id == "}" || p.tkn.Id == _SYM_END {
 			break
 		}
 		tok := p.tkn
@@ -348,7 +348,7 @@ func (p *Parser) block() interface{} {
 // then the path).
 func (p *Parser) importMany() []*Symbol {
 	var a []*Symbol
-	for p.tkn.id != ")" {
+	for p.tkn.Id != ")" {
 		id, pth := p.importOne()
 		a = append(a, id, pth)
 	}
@@ -359,7 +359,7 @@ func (p *Parser) importMany() []*Symbol {
 
 // Return a pair of Symbols, the identifier and the path
 func (p *Parser) importOne() (id *Symbol, pth *Symbol) {
-	if p.tkn.ar == arName {
+	if p.tkn.Ar == ArName {
 		// Define in scope
 		p.scp.define(p.tkn)
 		id = p.tkn
@@ -367,7 +367,7 @@ func (p *Parser) importOne() (id *Symbol, pth *Symbol) {
 	}
 	var path string
 	var ok bool
-	if path, ok = p.tkn.val.(string); p.tkn.ar != arLiteral || !ok {
+	if path, ok = p.tkn.Val.(string); p.tkn.Ar != ArLiteral || !ok {
 		p.error(p.tkn, "import path must be a string literal")
 	}
 	if id == nil {
@@ -384,8 +384,8 @@ func (p *Parser) importOne() (id *Symbol, pth *Symbol) {
 		// Create new name Symbol for this identifier
 		o := p.tbl[_SYM_NAME]
 		sym := o.clone()
-		sym.ar = arName
-		sym.val = nm
+		sym.Ar = ArName
+		sym.Val = nm
 		p.scp.define(sym)
 		id = sym
 	}
@@ -396,10 +396,10 @@ func (p *Parser) importOne() (id *Symbol, pth *Symbol) {
 }
 
 func (p *Parser) error(s *Symbol, msg string) {
-	if s.id != _SYM_END {
-		p.err.Add(s.pos, fmt.Sprintf("[tok: %s ; sym: %s ; val: %v] %s", s.tok, s.id, s.val, msg))
+	if s.Id != _SYM_END {
+		p.err.Add(s.pos, fmt.Sprintf("[tok: %s ; sym: %s ; val: %v] %s", s.tok, s.Id, s.Val, msg))
 		// Change the symbol to a (bad) symbol, returning itself in all conditions
-		s.id = _SYM_BAD
+		s.Id = _SYM_BAD
 		s.ledfn = itselfLed
 		s.nudfn = itselfNud
 		s.stdfn = itselfStd

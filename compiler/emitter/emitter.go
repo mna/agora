@@ -2,6 +2,7 @@ package emitter
 
 import (
 	"errors"
+
 	"github.com/PuerkitoBio/agora/bytecode"
 	"github.com/PuerkitoBio/agora/compiler/parser"
 )
@@ -26,8 +27,8 @@ func (e *Emitter) emitFn(f *bytecode.File, syms []*parser.Symbol, scps []*parser
 	if len(f.Fns) == 1 {
 		fn.Header.Name = f.Name
 	} else {
-		e.assert(syms[i].id == "func", ErrExpectedFunc)
-		fn.Header.Name = syms[i].name
+		e.assert(syms[i].Ar == parser.ArFunction, ErrExpectedFunc)
+		fn.Header.Name = syms[i].Name
 	}
 }
 

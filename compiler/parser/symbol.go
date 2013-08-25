@@ -8,22 +8,22 @@ import (
 	"github.com/PuerkitoBio/agora/compiler/token"
 )
 
-type arity int
+type Arity int
 
 const (
 	// Initial possible arities, until we know more about the context
-	arName arity = iota
-	arLiteral
-	arOperator
+	ArName Arity = iota
+	ArLiteral
+	ArOperator
 
 	// Then it can be set to something more precise
-	arUnary
-	arBinary
-	arTernary
-	arStatement
-	arThis
-	arFunction
-	arImport
+	ArUnary
+	ArBinary
+	ArTernary
+	ArStatement
+	ArThis
+	ArFunction
+	ArImport
 )
 
 func itselfLed(s, left *Symbol) *Symbol {
@@ -40,19 +40,19 @@ func itselfStd(s *Symbol) interface{} {
 
 type Symbol struct {
 	p      *Parser
-	id     string
-	val    interface{}
-	name   string
-	key    interface{}
+	Id     string
+	Val    interface{}
+	Name   string
+	Key    interface{}
 	lbp    int
-	ar     arity
+	Ar     Arity
 	res    bool
 	asg    bool
 	tok    token.Token
 	pos    token.Position
-	first  interface{} // May all be []*Symbol or *Symbol
-	second interface{}
-	third  interface{}
+	First  interface{} // May all be []*Symbol or *Symbol
+	Second interface{}
+	Third  interface{}
 
 	nudfn func(*Symbol) *Symbol
 	ledfn func(*Symbol, *Symbol) *Symbol
@@ -62,19 +62,19 @@ type Symbol struct {
 func (s Symbol) clone() *Symbol {
 	return &Symbol{
 		s.p,
-		s.id,
-		s.val,
-		s.name,
-		s.key,
+		s.Id,
+		s.Val,
+		s.Name,
+		s.Key,
 		s.lbp,
-		s.ar,
+		s.Ar,
 		s.res,
 		s.asg,
 		s.tok,
 		s.pos,
-		s.first,
-		s.second,
-		s.third,
+		s.First,
+		s.Second,
+		s.Third,
 		s.nudfn,
 		s.ledfn,
 		s.stdfn,
@@ -108,11 +108,11 @@ func (s *Symbol) String() string {
 
 func (s *Symbol) indentString(ind int) string {
 	buf := bytes.NewBuffer(nil)
-	buf.WriteString(fmt.Sprintf("%-20s; %v", s.id, s.val))
-	if s.name != "" {
-		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.name))
-	} else if s.key != nil {
-		buf.WriteString(fmt.Sprintf(" (key: %s)", s.key))
+	buf.WriteString(fmt.Sprintf("%-20s; %v", s.Id, s.Val))
+	if s.Name != "" {
+		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.Name))
+	} else if s.Key != nil {
+		buf.WriteString(fmt.Sprintf(" (key: %s)", s.Key))
 	}
 	buf.WriteString("\n")
 
@@ -128,8 +128,8 @@ func (s *Symbol) indentString(ind int) string {
 			}
 		}
 	}
-	fmtChild(1, s.first)
-	fmtChild(2, s.second)
-	fmtChild(3, s.third)
+	fmtChild(1, s.First)
+	fmtChild(2, s.Second)
+	fmtChild(3, s.Third)
 	return buf.String()
 }
