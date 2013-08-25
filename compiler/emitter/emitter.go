@@ -17,19 +17,37 @@ type Emitter struct {
 
 func (e *Emitter) Emit(id string, syms []*parser.Symbol, scps []*parser.Scope) (*bytecode.File, error) {
 	f := bytecode.NewFile(id)
-	e.emitFn(f, syms, scps)
+	e.emitRoot(f, syms, scps)
 	return f, nil
 }
 
-func (e *Emitter) emitFn(f *bytecode.File, syms []*parser.Symbol, scps []*parser.Scope) {
-	i := 0
+func (e *Emitter) emitRoot(f *bytecode.File, syms []*parser.Symbol, scps []*parser.Scope) {
 	fn := new(bytecode.Fn)
-	if len(f.Fns) == 1 {
-		fn.Header.Name = f.Name
-	} else {
-		e.assert(syms[i].Ar == parser.ArFunction, ErrExpectedFunc)
-		fn.Header.Name = syms[i].Name
+	fn.Header.Name = f.Name
+	f.Fns = append(f.Fns, fn)
+	for _, sym := range syms {
+		e.emitSymbol(f, fn, sym)
 	}
+}
+
+func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol) {
+	switch sym.Ar {
+	case parser.ArBinary:
+		switch sym.Id {
+		case ":=":
+			// Start by emitting the rvalue
+
+		}
+	case parser.ArImport:
+
+	case parser.ArFunction:
+		chfn := new(bytecode.Fn)
+		f.Fns = append(f.Fns, chfn)
+		e.emitFn(chfn, sym)
+	}
+}
+
+func (e *Emitter) emitFn(fn *bytecode.Fn, syms *parser.Symbol) {
 }
 
 func (e *Emitter) assert(cond bool, err error) {

@@ -26,6 +26,25 @@ const (
 	ArImport
 )
 
+var (
+	arNames = [...]string{
+		ArName:      "Name",
+		ArLiteral:   "Literal",
+		ArOperator:  "Operator",
+		ArUnary:     "Unary",
+		ArBinary:    "Binary",
+		ArTernary:   "Ternary",
+		ArStatement: "Statement",
+		ArThis:      "This",
+		ArFunction:  "Function",
+		ArImport:    "Import",
+	}
+)
+
+func (ar Arity) String() string {
+	return arNames[ar]
+}
+
 func itselfLed(s, left *Symbol) *Symbol {
 	return left
 }
@@ -111,9 +130,11 @@ func (s *Symbol) indentString(ind int) string {
 	buf.WriteString(fmt.Sprintf("%-20s; %v", s.Id, s.Val))
 	if s.Name != "" {
 		buf.WriteString(fmt.Sprintf(" (nm: %s)", s.Name))
-	} else if s.Key != nil {
+	}
+	if s.Key != nil {
 		buf.WriteString(fmt.Sprintf(" (key: %s)", s.Key))
 	}
+	buf.WriteString(fmt.Sprintf(" (arity: %s)", s.Ar))
 	buf.WriteString("\n")
 
 	fmtChild := func(idx int, child interface{}) {
