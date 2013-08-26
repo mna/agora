@@ -1,6 +1,7 @@
 package bytecode
 
 import (
+	"bufio"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -23,15 +24,29 @@ func NewDecoder(r io.Reader) *Decoder {
 
 func (dec *Decoder) IsBytecode() bool {
 	if !dec.sigRead {
-		sig := dec.readSignature()
-		dec.assertSignature(sig)
+		dec.sigRead = true
+		// Do not consume the bytes on the reader, use a bufio.Reader
+		br := bufio.NewReader(dec.r)
+		b, err := br.Peek(4)
+		if err != nil {
+			dec.sigOk = false
+			return false
+		}
+		sig, n := binary.Varint(b)
+		if n <= 0 {
+			dec.sigOk = false
+			return false
+		}
+		dec.assertSignature(int32(sig))
 	}
 	return dec.sigOk
 }
 
 func (dec *Decoder) Decode() (*File, error) {
 	// 1- Read and assert the signature
-	if !dec.IsBytecode() {
+	sig := dec.readSignature()
+	dec.assertSignature(sig)
+	if dec.err != nil {
 		return nil, ErrInvalidData
 	}
 	// 2- Read and assert the version

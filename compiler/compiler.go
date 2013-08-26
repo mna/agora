@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/PuerkitoBio/agora/bytecode"
+	"github.com/PuerkitoBio/agora/compiler/emitter"
 	"github.com/PuerkitoBio/agora/compiler/parser"
 )
 
@@ -20,7 +21,6 @@ func (c *Compiler) Compile(id string, r io.Reader) (*bytecode.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO : Call emitter, generate *bytecode.File
-	_, _ = syms, scps
-	return nil, nil
+	e := new(emitter.Emitter)
+	return e.Emit(id, syms, scps)
 }

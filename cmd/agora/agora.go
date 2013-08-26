@@ -167,15 +167,61 @@ func (a *ast) Execute(args []string) error {
 }
 
 // The build command struct
-type build struct{}
+type build struct {
+	Output string `short:"o" long:"output" description:"output file"`
+	Asm    bool   `short:"a" long:"assembly" description:"build to assembly instead of bytecode"`
+}
+
+func (b *build) Execute(args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("expected an input file")
+	}
+	inf, err := os.Open(args[0])
+	if err != nil {
+		return err
+	}
+	defer inf.Close()
+	c := new(compiler.Compiler)
+	f, err := c.Compile(args[0], inf)
+	if err != nil {
+		return err
+	}
+	outf := os.Stdout
+	if b.Output != "" {
+		outf, err = os.Create(b.Output)
+		if err != nil {
+			return err
+		}
+		defer outf.Close()
+	}
+	if b.Asm {
+		// TODO : Take the long and lazy road: encode to bytecode, disasm
+		buf := bytes.NewBuffer(nil)
+		enc := bytecode.NewEncoder(buf)
+		err = enc.Encode(f)
+		if err != nil {
+			return err
+		}
+		unc := new(compiler.Disasm)
+		err = unc.Uncompile(buf, outf)
+	} else {
+		enc := bytecode.NewEncoder(outf)
+		err = enc.Encode(f)
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func main() {
-	a, d, r, s := new(asm), new(dasm), new(run), new(ast)
+	a, d, r, s, b := new(asm), new(dasm), new(run), new(ast), new(build)
 	p := flags.NewParser(nil, flags.Default)
-	p.AddCommand("asm", "assembler", "compile source assembler to bytecode", a)
-	p.AddCommand("dasm", "disassembler", "disassemble bytecode to source assembly", d)
+	p.AddCommand("asm", "assembler", "compile assembly to bytecode", a)
+	p.AddCommand("dasm", "disassembler", "disassemble bytecode to assembly", d)
 	p.AddCommand("run", "run", "execute a source program", r)
 	p.AddCommand("ast", "abstract syntax tree", "print the AST of a source program", s)
+	p.AddCommand("build", "compiler", "compile a source program", b)
 	// In case of errors, usage text is automatically displayed. In case of
 	// success, the Execute() method of the matching command is called.
 	p.Parse()
