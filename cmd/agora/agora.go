@@ -195,15 +195,8 @@ func (b *build) Execute(args []string) error {
 		defer outf.Close()
 	}
 	if b.Asm {
-		// TODO : Take the long and lazy road: encode to bytecode, disasm
-		buf := bytes.NewBuffer(nil)
-		enc := bytecode.NewEncoder(buf)
-		err = enc.Encode(f)
-		if err != nil {
-			return err
-		}
-		unc := new(compiler.Disasm)
-		err = unc.Uncompile(buf, outf)
+		dasm := new(compiler.Disasm)
+		err = dasm.ToAsm(f, outf)
 	} else {
 		enc := bytecode.NewEncoder(outf)
 		err = enc.Encode(f)

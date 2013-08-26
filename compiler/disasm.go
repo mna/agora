@@ -18,11 +18,7 @@ type Disasm struct {
 	err error
 }
 
-func (d *Disasm) Uncompile(r io.Reader, w io.Writer) error {
-	f, err := bytecode.NewDecoder(r).Decode()
-	if err != nil {
-		return err
-	}
+func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 	d.w = w
 	d.err = nil
 	// 1- Write the standard comment
@@ -55,6 +51,14 @@ func (d *Disasm) Uncompile(r io.Reader, w io.Writer) error {
 		}
 	}
 	return d.err
+}
+
+func (d *Disasm) Uncompile(r io.Reader, w io.Writer) error {
+	f, err := bytecode.NewDecoder(r).Decode()
+	if err != nil {
+		return err
+	}
+	return d.ToAsm(f, w)
 }
 
 func (d *Disasm) write(i interface{}, newLine bool) {
