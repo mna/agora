@@ -1,7 +1,6 @@
 package bytecode
 
 import (
-	"bufio"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -12,34 +11,21 @@ var (
 )
 
 type Decoder struct {
-	r       io.Reader
-	err     error
-	sigRead bool
-	sigOk   bool
+	r   io.Reader
+	err error
 }
 
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{r: r}
 }
 
-func (dec *Decoder) IsBytecode() bool {
-	if !dec.sigRead {
-		dec.sigRead = true
-		// Do not consume the bytes on the reader, use a bufio.Reader
-		br := bufio.NewReader(dec.r)
-		b, err := br.Peek(4)
-		if err != nil {
-			dec.sigOk = false
-			return false
-		}
-		sig, n := binary.Varint(b)
-		if n <= 0 {
-			dec.sigOk = false
-			return false
-		}
-		dec.assertSignature(int32(sig))
+func IsBytecode(rs io.ReadSeeker) bool {
+	var i int32
+	if err := binary.Read(rs, binary.LittleEndian, i); err != nil {
+		return false
 	}
-	return dec.sigOk
+	defer rs.Seek(0, 0)
+	return i == _SIGNATURE
 }
 
 func (dec *Decoder) Decode() (*File, error) {
@@ -81,9 +67,7 @@ func (dec *Decoder) guard(fn func()) {
 
 func (dec *Decoder) assertSignature(sig int32) {
 	dec.guard(func() {
-		dec.sigOk = true
 		if sig != _SIGNATURE {
-			dec.sigOk = false
 			dec.err = ErrInvalidData
 		}
 	})
@@ -202,7 +186,6 @@ func (dec *Decoder) readFloat64() float64 {
 func (dec *Decoder) readSignature() int32 {
 	var sig int32
 	dec.read(&sig)
-	dec.sigRead = true
 	return sig
 }
 

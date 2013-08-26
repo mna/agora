@@ -104,8 +104,8 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	}()
 	// If already bytecode, just decode
 	var f *bytecode.File
-	dec := bytecode.NewDecoder(r)
-	if dec.IsBytecode() {
+	if rs, ok := r.(io.ReadSeeker); ok && bytecode.IsBytecode(rs) {
+		dec := bytecode.NewDecoder(r)
 		f, err = dec.Decode()
 	} else {
 		// Compile to bytecode
