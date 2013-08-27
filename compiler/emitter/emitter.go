@@ -9,6 +9,21 @@ import (
 	"github.com/PuerkitoBio/agora/compiler/parser"
 )
 
+var (
+	binSym2op = map[string]bytecode.Opcode{
+		"+":  bytecode.OP_ADD,
+		"-":  bytecode.OP_SUB,
+		"*":  bytecode.OP_MUL,
+		"/":  bytecode.OP_DIV,
+		"%":  bytecode.OP_MOD,
+		"<":  bytecode.OP_LT,
+		"<=": bytecode.OP_LTE,
+		">":  bytecode.OP_GT,
+		">=": bytecode.OP_GTE,
+		"==": bytecode.OP_EQ,
+	}
+)
+
 type Emitter struct {
 	err     error
 	kMap    map[*bytecode.Fn]map[string]int
@@ -92,24 +107,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			break
 		}
 		fallthrough
-	case "+", "*", "/", "%":
+	case "+", "*", "/", "%", "<", ">", "<=", ">=", "==":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
-		var op bytecode.Opcode
-		switch sym.Id {
-		case "+":
-			op = bytecode.OP_ADD
-		case "-":
-			op = bytecode.OP_SUB
-		case "*":
-			op = bytecode.OP_MUL
-		case "/":
-			op = bytecode.OP_DIV
-		case "%":
-			op = bytecode.OP_MOD
-		}
-		e.addInstr(fn, op, bytecode.FLG__, 0)
+		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
 	case "func":
 		if sym.Name != "" {
 			// Function defined as a statement, register the name as a K,
@@ -135,6 +137,18 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		} else {
 			e.assert(false, errors.New("expected `(` to have binary or ternary arity"))
 		}
+	case "if":
+		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
+		// First is the condition, always a *Symbol
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		// Next comes the TEST, but we don't know yet how many instructions to jump
+		// insert a placeholder (invalid op) so that it fails explicitly should it ever make it to
+		// the VM.
+		e.addInstr(fn, bytecode.OP_INVL, bytecode.FLG_INVL, 0)
+		// Then comes the body
+		// TODO : Emit block ([]*Symbol)? Reused by emitRoot and emitFn?
+		// TODO : Keep count of instrs in map, or simply emit, then count - index of INVL?
+		// Then comes the ELSE/ELSE IF, maybe
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
