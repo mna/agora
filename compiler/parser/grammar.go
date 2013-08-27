@@ -32,7 +32,9 @@ func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
 		sym.First = a
 		p.advance(")")
 		p.advance("{")
-		sym.Second = p.statements()
+		stmts := p.statements()
+		stmts = p.appendReturnNil(stmts)
+		sym.Second = stmts
 		p.advance("}")
 		if !prefix { // Don't consume the ending semicolon when func is an expression
 			p.advance(";")
@@ -48,6 +50,17 @@ func makeFuncParserIface(p *Parser, prefix bool) func(*Symbol) interface{} {
 	return func(s *Symbol) interface{} {
 		return f(s)
 	}
+}
+
+func (p *Parser) appendReturnNil(s []*Symbol) []*Symbol {
+	// Make sure the function ends with a return statement, adding a return nil otherwise
+	if l := len(s); l == 0 || s[l-1].Id != "return" {
+		ret := p.makeSymbol("return", 0).clone()
+		ret.Ar = ArStatement
+		ret.First = p.makeSymbol("nil", 0).clone()
+		s = append(s, ret)
+	}
+	return s
 }
 
 func (p *Parser) defineGrammar() {

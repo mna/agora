@@ -65,6 +65,7 @@ func (p *Parser) Parse(filename string, src []byte) ([]*Symbol, *Scope, error) {
 
 	// Parse all statements
 	s := p.statements()
+	s = p.appendReturnNil(s)
 	// Consume the final token
 	p.advance(_SYM_END)
 	// Pop the universe scope
