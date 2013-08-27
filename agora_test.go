@@ -60,6 +60,7 @@ func createCtx() *runtime.Ctx {
 	// Create context and Stdout buffer
 	ctx := runtime.NewCtx(resolv, comp)
 	ctx.RegisterNativeModule(fmtMod)
+	ctx.Debug = true
 	buf := bytes.NewBuffer(nil)
 	ctx.Stdout = buf
 	return ctx

@@ -101,6 +101,7 @@ func (d *dasm) Execute(args []string) error {
 type run struct {
 	FromAsm  bool `short:"a" long:"from-asm" description:"run an assembly input"`
 	NoStdlib bool `short:"S" long:"nostdlib" description:"do not import the stdlib"`
+	Debug    bool `short:"d" long:"debug" description:"output debug information"`
 }
 
 func (r *run) Execute(args []string) error {
@@ -118,6 +119,7 @@ func (r *run) Execute(args []string) error {
 		// Register the standard lib's Fmt package
 		ctx.RegisterNativeModule(new(stdlib.FmtMod))
 	}
+	ctx.Debug = r.Debug
 	res, err := ctx.Load(args[0])
 	if err == nil {
 		fmt.Printf("\n\n= %v\n", res)

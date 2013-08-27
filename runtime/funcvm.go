@@ -37,17 +37,17 @@ func newFuncVM(proto *AgoraFunc) *funcVM {
 	}
 }
 
-func (ø *funcVM) push(v Val) {
+func (f *funcVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
-	if ø.sp == len(ø.stack) {
-		if ø.sp == cap(ø.stack) {
-			fmt.Fprintf(ø.proto.ctx.Stdout, "DEBUG expanding stack of func %s, current size: %d\n", ø.proto.name, len(ø.stack))
+	if f.sp == len(f.stack) {
+		if f.proto.ctx.Debug && f.sp == cap(f.stack) {
+			fmt.Fprintf(f.proto.ctx.Stdout, "DEBUG expanding stack of func %s, current size: %d\n", f.proto.name, len(f.stack))
 		}
-		ø.stack = append(ø.stack, v)
+		f.stack = append(f.stack, v)
 	} else {
-		ø.stack[ø.sp] = v
+		f.stack[f.sp] = v
 	}
-	ø.sp++
+	f.sp++
 }
 
 func (ø *funcVM) pop() Val {
@@ -296,8 +296,10 @@ func (ø *funcVM) run(args ...Val) Val {
 			ø.push(NewObject())
 
 		case bytecode.OP_DUMP:
-			// Dumps `ix` number of stack traces
-			ø.proto.ctx.dump(int(ix)) // TODO : check int value
+			if ø.proto.ctx.Debug {
+				// Dumps `ix` number of stack traces
+				ø.proto.ctx.dump(int(ix)) // TODO : check int value
+			}
 
 		case bytecode.OP_SFLD:
 			vr, k, vl := ø.pop(), ø.pop(), ø.pop()

@@ -32,6 +32,7 @@ type Ctx struct {
 	Logic    LogicProcessor // The boolean logic processor (And, Or, Not)
 	Resolver ModuleResolver
 	Compiler Compiler
+	Debug    bool
 
 	// Call stack
 	frames []*frame
@@ -125,17 +126,17 @@ func (ø *Ctx) RegisterNativeModule(m Module) {
 	ø.nativeMods[m.ID()] = m
 }
 
-func (ø *Ctx) push(f Func, fvm *funcVM) {
+func (c *Ctx) push(f Func, fvm *funcVM) {
 	// Stack has to grow as needed
-	if ø.frmsp == len(ø.frames) {
-		if ø.frmsp == cap(ø.frames) {
-			fmt.Fprintf(ø.Stdout, "DEBUG expanding frames of ctx, current size: %d\n", len(ø.frames))
+	if c.frmsp == len(c.frames) {
+		if c.Debug && c.frmsp == cap(c.frames) {
+			fmt.Fprintf(c.Stdout, "DEBUG expanding frames of ctx, current size: %d\n", len(c.frames))
 		}
-		ø.frames = append(ø.frames, &frame{f, fvm})
+		c.frames = append(c.frames, &frame{f, fvm})
 	} else {
-		ø.frames[ø.frmsp] = &frame{f, fvm}
+		c.frames[c.frmsp] = &frame{f, fvm}
 	}
-	ø.frmsp++
+	c.frmsp++
 }
 
 func (ø *Ctx) pop() {
