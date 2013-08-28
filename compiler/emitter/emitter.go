@@ -22,6 +22,17 @@ var (
 		">=": bytecode.OP_GTE,
 		"==": bytecode.OP_EQ,
 	}
+	binAsgSym2op = map[string]bytecode.Opcode{
+		"+=": bytecode.OP_ADD,
+		"-=": bytecode.OP_SUB,
+		"*=": bytecode.OP_MUL,
+		"/=": bytecode.OP_DIV,
+		"%=": bytecode.OP_MOD,
+	}
+	unrSym2op = map[string]bytecode.Opcode{
+		"++": bytecode.OP_ADD,
+		"--": bytecode.OP_SUB,
+	}
 )
 
 type Emitter struct {
@@ -64,6 +75,17 @@ func (e *Emitter) emitFn(f *bytecode.File, sym *parser.Symbol) {
 	}
 	stmts := sym.Second.([]*parser.Symbol)
 	e.emitBlock(f, fn, stmts)
+}
+
+func (e *Emitter) emitAny(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, any interface{}) {
+	switch v := any.(type) {
+	case *parser.Symbol:
+		e.emitSymbol(f, fn, v, false)
+	case []*parser.Symbol:
+		e.emitBlock(f, fn, v)
+	default:
+		e.assert(false, errors.New("expected branch of `"+sym.Id+"` to be a symbol or a slice of symbols"))
+	}
 }
 
 func (e *Emitter) emitBlock(f *bytecode.File, fn *bytecode.Fn, syms []*parser.Symbol) {
@@ -117,6 +139,20 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
+	case "+=", "-=", "*=", "/=", "%=":
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		e.addInstr(fn, binAsgSym2op[sym.Id], bytecode.FLG__, 0)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
+	case "++", "--":
+		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `"+sym.Id+"` to have unary arity"))
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		// Implicit `1` constant
+		ix := e.registerK(fn, "1", false)
+		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, ix)
+		e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
 	case "func":
 		if sym.Name != "" {
 			// Function defined as a statement, register the name as a K,
@@ -156,23 +192,35 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Next comes the TEST, but we don't know yet how many instructions to jump
 		// insert a placeholder (invalid op) so that it fails explicitly should it ever make it to
 		// the VM.
-		e.addInstr(fn, bytecode.OP_INVL, bytecode.FLG_INVL, 0)
-		tstIx := len(fn.Is) - 1
+		tstIx := e.addTempInstr(fn)
 		// Then comes the body
 		e.emitBlock(f, fn, sym.Second.([]*parser.Symbol))
 		// Update the test instruction, now that we know where to jump to
-		fn.Is[tstIx] = bytecode.NewInstr(bytecode.OP_TEST, bytecode.FLG_J, uint64(len(fn.Is)-tstIx-1))
+		e.updateTestInstr(fn, tstIx)
 		// Then comes the ELSE/ELSE IF, maybe
 		if sym.Third != nil {
-			switch t := sym.Third.(type) {
-			case *parser.Symbol:
-				e.emitSymbol(f, fn, t, false)
-			case []*parser.Symbol:
-				e.emitBlock(f, fn, t)
-			default:
-				e.assert(false, errors.New("expected third branch of `if` to be a symbol or a slice of symbols"))
-			}
+			// If so, insert a jump over the else part
+			jmpIx := e.addTempInstr(fn)
+			// And re-update the test instruction, since an instr was added
+			e.updateTestInstr(fn, tstIx)
+			// Emit the else or else-if part
+			e.emitAny(f, fn, sym, sym.Third)
+			// Update the jump instruction now that we know how many instrs to jump over
+			e.updateJumpfInstr(fn, jmpIx)
 		}
+	case "for":
+		// TODO : Supports only the `for [condition]` at the moment (`while` equivalent)
+		// Emit the condition
+		start := len(fn.Is)
+		e.emitAny(f, fn, sym, sym.First)
+		// Add a test instruction placeholder
+		tstIx := e.addTempInstr(fn)
+		// Emit the body
+		e.emitAny(f, fn, sym, sym.Second)
+		// Add the jump-back to for condition instruction
+		e.addInstr(fn, bytecode.OP_JMPB, bytecode.FLG_J, uint64(len(fn.Is)-start))
+		// Update the test instruction
+		e.updateTestInstr(fn, tstIx)
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
@@ -195,21 +243,37 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	}
 }
 
+func (e *Emitter) addTempInstr(fn *bytecode.Fn) int {
+	e.addInstr(fn, bytecode.OP_INVL, bytecode.FLG_INVL, 0)
+	return len(fn.Is) - 1
+}
+
+func (e *Emitter) updateTestInstr(fn *bytecode.Fn, ix int) {
+	fn.Is[ix] = bytecode.NewInstr(bytecode.OP_TEST, bytecode.FLG_J, uint64(len(fn.Is)-ix-1))
+}
+
+func (e *Emitter) updateJumpfInstr(fn *bytecode.Fn, ix int) {
+	fn.Is[ix] = bytecode.NewInstr(bytecode.OP_JMPF, bytecode.FLG_J, uint64(len(fn.Is)-ix-1))
+}
+
 func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Flag, ix uint64) {
 	if e.err != nil {
 		return
 	}
 	switch op {
-	case bytecode.OP_PUSH:
+	case bytecode.OP_PUSH, bytecode.OP_LOAD, bytecode.OP_NEW:
 		e.stackSz[fn] += 1
 	case bytecode.OP_POP, bytecode.OP_RET, bytecode.OP_UNM, bytecode.OP_NOT, bytecode.OP_TEST,
 		bytecode.OP_LT, bytecode.OP_LTE, bytecode.OP_GT, bytecode.OP_GTE, bytecode.OP_EQ,
-		bytecode.OP_AND, bytecode.OP_OR:
+		bytecode.OP_AND, bytecode.OP_OR, bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,
+		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD:
 		e.stackSz[fn] -= 1
-	case bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL, bytecode.OP_DIV, bytecode.OP_MOD:
-		e.stackSz[fn] -= 2
+	case bytecode.OP_SFLD:
+		e.stackSz[fn] -= 3
 	case bytecode.OP_CALL:
 		e.stackSz[fn] -= (int64(ix) + 1)
+	case bytecode.OP_CFLD:
+		e.stackSz[fn] -= (int64(ix) + 2)
 	}
 	if e.stackSz[fn] > fn.Header.StackSz {
 		fn.Header.StackSz = e.stackSz[fn]
