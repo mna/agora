@@ -21,6 +21,8 @@ var (
 		">":  bytecode.OP_GT,
 		">=": bytecode.OP_GTE,
 		"==": bytecode.OP_EQ,
+		"&&": bytecode.OP_AND,
+		"||": bytecode.OP_OR,
 	}
 	binAsgSym2op = map[string]bytecode.Opcode{
 		"+=": bytecode.OP_ADD,
@@ -114,7 +116,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		} else {
 			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_V, kix)
 		}
-	case "(literal)":
+	case "(literal)", "true", "false":
 		// Register the symbol
 		e.assert(!asg, errors.New("invalid assignment to a literal"))
 		kix := e.registerK(fn, sym.Val, false)
@@ -138,6 +140,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
+	case "&&", "||":
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
+		e.emitAny(f, fn, sym, sym.First)
+		e.emitAny(f, fn, sym, sym.Second)
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
 	case "+=", "-=", "*=", "/=", "%=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
@@ -304,10 +311,10 @@ func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool) uint6
 		kt = bytecode.KtBoolean
 		if v := val.(bool); v {
 			s = "true"
-			val = 1
+			val = int64(1)
 		} else {
 			s = "false"
-			val = 0
+			val = int64(0)
 		}
 	}
 	m, ok := e.kMap[fn]
