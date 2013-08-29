@@ -236,7 +236,23 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		if !empty {
 			e.addInstr(fn, bytecode.OP_SFLD, bytecode.FLG_Push, 0)
 		}
-		// TODO : Works only for emtpy object creation for now
+	case "?":
+		// Similar to if, but yields a value
+		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))
+		// First is the condition, always a *Symbol
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		// Next comes the TEST
+		tstIx := e.addTempInstr(fn)
+		// Then the true expression, always a *Symbol
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		// The a jump over the false expression
+		jmpIx := e.addTempInstr(fn)
+		// Update the test instruction, here starts the false part
+		e.updateTestInstr(fn, tstIx)
+		// Emit the false expression, always a *Symbol
+		e.emitSymbol(f, fn, sym.Third.(*parser.Symbol), false)
+		// Update the jump instruction, to after the false part
+		e.updateJumpfInstr(fn, jmpIx)
 	case "if":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
 		// First is the condition, always a *Symbol

@@ -159,7 +159,22 @@ func (p *Parser) defineGrammar() {
 	// TODO : This supports the for [condition] notation, nothing else
 	// For loop
 	p.stmt("for", func(sym *Symbol) interface{} {
-		sym.First = p.expression(0)
+		f := p.expression(0)
+		if p.tkn.Id == "{" {
+			// Single expression form (i.e. `while`)
+			sym.First = f
+		} else {
+			/*
+				var a []*Symbol
+				a = append(a, f)
+				// Three-part for (i.e. `for x := n; x < y; x++`)
+				p.advance(";")
+				a = append(a, p.statement())
+				p.advance(";")
+				a = append(a, p.expression(0))
+				sym.First = a
+			*/
+		}
 		sym.Second = p.block()
 		p.advance(";")
 		sym.Ar = ArStatement

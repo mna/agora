@@ -631,6 +631,8 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 				s.next()
 				tok = token.OR
 			}
+		case '?':
+			tok = token.TERNARY
 		default:
 			// next reports unexpected BOMs - don't repeat
 			if ch != bom {
