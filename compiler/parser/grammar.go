@@ -145,7 +145,6 @@ func (p *Parser) defineGrammar() {
 	p.constant("true", true)   // boolean true
 	p.constant("false", false) // boolean false
 	p.constant("nil", nil)     // nil value
-	p.constant("args", "args") // The special variable args
 
 	// Statement
 	p.stmt("{", func(sym *Symbol) interface{} {
@@ -265,7 +264,13 @@ func (p *Parser) defineGrammar() {
 	// The `this` keyword
 	p.makeSymbol("this", 0).nudfn = func(sym *Symbol) *Symbol {
 		p.scp.reserve(sym)
-		sym.Ar = ArThis
+		sym.Ar = ArName
+		return sym
+	}
+	// The `args` keyword
+	p.makeSymbol("args", 0).nudfn = func(sym *Symbol) *Symbol {
+		p.scp.reserve(sym)
+		sym.Ar = ArName
 		return sym
 	}
 

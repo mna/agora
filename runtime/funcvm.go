@@ -22,7 +22,7 @@ type funcVM struct {
 	stack []Val
 	sp    int
 	this  Val
-	args  []Val
+	args  Val
 }
 
 func newFuncVM(proto *AgoraFunc) *funcVM {
@@ -72,7 +72,7 @@ func (ø *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	case bytecode.FLG_F:
 		return ø.proto.mod.fns[ix]
 	case bytecode.FLG_AA:
-		return ø.args[ix]
+		return ø.args
 	}
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
@@ -156,6 +156,17 @@ func (ø *funcVM) dump() string {
 	return buf.String()
 }
 
+func (vm *funcVM) createArgsVal(args []Val) Val {
+	if len(args) == 0 {
+		return Nil
+	}
+	o := NewObject()
+	for i, v := range args {
+		o.Set(Int(i), v)
+	}
+	return o
+}
+
 func (ø *funcVM) run(args ...Val) Val {
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
 	for j, l := int64(0), int64(len(args)); j < ø.proto.expArgs; j++ {
@@ -166,7 +177,7 @@ func (ø *funcVM) run(args ...Val) Val {
 		}
 	}
 	// Keep the args array
-	ø.args = args
+	ø.args = ø.createArgsVal(args)
 
 	// Execute the instructions
 	for {
@@ -305,6 +316,10 @@ func (ø *funcVM) run(args ...Val) Val {
 			vr, k, vl := ø.pop(), ø.pop(), ø.pop()
 			if ob, ok := vr.(*Object); ok {
 				ob.Set(k, vl)
+				// Then push back on stack
+				if flg == bytecode.FLG_Push {
+					ø.push(ob)
+				}
 			} else {
 				panic(ErrValNotAnObject)
 			}

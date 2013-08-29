@@ -17,34 +17,37 @@ const (
 	FLG_AA               // Arguments array
 	FLG_J                // Jump over n instructions
 	FLG_S                // For debug, dump n Stack traces
+	FLG_Push             // For opcodes that may pop without pushing, indicates to push
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
 var (
 	FlagNames = [...]string{
-		FLG__:  "_",
-		FLG_K:  "K",
-		FLG_V:  "V",
-		FLG_N:  "N",
-		FLG_T:  "T",
-		FLG_F:  "F",
-		FLG_nA: "A",
-		FLG_AA: "AA",
-		FLG_J:  "J",
-		FLG_S:  "S",
+		FLG__:    "_",
+		FLG_K:    "K",
+		FLG_V:    "V",
+		FLG_N:    "N",
+		FLG_T:    "T",
+		FLG_F:    "F",
+		FLG_nA:   "A",
+		FLG_AA:   "AA",
+		FLG_J:    "J",
+		FLG_S:    "S",
+		FLG_Push: "PSH",
 	}
 
 	FlagLookup = map[string]Flag{
-		"_":  FLG__,
-		"K":  FLG_K,
-		"V":  FLG_V,
-		"N":  FLG_N,
-		"T":  FLG_T,
-		"F":  FLG_F,
-		"A":  FLG_nA,
-		"AA": FLG_AA,
-		"J":  FLG_J,
-		"S":  FLG_S,
+		"_":   FLG__,
+		"K":   FLG_K,
+		"V":   FLG_V,
+		"N":   FLG_N,
+		"T":   FLG_T,
+		"F":   FLG_F,
+		"A":   FLG_nA,
+		"AA":  FLG_AA,
+		"J":   FLG_J,
+		"S":   FLG_S,
+		"PSH": FLG_Push,
 	}
 )
 

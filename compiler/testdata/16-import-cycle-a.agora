@@ -1,0 +1,2 @@
+import "16-import-cycle-b"
+return 1

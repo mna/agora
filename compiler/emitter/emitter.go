@@ -127,8 +127,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "this":
 		e.assert(!asg, errors.New("invalid assignment to the `this` keyword"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_T, 0)
-	case ".":
-		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `.` to have binary arity"))
+	case "args":
+		e.assert(!asg, errors.New("invalid assignment to the `args` keyword"))
+		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_AA, 0)
+	case ".", "[":
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		if asg {
@@ -225,7 +228,14 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, op, bytecode.FLG_nA, uint64(len(parms)))
 	case "{":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
+		empty := e.isEmpty(sym.First)
+		if !empty {
+			e.emitAny(f, fn, sym, sym.First)
+		}
 		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG__, 0)
+		if !empty {
+			e.addInstr(fn, bytecode.OP_SFLD, bytecode.FLG_Push, 0)
+		}
 		// TODO : Works only for emtpy object creation for now
 	case "if":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
@@ -283,6 +293,25 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	default:
 		e.err = errors.New("unexpected symbol id: " + sym.Id)
 	}
+	// After treating the symbol, if it had a Key value, push the Key name
+	if sym.Key != nil {
+		// Can be on name, literal, func call, any operator, hard to assert...
+		kix := e.registerK(fn, sym.Key, true)
+		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
+	}
+}
+
+func (e *Emitter) isEmpty(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+	switch s := v.(type) {
+	case *parser.Symbol:
+		return s == nil
+	case []*parser.Symbol:
+		return len(s) == 0
+	}
+	return true
 }
 
 func (e *Emitter) addTempInstr(fn *bytecode.Fn) int {
@@ -311,7 +340,11 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD:
 		e.stackSz[fn] -= 1
 	case bytecode.OP_SFLD:
-		e.stackSz[fn] -= 3
+		if flg == bytecode.FLG_Push {
+			e.stackSz[fn] -= 2
+		} else {
+			e.stackSz[fn] -= 3
+		}
 	case bytecode.OP_CALL:
 		e.stackSz[fn] -= (int64(ix) + 1)
 	case bytecode.OP_CFLD:
