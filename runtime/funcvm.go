@@ -193,10 +193,11 @@ func (ø *funcVM) run(args ...Val) Val {
 			return ø.pop()
 
 		case bytecode.OP_LOAD:
-			v, err := ø.proto.ctx.Load(ø.getVal(flg, ix).String())
+			m, err := ø.proto.ctx.Load(ø.getVal(flg, ix).String())
 			if err != nil {
 				panic(err) // TODO : Better error management
 			}
+			v, err := m.Run()
 			ø.push(v)
 
 		case bytecode.OP_PUSH:

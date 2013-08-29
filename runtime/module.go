@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,7 +12,7 @@ import (
 
 type Module interface {
 	ID() string
-	Load(*Ctx) Val
+	Run() (Val, error)
 }
 
 type agoraModule struct {
@@ -19,13 +20,13 @@ type agoraModule struct {
 	fns []*AgoraFunc
 }
 
-func newAgoraModule(f *bytecode.File) *agoraModule {
+func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 	gm := &agoraModule{
 		id: f.Name,
 	}
 	gm.fns = make([]*AgoraFunc, len(f.Fns))
 	for i, fn := range f.Fns {
-		gf := newAgoraFunc(gm)
+		gf := newAgoraFunc(gm, c)
 		gf.name = fn.Header.Name
 		gf.stackSz = fn.Header.StackSz
 		gf.expArgs = fn.Header.ExpArgs
@@ -55,14 +56,20 @@ func newAgoraModule(f *bytecode.File) *agoraModule {
 	return gm
 }
 
-func (g *agoraModule) Load(ctx *Ctx) Val {
+func (g *agoraModule) Run() (v Val, err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			if e, ok := err.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("%s", e)
+			}
+		}
+	}()
 	if len(g.fns) == 0 {
-		panic(ErrModuleHasNoFunc)
+		return Nil, ErrModuleHasNoFunc
 	}
-	for i, _ := range g.fns {
-		g.fns[i].ctx = ctx
-	}
-	return g.fns[0].Call(nil)
+	return g.fns[0].Call(nil), nil
 }
 
 func (g *agoraModule) ID() string {

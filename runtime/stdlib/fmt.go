@@ -6,20 +6,26 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
-type FmtMod struct {
+type fmtMod struct {
 	ctx *runtime.Ctx
+	ob  *runtime.Object
 }
 
-func (ø FmtMod) ID() string {
+func NewFmt(c *runtime.Ctx) runtime.Module {
+	f := &fmtMod{ctx: c}
+	// Prepare the object
+	f.ob = runtime.NewObject()
+	f.ob.Set(runtime.String("Println"), runtime.NewNativeFunc(f.ctx, "fmt.Println", f.fmt_Println))
+	f.ob.Set(runtime.String("Printf"), runtime.NewNativeFunc(f.ctx, "fmt.Printf", f.fmt_Printf))
+	return f
+}
+
+func (f fmtMod) ID() string {
 	return "fmt"
 }
 
-func (ø FmtMod) Load(ctx *runtime.Ctx) runtime.Val {
-	ø.ctx = ctx
-	ob := runtime.NewObject()
-	ob.Set(runtime.String("Println"), runtime.NewNativeFunc(ctx, "fmt.Println", ø.fmt_Println))
-	ob.Set(runtime.String("Printf"), runtime.NewNativeFunc(ctx, "fmt.Printf", ø.fmt_Printf))
-	return ob
+func (f fmtMod) Run() (v runtime.Val, err error) {
+	return f.ob, nil
 }
 
 func toNative(args []runtime.Val) []interface{} {
@@ -34,7 +40,7 @@ func toNative(args []runtime.Val) []interface{} {
 	return ifs
 }
 
-func (ø FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
+func (ø fmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	ifs := toNative(args)
 	n, err := fmt.Fprintln(ø.ctx.Stdout, ifs...)
 	if err != nil {
@@ -43,7 +49,7 @@ func (ø FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	return runtime.Int(n)
 }
 
-func (ø FmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
+func (ø fmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
 	var ft string
 	if len(args) > 0 {
 		ft = args[0].String()

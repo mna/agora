@@ -124,10 +124,14 @@ func (r *run) Execute(args []string) error {
 	ctx := runtime.NewCtx(new(runtime.FileResolver), c)
 	if !r.NoStdlib {
 		// Register the standard lib's Fmt package
-		ctx.RegisterNativeModule(new(stdlib.FmtMod))
+		ctx.RegisterNativeModule(stdlib.NewFmt(ctx))
 	}
 	ctx.Debug = r.Debug
-	res, err := ctx.Load(args[0])
+	m, err := ctx.Load(args[0])
+	if err != nil {
+		return err
+	}
+	res, err := m.Run()
 	if err == nil {
 		fmt.Printf("\n\n= %v (%T)\n", res, res)
 	}

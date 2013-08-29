@@ -36,9 +36,9 @@ type AgoraFunc struct {
 	code    []bytecode.Instr
 }
 
-func newAgoraFunc(mod *agoraModule) *AgoraFunc {
+func newAgoraFunc(mod *agoraModule, c *Ctx) *AgoraFunc {
 	return &AgoraFunc{
-		&funcVal{},
+		&funcVal{ctx: c},
 		mod,
 		0,
 		0,

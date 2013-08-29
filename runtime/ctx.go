@@ -39,8 +39,8 @@ type Ctx struct {
 	frmsp  int
 
 	// Modules management
-	loadingMods map[string]bool   // Modules currently being loaded
-	loadedMods  map[string]Val    // Modules export a Val
+	loadingMods map[string]bool // Modules currently being loaded
+	loadedMods  map[string]Module
 	nativeMods  map[string]Module // List of available native modules
 }
 
@@ -53,7 +53,7 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		Resolver:    resolver,
 		Compiler:    comp,
 		loadingMods: make(map[string]bool),
-		loadedMods:  make(map[string]Val),
+		loadedMods:  make(map[string]Module),
 		nativeMods:  make(map[string]Module),
 	}
 }
@@ -71,30 +71,28 @@ Sequence for loading, compiling, and bootstrapping execution:
 * Otherwise call Compiler.Compile(id string, r io.Reader) (*bytecode.File, error)
 * If Compile returns an error, return nil, error, done.
 * Create module from *bytecode.File
-* Call Module.Load(ctx), cache and return the value, done.
+* Cache module and return, do NOT execute the module.
 */
-func (ø *Ctx) Load(id string) (Val, error) {
+func (c *Ctx) Load(id string) (Module, error) {
 	if id == "" {
 		return nil, ErrModuleNotFound
 	}
-	if ø.loadingMods[id] {
+	if c.loadingMods[id] {
 		return nil, ErrCyclicDepFound
 	}
-	ø.loadingMods[id] = true
-	defer delete(ø.loadingMods, id)
+	c.loadingMods[id] = true
+	defer delete(c.loadingMods, id)
 
 	// If already loaded, return from cache
-	if v, ok := ø.loadedMods[id]; ok {
-		return v, nil
+	if m, ok := c.loadedMods[id]; ok {
+		return m, nil
 	}
 	// If native module, get from native table
-	if m, ok := ø.nativeMods[id]; ok {
-		loaded := m.Load(ø)
-		ø.loadedMods[id] = loaded
-		return loaded, nil
+	if m, ok := c.nativeMods[id]; ok {
+		return m, nil
 	}
 	// Else, resolve the matching file from the module id
-	r, err := ø.Resolver.Resolve(id)
+	r, err := c.Resolver.Resolve(id)
 	if err != nil {
 		return nil, err
 	}
@@ -106,20 +104,21 @@ func (ø *Ctx) Load(id string) (Val, error) {
 	// If already bytecode, just decode
 	var f *bytecode.File
 	if rs, ok := r.(io.ReadSeeker); ok && bytecode.IsBytecode(rs) {
+		// TODO : Eventually come up with a better solution, or at least a
+		// failover if r is not a ReadSeeker.
 		dec := bytecode.NewDecoder(r)
 		f, err = dec.Decode()
 	} else {
 		// Compile to bytecode
-		f, err = ø.Compiler.Compile(id, r)
+		f, err = c.Compiler.Compile(id, r)
 	}
 	if err != nil {
 		return nil, err
 	}
-	mod := newAgoraModule(f)
-	// Load the module, cache and return
-	loaded := mod.Load(ø)
-	ø.loadedMods[id] = loaded
-	return loaded, nil
+	mod := newAgoraModule(f, c)
+	// cache and return
+	c.loadedMods[id] = mod
+	return mod, nil
 }
 
 func (ø *Ctx) RegisterNativeModule(m Module) {
