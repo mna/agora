@@ -122,7 +122,7 @@ func (r *run) Execute(args []string) error {
 	ctx.Debug = r.Debug
 	res, err := ctx.Load(args[0])
 	if err == nil {
-		fmt.Printf("\n\n= %v\n", res)
+		fmt.Printf("\n\n= %v (%T)\n", res, res)
 	}
 	return err
 }

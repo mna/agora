@@ -294,7 +294,6 @@ func (p *Parser) defineGrammar() {
 		sym.Ar = ArUnary
 		return sym
 	})
-	// TODO : No array literal ("[14, 83, "toto"]") for now
 
 	// Increment/decrement statements
 	p.suffix("--")

@@ -34,6 +34,8 @@ var (
 	unrSym2op = map[string]bytecode.Opcode{
 		"++": bytecode.OP_ADD,
 		"--": bytecode.OP_SUB,
+		"!":  bytecode.OP_NOT,
+		"-":  bytecode.OP_UNM,
 	}
 )
 
@@ -119,8 +121,21 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "(literal)", "true", "false":
 		// Register the symbol
 		e.assert(!asg, errors.New("invalid assignment to a literal"))
+		e.assert(sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have literal arity"))
 		kix := e.registerK(fn, sym.Val, false)
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
+	case "this":
+		e.assert(!asg, errors.New("invalid assignment to the `this` keyword"))
+		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_T, 0)
+	case ".":
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `.` to have binary arity"))
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		if asg {
+			e.addInstr(fn, bytecode.OP_SFLD, bytecode.FLG__, 0)
+		} else {
+			e.addInstr(fn, bytecode.OP_GFLD, bytecode.FLG__, 0)
+		}
 	case ":=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `:=` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
@@ -128,11 +143,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "!":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `!` to have unary arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
-		e.addInstr(fn, bytecode.OP_NOT, bytecode.FLG__, 0)
+		e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
 	case "-":
 		if sym.Ar == parser.ArUnary {
 			e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
-			e.addInstr(fn, bytecode.OP_UNM, bytecode.FLG__, 0)
+			e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
 			break
 		}
 		fallthrough
@@ -146,6 +161,17 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.emitAny(f, fn, sym, sym.First)
 		e.emitAny(f, fn, sym, sym.Second)
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
+	case "=":
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `+` to have binary arity"))
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		left := sym.First.(*parser.Symbol)
+		if left.Id == "." {
+			// Emit left, which will generate a SFLD
+			e.emitSymbol(f, fn, left, true)
+		} else {
+			// Emit a standard POP instruction
+			e.emitSymbol(f, fn, left, true)
+		}
 	case "+=", "-=", "*=", "/=", "%=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
@@ -169,6 +195,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			e.addInstr(fn, bytecode.OP_POP, bytecode.FLG_V, kix)
 		}
 		e.emitFn(f, sym)
+		if sym.Name == "" {
+			fix := len(f.Fns) - 1 // TODO : Will not work if there's a func within the func
+			// Func defined as an expression, must be pushed on the stack
+			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_F, uint64(fix))
+		}
 	case "(":
 		e.assert(sym.Ar == parser.ArBinary || sym.Ar == parser.ArTernary, errors.New("expected `(` to have binary or ternary arity"))
 		// Push parameters
@@ -192,6 +223,10 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		// Call
 		e.addInstr(fn, op, bytecode.FLG_nA, uint64(len(parms)))
+	case "{":
+		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
+		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG__, 0)
+		// TODO : Works only for emtpy object creation for now
 	case "if":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
 		// First is the condition, always a *Symbol
