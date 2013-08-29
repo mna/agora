@@ -23,7 +23,9 @@ var (
 // Native() and Cmp() which must be done on the actual type.
 type funcVal struct {
 	ctx  *Ctx
-	name string
+	name string // this field is set only for Native funcs, because it uses the funcVal.dump()
+	// call. Agora functions override dump() so that the agora name is used
+	// automatically.
 }
 
 func (ø *funcVal) dump() string {

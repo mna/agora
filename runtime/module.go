@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/PuerkitoBio/agora/bytecode"
 )
@@ -15,9 +14,15 @@ type Module interface {
 	Run() (Val, error)
 }
 
+type NativeModule interface {
+	Module
+	SetCtx(*Ctx)
+}
+
 type agoraModule struct {
 	id  string
 	fns []*AgoraFunc
+	v   Val
 }
 
 func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
@@ -57,19 +62,24 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 }
 
 func (g *agoraModule) Run() (v Val, err error) {
-	defer func() {
-		if err := recover(); err != nil {
-			if e, ok := err.(error); ok {
-				err = e
-			} else {
-				err = fmt.Errorf("%s", e)
-			}
-		}
-	}()
+	defer PanicToError(&err)
 	if len(g.fns) == 0 {
 		return Nil, ErrModuleHasNoFunc
 	}
-	return g.fns[0].Call(nil), nil
+	if g.v == nil {
+		g.v = g.fns[0].Call(nil)
+	}
+	return g.v, nil
+}
+
+func PanicToError(err *error) {
+	if p := recover(); p != nil {
+		if e, ok := p.(error); ok {
+			*err = e
+		} else {
+			*err = fmt.Errorf("%s", p)
+		}
+	}
 }
 
 func (g *agoraModule) ID() string {
@@ -82,6 +92,10 @@ type ModuleResolver interface {
 
 type FileResolver struct{}
 
+var (
+	extensions = [...]string{".agorac", ".agoraa", ".agora"}
+)
+
 func (f FileResolver) Resolve(id string) (io.Reader, error) {
 	var nm string
 	if filepath.IsAbs(id) {
@@ -93,8 +107,21 @@ func (f FileResolver) Resolve(id string) (io.Reader, error) {
 		}
 		nm = filepath.Join(pwd, id)
 	}
-	if !strings.HasSuffix(nm, ".agora") {
-		nm += ".agora"
+	// If there is no extension, try files in the following order:
+	// 1- .agorac (compiled bytecode)
+	// 2- .agoraa (agora assembly code)
+	// 3- .agora  (agora source code)
+	if filepath.Ext(nm) == "" {
+		for _, ext := range extensions {
+			if _, err := os.Stat(nm + ext); err != nil {
+				if !os.IsNotExist(err) {
+					return nil, err
+				}
+			} else {
+				nm += ext
+				break
+			}
+		}
 	}
 	return os.Open(nm)
 }

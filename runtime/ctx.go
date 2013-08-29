@@ -121,8 +121,9 @@ func (c *Ctx) Load(id string) (Module, error) {
 	return mod, nil
 }
 
-func (ø *Ctx) RegisterNativeModule(m Module) {
-	ø.nativeMods[m.ID()] = m
+func (c *Ctx) RegisterNativeModule(m NativeModule) {
+	m.SetCtx(c)
+	c.nativeMods[m.ID()] = m
 }
 
 func (c *Ctx) push(f Func, fvm *funcVM) {

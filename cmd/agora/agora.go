@@ -124,7 +124,7 @@ func (r *run) Execute(args []string) error {
 	ctx := runtime.NewCtx(new(runtime.FileResolver), c)
 	if !r.NoStdlib {
 		// Register the standard lib's Fmt package
-		ctx.RegisterNativeModule(stdlib.NewFmt(ctx))
+		ctx.RegisterNativeModule(new(stdlib.FmtMod))
 	}
 	ctx.Debug = r.Debug
 	m, err := ctx.Load(args[0])

@@ -6,26 +6,28 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
-type fmtMod struct {
+type FmtMod struct {
 	ctx *runtime.Ctx
 	ob  *runtime.Object
 }
 
-func NewFmt(c *runtime.Ctx) runtime.Module {
-	f := &fmtMod{ctx: c}
-	// Prepare the object
-	f.ob = runtime.NewObject()
-	f.ob.Set(runtime.String("Println"), runtime.NewNativeFunc(f.ctx, "fmt.Println", f.fmt_Println))
-	f.ob.Set(runtime.String("Printf"), runtime.NewNativeFunc(f.ctx, "fmt.Printf", f.fmt_Printf))
-	return f
-}
-
-func (f fmtMod) ID() string {
+func (f *FmtMod) ID() string {
 	return "fmt"
 }
 
-func (f fmtMod) Run() (v runtime.Val, err error) {
+func (f *FmtMod) Run() (v runtime.Val, err error) {
+	defer runtime.PanicToError(&err)
+	if f.ob == nil {
+		// Prepare the object
+		f.ob = runtime.NewObject()
+		f.ob.Set(runtime.String("Println"), runtime.NewNativeFunc(f.ctx, "fmt.Println", f.fmt_Println))
+		f.ob.Set(runtime.String("Printf"), runtime.NewNativeFunc(f.ctx, "fmt.Printf", f.fmt_Printf))
+	}
 	return f.ob, nil
+}
+
+func (f *FmtMod) SetCtx(c *runtime.Ctx) {
+	f.ctx = c
 }
 
 func toNative(args []runtime.Val) []interface{} {
@@ -40,22 +42,22 @@ func toNative(args []runtime.Val) []interface{} {
 	return ifs
 }
 
-func (ø fmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
+func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	ifs := toNative(args)
-	n, err := fmt.Fprintln(ø.ctx.Stdout, ifs...)
+	n, err := fmt.Fprintln(f.ctx.Stdout, ifs...)
 	if err != nil {
 		panic(err)
 	}
 	return runtime.Int(n)
 }
 
-func (ø fmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
+func (f *FmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
 	var ft string
 	if len(args) > 0 {
 		ft = args[0].String()
 	}
 	ifs := toNative(args[1:])
-	n, err := fmt.Fprintf(ø.ctx.Stdout, ft, ifs)
+	n, err := fmt.Fprintf(f.ctx.Stdout, ft, ifs)
 	if err != nil {
 		panic(err)
 	}
