@@ -16,6 +16,11 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
+var (
+	// For test purpose
+	stdout io.Writer = os.Stdout
+)
+
 // The assembler command struct.
 type asm struct {
 	Output string `short:"o" long:"output" description:"output file"`
@@ -40,14 +45,15 @@ func (a *asm) Execute(args []string) error {
 		return err
 	}
 	// Write output
-	var outF *os.File
-	outF = os.Stdout
+	var out io.Writer
+	out = stdout
 	if a.Output != "" {
-		outF, err = os.Create(a.Output)
+		outF, err := os.Create(a.Output)
 		if err != nil {
 			return err
 		}
 		defer outF.Close()
+		out = outF
 	}
 	// Encode to bytecode
 	buf := bytes.NewBuffer(nil)
@@ -56,9 +62,9 @@ func (a *asm) Execute(args []string) error {
 		return err
 	}
 	if a.Hexa {
-		_, err = io.WriteString(outF, fmt.Sprintf("%x", buf.Bytes()))
+		_, err = io.WriteString(out, fmt.Sprintf("%x", buf.Bytes()))
 	} else {
-		_, err = outF.Write(buf.Bytes())
+		_, err = out.Write(buf.Bytes())
 	}
 	if err != nil {
 		return err
@@ -84,17 +90,18 @@ func (d *dasm) Execute(args []string) error {
 	}
 	defer inf.Close()
 	// Open output file
-	var f *os.File
-	f = os.Stdout
+	var out io.Writer
+	out = stdout
 	if d.Output != "" {
-		f, err = os.Create(d.Output)
+		outF, err := os.Create(d.Output)
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer outF.Close()
+		out = outF
 	}
 	// Compile to assembly
-	return new(compiler.Disasm).Uncompile(inf, f)
+	return new(compiler.Disasm).Uncompile(inf, out)
 }
 
 // The run command struct
@@ -150,20 +157,21 @@ func (a *ast) Execute(args []string) error {
 	syms, _, err := p.Parse(args[0], b)
 	if err != nil {
 		if a.AllErrors {
-			scanner.PrintError(os.Stdout, err)
+			scanner.PrintError(stdout, err)
 		}
 		return err
 	}
-	outf := os.Stdout
+	out := stdout
 	if a.Output != "" {
-		outf, err = os.Open(a.Output)
+		outf, err := os.Open(a.Output)
 		if err != nil {
 			return err
 		}
 		defer outf.Close()
+		out = outf
 	}
 	for _, sym := range syms {
-		fmt.Fprintln(outf, sym)
+		fmt.Fprintln(out, sym)
 	}
 	return nil
 }
@@ -188,19 +196,20 @@ func (b *build) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	outf := os.Stdout
+	out := stdout
 	if b.Output != "" {
-		outf, err = os.Create(b.Output)
+		outf, err := os.Create(b.Output)
 		if err != nil {
 			return err
 		}
 		defer outf.Close()
+		out = outf
 	}
 	if b.Asm {
 		dasm := new(compiler.Disasm)
-		err = dasm.ToAsm(f, outf)
+		err = dasm.ToAsm(f, out)
 	} else {
-		enc := bytecode.NewEncoder(outf)
+		enc := bytecode.NewEncoder(out)
 		err = enc.Encode(f)
 	}
 	if err != nil {

@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	testFilePath      = "./runtime/testdata/"
-	expResFilePath    = "./exp/"
+	testFilePath      = "./testdata/asm/"
+	expResFilePath    = "./exp/" // relative to testFilePath, since a Chdir is made
 	expectErrPrefix   = "x"
 	skipOnShortPrefix = "*"
 
@@ -47,23 +47,13 @@ func TestFiles(t *testing.T) {
 
 	// Test all files
 	for _, fi := range files {
-		if filepath.Ext(fi.Name()) == ".agora" {
-			if isolateFileTest != "" && isolateFileTest != fi.Name() {
+		if filepath.Ext(fi.Name()) == ".asm" {
+			if isolateFileTest != "" && !strings.HasPrefix(fi.Name(), isolateFileTest) {
 				continue
 			}
 			runTestFile(t, fi.Name())
 		}
 	}
-}
-
-func createCtx() *runtime.Ctx {
-	// Create context and Stdout buffer
-	ctx := runtime.NewCtx(resolv, comp)
-	ctx.RegisterNativeModule(fmtMod)
-	ctx.Debug = true
-	buf := bytes.NewBuffer(nil)
-	ctx.Stdout = buf
-	return ctx
 }
 
 func runTestFile(t *testing.T, fnm string) {
@@ -90,8 +80,11 @@ func runTestFile(t *testing.T, fnm string) {
 			fmt.Println("testing ", fnm, "...")
 		}
 	}
-	// Create the execution context
-	ctx := createCtx()
+	// Create the execution command
+	r := &run{
+		Debug:   true,
+		FromAsm: true,
+	}
 	// Load the expected result
 	res, err := ioutil.ReadFile(filepath.Join(expResFilePath, strings.Replace(fnm, filepath.Ext(fnm), ".exp", 1)))
 	if err != nil {
@@ -111,11 +104,15 @@ func runTestFile(t *testing.T, fnm string) {
 			}
 		}
 	}()
+	// Setup the out buffer
+	buf := bytes.NewBuffer(nil)
+	stdout = buf
 
 	// Execute the test file
-	v, err := ctx.Load(ori)
+	fmt.Println(ori)
+	err = r.Execute([]string{ori})
 	if err != nil {
-		// TODO : Still leave the expErr check there too, for errors on Load caught
+		// TODO : Still leave the expErr check there too, for errors caught
 		// before the runtime.
 		if expErr {
 			// An error was expected, check if this is the correct error message
@@ -130,16 +127,14 @@ func runTestFile(t *testing.T, fnm string) {
 		t.Errorf("expected error %s, got no error", expErrMsg)
 	}
 
-	// Add the PASS string to the output, since this will be printed by the execution
-	fmt.Fprintf(ctx.Stdout, "PASS - %v\n", v)
-	// Then compare both outputs
-	got := crc64.Checksum(ctx.Stdout.(*bytes.Buffer).Bytes(), ecmaTbl)
+	// Compare both outputs
+	got := crc64.Checksum(buf.Bytes(), ecmaTbl)
 	exp := crc64.Checksum(res, ecmaTbl)
 
 	// Assert
 	if exp != got {
 		t.Errorf("unexpected result for %s", fnm)
-		t.Log(ctx.Stdout)
+		t.Log(buf.String())
 		if testing.Verbose() {
 			t.Log(string(res))
 		}
