@@ -41,11 +41,11 @@ type Ctx struct {
 	// Modules management
 	loadingMods map[string]bool // Modules currently being loaded
 	loadedMods  map[string]Module
-	nativeMods  map[string]Module // List of available native modules
+	builtin     *Object
 }
 
 func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
-	return &Ctx{
+	c := &Ctx{
 		Stdout:      os.Stdout,
 		Stdin:       os.Stdin,
 		Stderr:      os.Stderr,
@@ -54,8 +54,15 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		Compiler:    comp,
 		loadingMods: make(map[string]bool),
 		loadedMods:  make(map[string]Module),
-		nativeMods:  make(map[string]Module),
 	}
+	b := new(builtinMod)
+	b.SetCtx(c)
+	if v, err := b.Run(); err != nil {
+		panic("error loading angora builtin module: " + err.Error())
+	} else {
+		c.builtin = v.(*Object)
+	}
+	return c
 }
 
 /*
@@ -82,13 +89,8 @@ func (c *Ctx) Load(id string) (Module, error) {
 	}
 	c.loadingMods[id] = true
 	defer delete(c.loadingMods, id)
-
 	// If already loaded, return from cache
 	if m, ok := c.loadedMods[id]; ok {
-		return m, nil
-	}
-	// If native module, get from native table
-	if m, ok := c.nativeMods[id]; ok {
 		return m, nil
 	}
 	// Else, resolve the matching file from the module id
@@ -123,7 +125,7 @@ func (c *Ctx) Load(id string) (Module, error) {
 
 func (c *Ctx) RegisterNativeModule(m NativeModule) {
 	m.SetCtx(c)
-	c.nativeMods[m.ID()] = m
+	c.loadedMods[m.ID()] = m
 }
 
 func (c *Ctx) push(f Func, fvm *funcVM) {
@@ -144,17 +146,18 @@ func (ø *Ctx) pop() {
 	ø.frames[ø.frmsp] = nil // free this reference for gc
 }
 
-func (ø *Ctx) getVar(nm string) (Val, bool) {
-	// Current frame is ø.frmsp - 1
-	for i := ø.frmsp - 1; i >= 0; i-- {
-		frm := ø.frames[i]
+func (c *Ctx) getVar(nm string) (Val, bool) {
+	// Current frame is c.frmsp - 1
+	for i := c.frmsp - 1; i >= 0; i-- {
+		frm := c.frames[i]
 		if frm.fvm != nil {
 			if v, ok := frm.fvm.vars[nm]; ok {
 				return v, true
 			}
 		}
 	}
-	return Nil, false
+	b := c.builtin.Get(String(nm)) // Will return Nil if not found
+	return b, b != Nil
 }
 
 func (ø *Ctx) setVar(nm string, v Val) bool {

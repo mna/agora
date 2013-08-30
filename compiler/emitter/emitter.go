@@ -106,7 +106,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "nil":
 		e.assert(!asg, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
-	case "(name)":
+	case "(name)", "import":
 		// TODO : For expected vars, the correct scope is required
 		// Register the symbol
 		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `(name)` to have name or literal arity"))
@@ -292,20 +292,6 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
-	case "import":
-		// TODO : Import should be changed to a built-in function:
-		//   i.e. `fmt := import("fmt")`
-		// For now, it's First is a slice of pairs of names-literals
-		var ixV, ixI uint64
-		for i, s := range sym.First.([]*parser.Symbol) {
-			if i%2 == 0 {
-				ixV = e.registerK(fn, s.Val, true)
-			} else {
-				ixI = e.registerK(fn, s.Val, false)
-				e.addInstr(fn, bytecode.OP_LOAD, bytecode.FLG_K, ixI)
-				e.addInstr(fn, bytecode.OP_POP, bytecode.FLG_V, ixV)
-			}
-		}
 	default:
 		e.err = errors.New("unexpected symbol id: " + sym.Id)
 	}

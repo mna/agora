@@ -96,6 +96,9 @@ var (
 	extensions = [...]string{".agorac", ".agoraa", ".agora"}
 )
 
+// TODO : This doesn't work, the Ctx has a single compiler, that may
+// compile assembly or source, but not both. The Resolver should look
+// for compiled bytecode or the same source code as the initial Ctx.Load.
 func (f FileResolver) Resolve(id string) (io.Reader, error) {
 	var nm string
 	if filepath.IsAbs(id) {
