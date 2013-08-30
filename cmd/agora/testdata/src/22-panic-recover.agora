@@ -1,0 +1,7 @@
+func p(x, y) {
+	if x > y {
+		panic("Error " + x + " is greater than " + y)
+	}
+}
+err := recover(p, 3, 1)
+return err

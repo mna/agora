@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
@@ -73,6 +74,12 @@ type NativeFunc struct {
 
 	// Internal fields
 	fn FuncFn
+}
+
+func ExpectAtLeastNArgs(n int, args []Val) {
+	if len(args) < n {
+		panic(fmt.Sprintf("expected at least %d argument(s), got %d", n, len(args)))
+	}
 }
 
 func (ø *NativeFunc) Native() interface{} {

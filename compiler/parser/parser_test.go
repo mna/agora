@@ -534,6 +534,13 @@ if true {
 `),
 			err: true,
 		},
+		18: {
+			// Invalid assignment to reserved builtin
+			src: []byte(`
+			import = 5
+`),
+			err: true,
+		},
 	}
 
 	isolateCase = -1

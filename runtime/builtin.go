@@ -1,5 +1,9 @@
 package runtime
 
+import (
+	"fmt"
+)
+
 type builtinMod struct {
 	ctx *Ctx
 	ob  *Object
@@ -14,6 +18,8 @@ func (b *builtinMod) Run() (v Val, err error) {
 	if b.ob == nil {
 		b.ob = NewObject()
 		b.ob.Set(String("import"), NewNativeFunc(b.ctx, "import", b._import))
+		b.ob.Set(String("panic"), NewNativeFunc(b.ctx, "panic", b._panic))
+		b.ob.Set(String("recover"), NewNativeFunc(b.ctx, "recover", b._recover))
 	}
 	return b.ob, nil
 }
@@ -23,7 +29,8 @@ func (b *builtinMod) SetCtx(c *Ctx) {
 }
 
 func (b *builtinMod) _import(args ...Val) Val {
-	m, err := b.ctx.Load(args[0].String()) // Will panic if no parameter received
+	ExpectAtLeastNArgs(1, args)
+	m, err := b.ctx.Load(args[0].String())
 	if err != nil {
 		panic(err)
 	}
@@ -32,4 +39,43 @@ func (b *builtinMod) _import(args ...Val) Val {
 		panic(err)
 	}
 	return v
+}
+
+func (b *builtinMod) _panic(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	if args[0].Bool() {
+		panic(args[0])
+	}
+	return Nil
+}
+
+func (b *builtinMod) _recover(args ...Val) (ret Val) {
+	// Do not catch panics if args are invalid
+	ExpectAtLeastNArgs(1, args)
+	f, ok := args[0].(Func)
+	if !ok {
+		panic("first parameter must be a function")
+	}
+	// Catch panics in running the function. Cannot use PanicToError, because
+	// it needs the true type of the panic'd value.
+	ret = Nil
+	defer func() {
+		if err := recover(); err != nil {
+			switch v := err.(type) {
+			case Val:
+				ret = v
+			case error:
+				ret = String(v.Error())
+			default:
+				ret = String(fmt.Sprintf("%s", v))
+			}
+		}
+	}()
+	// Return value is discarded, because recover returns the error, if any, or Nil.
+	// The function to run in recovery mode must be a closure or assign its return
+	// value to an outer-scope variable.
+	// TODO : This would lose the `this` keyword in case of recover being called
+	// on an object's method.
+	f.Call(Nil, args[1:]...)
+	return ret
 }

@@ -62,8 +62,12 @@ func (ø *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	case bytecode.FLG_K:
 		return ø.proto.kTable[ix]
 	case bytecode.FLG_V:
-		// If not found, will return Nil, so the value is always fine
-		v, _ := ø.proto.ctx.getVar(ø.proto.kTable[ix].String())
+		// Fail if variable cannot be found
+		varNm := ø.proto.kTable[ix].String()
+		v, ok := ø.proto.ctx.getVar(varNm)
+		if !ok {
+			panic("variable not found: " + varNm) // TODO : Better error messages
+		}
 		return v
 	case bytecode.FLG_N:
 		return Nil
@@ -195,9 +199,12 @@ func (ø *funcVM) run(args ...Val) Val {
 		case bytecode.OP_LOAD:
 			m, err := ø.proto.ctx.Load(ø.getVal(flg, ix).String())
 			if err != nil {
-				panic(err) // TODO : Better error management
+				panic(err)
 			}
 			v, err := m.Run()
+			if err != nil {
+				panic(err)
+			}
 			ø.push(v)
 
 		case bytecode.OP_PUSH:

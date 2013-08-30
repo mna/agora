@@ -1,10 +1,5 @@
 package parser
 
-// TODO : Make "import" and "debug" built-in functions, import
-// returns the imported module's value to a variable. `debug` adds
-// a DUMP instruction at this location, takes a number as parameter
-// (frame size).
-
 func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
 	return func(sym *Symbol) *Symbol {
 		var a []*Symbol
@@ -226,6 +221,8 @@ func (p *Parser) defineGrammar() {
 
 	// import builtin
 	p.builtin("import")
+	p.builtin("panic")
+	p.builtin("recover")
 
 	// func can be both an expression prefix:
 	//   fnAdd := func(x, y) {return x+y}
