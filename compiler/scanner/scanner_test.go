@@ -180,7 +180,7 @@ import "fmt" // implicit fmt variable
 fmt.Println("Hello ", "world")
 `),
 			exp: []token.Token{
-				token.IMPORT,
+				token.IDENT,
 				token.STRING,
 				token.SEMICOLON,
 				token.COMMENT,
@@ -204,14 +204,14 @@ for i := range 10 {
 }
 `),
 			exp: []token.Token{
-				token.IMPORT,
+				token.IDENT,
 				token.STRING,
 				token.SEMICOLON,
 				token.COMMENT,
 				token.FOR,
 				token.IDENT,
 				token.DEFINE,
-				token.RANGE,
+				token.IDENT,
 				token.INT,
 				token.LBRACE,
 				token.IDENT,
@@ -275,7 +275,7 @@ if a {
 }
 `),
 			exp: []token.Token{
-				token.IMPORT,
+				token.IDENT,
 				token.STRING,
 				token.SEMICOLON,
 				token.IDENT,
@@ -408,7 +408,7 @@ a.c = "hi"
 return a.b("you")
 `),
 			exp: []token.Token{
-				token.IMPORT,
+				token.IDENT,
 				token.STRING,
 				token.SEMICOLON,
 				token.IDENT,
@@ -471,7 +471,7 @@ a.__noSuchMethod = func(nm) {
 a.b(12)
 `),
 			exp: []token.Token{
-				token.IMPORT,
+				token.IDENT,
 				token.STRING,
 				token.SEMICOLON,
 				token.IDENT,
@@ -553,7 +553,7 @@ func f() {
 f(17, "foo", false)
 `),
 			exp: []token.Token{
-				token.IMPORT,
+				token.IDENT,
 				token.STRING,
 				token.SEMICOLON,
 				token.FUNC,

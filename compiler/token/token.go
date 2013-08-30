@@ -81,8 +81,6 @@ const (
 	FOR
 	FUNC
 	IF
-	IMPORT
-	RANGE
 	RETURN
 	keyword_end
 )
@@ -144,8 +142,6 @@ var tokens = [...]string{
 	FOR:    "for",
 	FUNC:   "func",
 	IF:     "if",
-	IMPORT: "import",
-	RANGE:  "range",
 	RETURN: "return",
 }
 

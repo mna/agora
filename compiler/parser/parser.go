@@ -298,6 +298,18 @@ func (p *Parser) constant(id string, v interface{}) *Symbol {
 	return s
 }
 
+func (p *Parser) builtin(id string) *Symbol {
+	s := p.makeSymbol(id, 0)
+	s.nudfn = func(sym *Symbol) *Symbol {
+		p.scp.reserve(sym)
+		sym.Val = p.tbl[sym.Id].Val
+		sym.Ar = ArName
+		return sym
+	}
+	s.Val = id
+	return s
+}
+
 func (p *Parser) statement() interface{} {
 	n := p.tkn
 	if n.stdfn != nil {

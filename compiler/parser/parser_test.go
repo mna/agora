@@ -170,12 +170,14 @@ return Fib(30)
 		},
 		6: {
 			src: []byte(`
-import "fmt" // implicit fmt variable
+fmt := import("fmt") // implicit fmt variable
 fmt.Println("Hello ", "world")
 `),
 			exp: []*Symbol{
-				&Symbol{Id: "import"},
+				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: "("},
+				&Symbol{Id: "import", Ar: ArName, Val: "import"},
 				&Symbol{Id: "(literal)", Val: `"fmt"`},
 				&Symbol{Id: "("},
 				&Symbol{Id: "(name)", Val: "fmt"},
@@ -218,17 +220,19 @@ return sum
 		},
 		8: {
 			src: []byte(`
-import "fmt"
+f := import("fmt")
 a := "ok"
 if a { 
-  fmt.Println("true")
+  f.Println("true")
 } else {
-  fmt.Println("false")
+  f.Println("false")
 }
 `),
 			exp: []*Symbol{
-				&Symbol{Id: "import"},
-				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: ":="},
+				&Symbol{Id: "(name)", Val: "f"},
+				&Symbol{Id: "("},
+				&Symbol{Id: "import", Ar: ArName, Val: "import"},
 				&Symbol{Id: "(literal)", Val: `"fmt"`},
 				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "a"},
@@ -236,11 +240,11 @@ if a {
 				&Symbol{Id: "if"},
 				&Symbol{Id: "(name)", Val: "a"},
 				&Symbol{Id: "("},
-				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: "(name)", Val: "f"},
 				&Symbol{Id: "(name)", Val: "Println"},
 				&Symbol{Id: "(literal)", Val: `"true"`},
 				&Symbol{Id: "("},
-				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: "(name)", Val: "f"},
 				&Symbol{Id: "(name)", Val: "Println"},
 				&Symbol{Id: "(literal)", Val: `"false"`},
 				&Symbol{Id: "return"},
@@ -322,7 +326,7 @@ return a.d
 		},
 		11: {
 			src: []byte(`
-import "fmt"
+fmt := import("fmt")
 a := {}
 a.b = func(greet) {
   fmt.Println(this.c)
@@ -332,8 +336,10 @@ a.c = "hi"
 return a.b("you")
 `),
 			exp: []*Symbol{
-				&Symbol{Id: "import"},
+				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: "("},
+				&Symbol{Id: "import", Ar: ArName, Val: "import"},
 				&Symbol{Id: "(literal)", Val: `"fmt"`},
 				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "a"},
@@ -372,7 +378,7 @@ return a.b("you")
 		},
 		12: {
 			src: []byte(`
-import "fmt"
+			fmt := import("fmt")
 a := {}
 a.__noSuchMethod = func(nm) {
   fmt.Println("not found:" + nm)
@@ -380,8 +386,10 @@ a.__noSuchMethod = func(nm) {
 a.b(12)
 `),
 			exp: []*Symbol{
-				&Symbol{Id: "import"},
+				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: "("},
+				&Symbol{Id: "import", Ar: ArName, Val: "import"},
 				&Symbol{Id: "(literal)", Val: `"fmt"`},
 				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "a"},
@@ -437,15 +445,17 @@ return a
 		},
 		14: {
 			src: []byte(`
-import "fmt"
+			fmt := import("fmt")
 func f() {
   fmt.Println(args[0], args[1], args[2]) // Compiler translates this to PUSH AA ix, no need for Ks
 }
 f(17, "foo", false)
 `),
 			exp: []*Symbol{
-				&Symbol{Id: "import"},
+				&Symbol{Id: ":="},
 				&Symbol{Id: "(name)", Val: "fmt"},
+				&Symbol{Id: "("},
+				&Symbol{Id: "import", Ar: ArName, Val: "import"},
 				&Symbol{Id: "(literal)", Val: `"fmt"`},
 				&Symbol{Id: "func", Name: "f"},
 				&Symbol{Id: "("},

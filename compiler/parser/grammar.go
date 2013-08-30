@@ -224,19 +224,8 @@ func (p *Parser) defineGrammar() {
 		return sym
 	})
 
-	// TODO : Must be the first statement(s) in a file
-	// import statement
-	p.stmt("import", func(sym *Symbol) interface{} {
-		if p.tkn.Id == "(" {
-			p.advance("(")
-			sym.First = p.importMany()
-		} else {
-			id, pth := p.importOne()
-			sym.First = []*Symbol{id, pth}
-		}
-		sym.Ar = ArImport
-		return sym
-	})
+	// import builtin
+	p.builtin("import")
 
 	// func can be both an expression prefix:
 	//   fnAdd := func(x, y) {return x+y}
