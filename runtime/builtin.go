@@ -20,6 +20,7 @@ func (b *builtinMod) Run() (v Val, err error) {
 		b.ob.Set(String("import"), NewNativeFunc(b.ctx, "import", b._import))
 		b.ob.Set(String("panic"), NewNativeFunc(b.ctx, "panic", b._panic))
 		b.ob.Set(String("recover"), NewNativeFunc(b.ctx, "recover", b._recover))
+		b.ob.Set(String("len"), NewNativeFunc(b.ctx, "len", b._len))
 	}
 	return b.ob, nil
 }
@@ -78,4 +79,16 @@ func (b *builtinMod) _recover(args ...Val) (ret Val) {
 	// on an object's method.
 	f.Call(Nil, args[1:]...)
 	return ret
+}
+
+func (b *builtinMod) _len(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	switch v := args[0].(type) {
+	case *Object:
+		return Int(len(v.m))
+	case null:
+		return Int(0)
+	default:
+		return Int(len(v.String()))
+	}
 }

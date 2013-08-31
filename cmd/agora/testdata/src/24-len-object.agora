@@ -1,0 +1,2 @@
+a := {b: 5, c: "name", d: true, e: nil}
+return len(a) // 4 fields

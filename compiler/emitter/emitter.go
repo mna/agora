@@ -106,10 +106,10 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "nil":
 		e.assert(!asg, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
-	case "(name)", "import", "panic", "recover": // TODO : Cleaner way to handle all builtins?
+	case "(name)", "import", "panic", "recover", "len": // TODO : Cleaner way to handle all builtins?
 		// TODO : For expected vars, the correct scope is required
 		// Register the symbol
-		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `(name)` to have name or literal arity"))
+		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have name or literal arity"))
 		kix := e.registerK(fn, sym.Val, true)
 		if asg {
 			e.addInstr(fn, bytecode.OP_POP, bytecode.FLG_V, kix)
