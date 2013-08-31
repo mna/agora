@@ -1,2 +1,3 @@
 a := {b: {c: {d: "allo"}}}
+debug
 return a.b.c.d

@@ -1,2 +1,3 @@
 a := {b: 5, c: "name", d: true, e: nil}
+debug
 return len(a) // 4 fields

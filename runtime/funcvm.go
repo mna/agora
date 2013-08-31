@@ -25,6 +25,7 @@ type funcVM struct {
 	args  Val
 }
 
+// Instantiate a runnable representation of the function prototype.
 func newFuncVM(proto *AgoraFunc) *funcVM {
 	return &funcVM{
 		proto,
@@ -37,6 +38,7 @@ func newFuncVM(proto *AgoraFunc) *funcVM {
 	}
 }
 
+// Push a value onto the stack.
 func (f *funcVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if f.sp == len(f.stack) {
@@ -50,21 +52,23 @@ func (f *funcVM) push(v Val) {
 	f.sp++
 }
 
-func (ø *funcVM) pop() Val {
-	ø.sp--
-	v := ø.stack[ø.sp]
-	ø.stack[ø.sp] = Nil // free this reference for gc
+// Pop a value from the stack.
+func (f *funcVM) pop() Val {
+	f.sp--
+	v := f.stack[f.sp]
+	f.stack[f.sp] = Nil // free this reference for gc
 	return v
 }
 
-func (ø *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
+// Get a value from *somewhere*, depending on the flag.
+func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	switch flg {
 	case bytecode.FLG_K:
-		return ø.proto.kTable[ix]
+		return f.proto.kTable[ix]
 	case bytecode.FLG_V:
 		// Fail if variable cannot be found
-		varNm := ø.proto.kTable[ix].String()
-		v, ok := ø.proto.ctx.getVar(varNm)
+		varNm := f.proto.kTable[ix].String()
+		v, ok := f.proto.ctx.getVar(varNm)
 		if !ok {
 			panic("variable not found: " + varNm) // TODO : Better error messages
 		}
@@ -72,11 +76,11 @@ func (ø *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	case bytecode.FLG_N:
 		return Nil
 	case bytecode.FLG_T:
-		return ø.this
+		return f.this
 	case bytecode.FLG_F:
-		return ø.proto.mod.fns[ix]
+		return f.proto.mod.fns[ix]
 	case bytecode.FLG_A:
-		return ø.args
+		return f.args
 	}
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
@@ -244,23 +248,6 @@ func (ø *funcVM) run(args ...Val) Val {
 			x := ø.pop()
 			ø.push(x.Unm())
 
-		case bytecode.OP_CALL:
-			// ix is the number of args
-			// Pop the function itself, ensure it is a function
-			x := ø.pop()
-			f, ok := x.(Func)
-			if !ok {
-				// TODO : Make an ErrXxx
-				panic("call on a non-function value")
-			}
-			// Pop the arguments in reverse order
-			args := make([]Val, ix)
-			for j := ix; j > 0; j-- {
-				args[j-1] = ø.pop()
-			}
-			// Call the function, and store the return value on the stack
-			ø.push(f.Call(nil, args...))
-
 		case bytecode.OP_EQ:
 			y, x := ø.pop(), ø.pop()
 			cmp := x.Cmp(y)
@@ -308,13 +295,12 @@ func (ø *funcVM) run(args ...Val) Val {
 			}
 
 		case bytecode.OP_NEW:
-			ø.push(NewObject())
-
-		case bytecode.OP_DUMP:
-			if ø.proto.ctx.Debug {
-				// Dumps `ix` number of stack traces
-				ø.proto.ctx.dump(int(ix))
+			ob := NewObject()
+			for j := ix; j > 0; j-- {
+				key, val := ø.pop(), ø.pop()
+				ob.Set(key, val)
 			}
+			ø.push(ob)
 
 		case bytecode.OP_SFLD:
 			vr, k, vl := ø.pop(), ø.pop(), ø.pop()
@@ -343,6 +329,29 @@ func (ø *funcVM) run(args ...Val) Val {
 				ø.push(ob.callMethod(k, args...))
 			} else {
 				panic(ErrValNotAnObject)
+			}
+
+		case bytecode.OP_CALL:
+			// ix is the number of args
+			// Pop the function itself, ensure it is a function
+			x := ø.pop()
+			f, ok := x.(Func)
+			if !ok {
+				// TODO : Make an ErrXxx
+				panic("call on a non-function value")
+			}
+			// Pop the arguments in reverse order
+			args := make([]Val, ix)
+			for j := ix; j > 0; j-- {
+				args[j-1] = ø.pop()
+			}
+			// Call the function, and store the return value on the stack
+			ø.push(f.Call(nil, args...))
+
+		case bytecode.OP_DUMP:
+			if ø.proto.ctx.Debug {
+				// Dumps `ix` number of stack traces
+				ø.proto.ctx.dump(int(ix))
 			}
 
 		default:

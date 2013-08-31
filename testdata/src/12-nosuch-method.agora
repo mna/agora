@@ -1,4 +1,4 @@
-import "fmt"
+fmt := import("fm" + "t")
 a := {}
 a.__noSuchMethod = func(nm) {
   fmt.Println("not found:" + nm)

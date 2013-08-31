@@ -228,8 +228,14 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, op, bytecode.FLG_An, uint64(len(parms)))
 	case "{":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
-		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG__, 0)
-		// TODO : Pass number of fields to set to operator NEW
+		ln := 0
+		if !e.isEmpty(sym.First) {
+			e.emitAny(f, fn, sym, sym.First)
+			if ar, ok := sym.First.([]*parser.Symbol); ok {
+				ln = len(ar)
+			}
+		}
+		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG__, uint64(ln))
 	case "?":
 		// Similar to if, but yields a value
 		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))
@@ -337,8 +343,10 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 		return
 	}
 	switch op {
-	case bytecode.OP_PUSH, bytecode.OP_LOAD, bytecode.OP_NEW:
+	case bytecode.OP_PUSH, bytecode.OP_LOAD:
 		e.stackSz[fn] += 1
+	case bytecode.OP_NEW:
+		e.stackSz[fn] += (1 - (2 * int64(ix)))
 	case bytecode.OP_POP, bytecode.OP_RET, bytecode.OP_UNM, bytecode.OP_NOT, bytecode.OP_TEST,
 		bytecode.OP_LT, bytecode.OP_LTE, bytecode.OP_GT, bytecode.OP_GTE, bytecode.OP_EQ,
 		bytecode.OP_AND, bytecode.OP_OR, bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,

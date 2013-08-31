@@ -1,4 +1,4 @@
-import "fmt"
+fmt := import("fmt")
 a := {}
 a.b = func(greet) {
   fmt.Println(this.c)
