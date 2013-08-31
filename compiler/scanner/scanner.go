@@ -521,7 +521,7 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 			// keywords are longer than one letter - avoid lookup otherwise
 			tok = token.Lookup(lit)
 			switch tok {
-			case token.IDENT, token.RETURN:
+			case token.IDENT, token.RETURN, token.DEBUG:
 				insertSemi = true
 			}
 		} else {

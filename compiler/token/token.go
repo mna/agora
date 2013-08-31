@@ -82,6 +82,7 @@ const (
 	FUNC
 	IF
 	RETURN
+	DEBUG
 	keyword_end
 )
 
@@ -143,6 +144,7 @@ var tokens = [...]string{
 	FUNC:   "func",
 	IF:     "if",
 	RETURN: "return",
+	DEBUG:  "debug",
 }
 
 // String returns the string corresponding to the token tok.

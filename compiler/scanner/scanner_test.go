@@ -664,6 +664,27 @@ return a.b.c.d
 				token.SEMICOLON,
 			},
 		},
+		18: {
+			src: []byte(`
+debug 7 + 18
+`),
+			exp: []token.Token{
+				token.DEBUG,
+				token.INT,
+				token.ADD,
+				token.INT,
+				token.SEMICOLON,
+			},
+		},
+		19: {
+			src: []byte(`
+debug
+`),
+			exp: []token.Token{
+				token.DEBUG,
+				token.SEMICOLON,
+			},
+		},
 	}
 
 	isolateCase = -1
