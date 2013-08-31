@@ -541,6 +541,33 @@ if true {
 `),
 			err: true,
 		},
+		19: {
+			src: []byte(`
+			debug 2
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "debug", Val: "debug", Ar: ArStatement},
+				&Symbol{Id: "(literal)", Val: "2"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
+		20: {
+			src: []byte(`
+						debug
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "debug"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
+		21: {
+			src: []byte(`
+			debug := 7
+`),
+			err: true,
+		},
 	}
 
 	isolateCase = -1

@@ -206,6 +206,21 @@ func (p *Parser) defineGrammar() {
 		return sym
 	})
 
+	// debug statement
+	p.stmt("debug", func(sym *Symbol) interface{} {
+		if p.tkn.Id != ";" {
+			// Evaluate the number of stack traces to print
+			if p.tkn.Id != "(literal)" {
+				p.error(p.tkn, "expected number literal")
+			}
+			sym.First = p.tkn
+			p.advance(_SYM_ANY)
+		}
+		p.advance(";")
+		sym.Ar = ArStatement
+		return sym
+	})
+
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
 		if p.tkn.Id != ";" {

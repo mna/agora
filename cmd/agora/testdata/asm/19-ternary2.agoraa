@@ -1,0 +1,35 @@
+// Generated from the disassembler, v0.0
+[f]
+19-ternary2.agora
+4
+0
+0
+0
+0
+[k]
+i17
+sa
+i24
+i13
+i2
+i1
+[i]
+PUSH K 0
+POP V 1
+PUSH V 1
+PUSH K 2
+PUSH K 3
+SUB _ 0
+PUSH K 4
+PUSH V 1
+MUL _ 0
+SUB _ 0
+DUMP S 1
+GT _ 0
+DUMP S 1
+TEST J 2
+PUSH K 5
+JMPF J 2
+PUSH K 4
+UNM _ 0
+RET _ 0

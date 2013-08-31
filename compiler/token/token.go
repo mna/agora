@@ -83,6 +83,7 @@ const (
 	IF
 	RETURN
 	DEBUG
+	BREAK
 	keyword_end
 )
 
@@ -145,6 +146,7 @@ var tokens = [...]string{
 	IF:     "if",
 	RETURN: "return",
 	DEBUG:  "debug",
+	BREAK:  "break",
 }
 
 // String returns the string corresponding to the token tok.

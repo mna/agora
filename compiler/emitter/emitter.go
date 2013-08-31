@@ -289,6 +289,15 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, bytecode.OP_JMPB, bytecode.FLG_J, uint64(len(fn.Is)-start))
 		// Update the test instruction
 		e.updateTestInstr(fn, tstIx)
+	case "debug":
+		var err error
+		var ix int64 = 1 // Default to 1 stack to dump
+		if sym.First != nil {
+			// If present, it must be a literal number
+			ix, err = strconv.ParseInt(sym.First.(*parser.Symbol).Val.(string), 10, 64)
+			e.assert(err == nil, errors.New("invalid number literal"))
+		}
+		e.addInstr(fn, bytecode.OP_DUMP, bytecode.FLG_S, uint64(ix))
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
