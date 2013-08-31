@@ -219,31 +219,6 @@ func TestModInt(t *testing.T) {
 	}
 }
 
-func TestPowInt(t *testing.T) {
-	cases := []struct {
-		x   int
-		y   int
-		exp int
-	}{
-		{x: 0, y: 1, exp: 0},
-		{x: 20, y: 5, exp: 3200000},
-		{x: -12, y: 4, exp: 20736},
-		{x: -1, y: 1, exp: -1},
-		{x: -1, y: -1, exp: -1},
-		{x: 4294967296, y: 1, exp: 4294967296},
-		{x: 1000, y: -100, exp: 0},
-		{x: 10, y: 3, exp: 1000},
-	}
-
-	for _, c := range cases {
-		vx, vy := Int(c.x), Int(c.y)
-		res := vx.Pow(vy)
-		if ires := int(res.(Int)); c.exp != ires {
-			t.Errorf("%d ^ %d : expected %d, got %d", c.x, c.y, c.exp, ires)
-		}
-	}
-}
-
 func TestUnmInt(t *testing.T) {
 	cases := []struct {
 		x   int

@@ -13,10 +13,8 @@ const (
 	OP_MUL
 	OP_DIV
 	OP_MOD
-	OP_POW
 	OP_NOT
 	OP_UNM
-	OP_CALL
 	OP_EQ
 	OP_LT
 	OP_LTE
@@ -25,14 +23,14 @@ const (
 	OP_AND
 	OP_OR
 	OP_TEST
-	OP_JMPB
-	OP_JMPF
+	OP_JMP
 	OP_NEW
 	OP_SFLD
 	OP_GFLD
 	OP_CFLD
-	// Debugging
-	OP_DUMP
+	OP_CALL
+	op_dbgstart
+	OP_DUMP // Debugging
 	op_max
 	OP_INVL Opcode = 0xFF
 )
@@ -48,10 +46,8 @@ var (
 		OP_MUL:  "MUL",
 		OP_DIV:  "DIV",
 		OP_MOD:  "MOD",
-		OP_POW:  "POW",
 		OP_NOT:  "NOT",
 		OP_UNM:  "UNM",
-		OP_CALL: "CALL",
 		OP_EQ:   "EQ",
 		OP_LT:   "LT",
 		OP_LTE:  "LTE",
@@ -60,12 +56,12 @@ var (
 		OP_AND:  "AND",
 		OP_OR:   "OR",
 		OP_TEST: "TEST",
-		OP_JMPB: "JMPB",
-		OP_JMPF: "JMPF",
+		OP_JMP:  "JMP",
 		OP_NEW:  "NEW",
 		OP_SFLD: "SFLD",
 		OP_GFLD: "GFLD",
 		OP_CFLD: "CFLD",
+		OP_CALL: "CALL",
 		OP_DUMP: "DUMP",
 	}
 
@@ -79,10 +75,8 @@ var (
 		"MUL":  OP_MUL,
 		"DIV":  OP_DIV,
 		"MOD":  OP_MOD,
-		"POW":  OP_POW,
 		"NOT":  OP_NOT,
 		"UNM":  OP_UNM,
-		"CALL": OP_CALL,
 		"EQ":   OP_EQ,
 		"LT":   OP_LT,
 		"LTE":  OP_LTE,
@@ -91,12 +85,12 @@ var (
 		"AND":  OP_AND,
 		"OR":   OP_OR,
 		"TEST": OP_TEST,
-		"JMPB": OP_JMPB,
-		"JMPF": OP_JMPF,
+		"JMP":  OP_JMP,
 		"NEW":  OP_NEW,
 		"SFLD": OP_SFLD,
 		"GFLD": OP_GFLD,
 		"CFLD": OP_CFLD,
+		"CALL": OP_CALL,
 		"DUMP": OP_DUMP,
 	}
 )

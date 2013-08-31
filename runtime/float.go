@@ -78,12 +78,6 @@ func (ø Float) Mod(v Val) Val {
 	return Float(math.Mod(float64(ø), v.Float()))
 }
 
-// Pow returns the float raised at the power of the other Val value, converted
-// to a float.
-func (ø Float) Pow(v Val) Val {
-	return Float(math.Pow(float64(ø), v.Float()))
-}
-
 // Unm returns the unary minus operation applied to the float value.
 // It switches the sign of the value.
 func (ø Float) Unm() Val {

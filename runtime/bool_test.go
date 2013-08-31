@@ -110,11 +110,6 @@ func TestInvalidOpBool(t *testing.T) {
 		panic(nil)
 	}()
 	func() {
-		defer assert(ErrInvalidOpPowOnBool)
-		b.Pow(Bool(false))
-		panic(nil)
-	}()
-	func() {
 		defer assert(ErrInvalidOpUnmOnBool)
 		b.Unm()
 		panic(nil)

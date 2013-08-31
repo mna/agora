@@ -75,7 +75,7 @@ func (ø *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 		return ø.this
 	case bytecode.FLG_F:
 		return ø.proto.mod.fns[ix]
-	case bytecode.FLG_AA:
+	case bytecode.FLG_A:
 		return ø.args
 	}
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
@@ -93,7 +93,7 @@ func (ø *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 		fmt.Fprint(w, " ; [this]")
 	case bytecode.FLG_F:
 		fmt.Fprintf(w, " ; %s", ø.proto.mod.fns[i.Index()].dump())
-	case bytecode.FLG_AA:
+	case bytecode.FLG_A:
 		fmt.Fprintf(w, " ; args[%d]", i.Index())
 	}
 }
@@ -236,10 +236,6 @@ func (ø *funcVM) run(args ...Val) Val {
 			y, x := ø.pop(), ø.pop()
 			ø.push(x.Mod(y))
 
-		case bytecode.OP_POW:
-			y, x := ø.pop(), ø.pop()
-			ø.push(x.Pow(y))
-
 		case bytecode.OP_NOT:
 			x := ø.pop()
 			ø.push(ø.proto.ctx.Logic.Not(x))
@@ -304,12 +300,12 @@ func (ø *funcVM) run(args ...Val) Val {
 				ø.pc += int(ix)
 			}
 
-		case bytecode.OP_JMPB:
-			// TODO : Eventually change to a single JMP with signed value
-			ø.pc -= (int(ix) + 1) // +1 because pc is already on next instr
-
-		case bytecode.OP_JMPF:
-			ø.pc += int(ix)
+		case bytecode.OP_JMP:
+			if flg == bytecode.FLG_Jf {
+				ø.pc += int(ix)
+			} else {
+				ø.pc -= (int(ix) + 1) // +1 because pc is already on next instr
+			}
 
 		case bytecode.OP_NEW:
 			ø.push(NewObject())
@@ -317,17 +313,13 @@ func (ø *funcVM) run(args ...Val) Val {
 		case bytecode.OP_DUMP:
 			if ø.proto.ctx.Debug {
 				// Dumps `ix` number of stack traces
-				ø.proto.ctx.dump(int(ix)) // TODO : check int value
+				ø.proto.ctx.dump(int(ix))
 			}
 
 		case bytecode.OP_SFLD:
 			vr, k, vl := ø.pop(), ø.pop(), ø.pop()
 			if ob, ok := vr.(*Object); ok {
 				ob.Set(k, vl)
-				// Then push back on stack
-				if flg == bytecode.FLG_Push {
-					ø.push(ob)
-				}
 			} else {
 				panic(ErrValNotAnObject)
 			}

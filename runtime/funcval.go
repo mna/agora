@@ -14,7 +14,6 @@ var (
 	ErrInvalidOpSubOnFunc = errors.New("cannot apply Sub on a Func value")
 	ErrInvalidOpMulOnFunc = errors.New("cannot apply Mul on a Func value")
 	ErrInvalidOpDivOnFunc = errors.New("cannot apply Div on a Func value")
-	ErrInvalidOpPowOnFunc = errors.New("cannot apply Pow on a Func value")
 	ErrInvalidOpModOnFunc = errors.New("cannot apply Mod on a Func value")
 	ErrInvalidOpUnmOnFunc = errors.New("cannot apply Unm on a Func value")
 )
@@ -75,11 +74,6 @@ func (ø *funcVal) Div(v Val) Val {
 // Mod is an invalid operation.
 func (ø *funcVal) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnFunc)
-}
-
-// Pow is an invalid operation.
-func (ø *funcVal) Pow(v Val) Val {
-	panic(ErrInvalidOpPowOnFunc)
 }
 
 // Unm is an invalid operation.

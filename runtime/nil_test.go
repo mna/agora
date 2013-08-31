@@ -51,11 +51,6 @@ func TestInvalidOpNil(t *testing.T) {
 		panic(nil)
 	}()
 	func() {
-		defer assert(ErrInvalidOpPowOnNil)
-		Nil.Pow(Bool(false))
-		panic(nil)
-	}()
-	func() {
 		defer assert(ErrInvalidOpUnmOnNil)
 		Nil.Unm()
 		panic(nil)

@@ -10,7 +10,6 @@ var (
 	ErrInvalidOpSubOnBool = errors.New("cannot apply Sub on a Bool value")
 	ErrInvalidOpMulOnBool = errors.New("cannot apply Mul on a Bool value")
 	ErrInvalidOpDivOnBool = errors.New("cannot apply Div on a Bool value")
-	ErrInvalidOpPowOnBool = errors.New("cannot apply Pow on a Bool value")
 	ErrInvalidOpModOnBool = errors.New("cannot apply Mod on a Bool value")
 	ErrInvalidOpUnmOnBool = errors.New("cannot apply Unm on a Bool value")
 )
@@ -92,11 +91,6 @@ func (ø Bool) Div(v Val) Val {
 // Mod is an invalid operation.
 func (ø Bool) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnBool)
-}
-
-// Pow is an invalid operation.
-func (ø Bool) Pow(v Val) Val {
-	panic(ErrInvalidOpPowOnBool)
 }
 
 // Unm is an invalid operation.

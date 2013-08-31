@@ -129,7 +129,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_T, 0)
 	case "args":
 		e.assert(!asg, errors.New("invalid assignment to the `args` keyword"))
-		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_AA, 0)
+		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_A, 0)
 	case ".", "[":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
@@ -225,17 +225,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Push function name (or parent object of the field if ternary)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		// Call
-		e.addInstr(fn, op, bytecode.FLG_nA, uint64(len(parms)))
+		e.addInstr(fn, op, bytecode.FLG_An, uint64(len(parms)))
 	case "{":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
-		empty := e.isEmpty(sym.First)
-		if !empty {
-			e.emitAny(f, fn, sym, sym.First)
-		}
 		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG__, 0)
-		if !empty {
-			e.addInstr(fn, bytecode.OP_SFLD, bytecode.FLG_Push, 0)
-		}
+		// TODO : Pass number of fields to set to operator NEW
 	case "?":
 		// Similar to if, but yields a value
 		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))
@@ -286,7 +280,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Emit the body
 		e.emitAny(f, fn, sym, sym.Second)
 		// Add the jump-back to for condition instruction
-		e.addInstr(fn, bytecode.OP_JMPB, bytecode.FLG_J, uint64(len(fn.Is)-start))
+		e.addInstr(fn, bytecode.OP_JMP, bytecode.FLG_Jb, uint64(len(fn.Is)-start))
 		// Update the test instruction
 		e.updateTestInstr(fn, tstIx)
 	case "debug":
@@ -297,7 +291,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			ix, err = strconv.ParseInt(sym.First.(*parser.Symbol).Val.(string), 10, 64)
 			e.assert(err == nil, errors.New("invalid number literal"))
 		}
-		e.addInstr(fn, bytecode.OP_DUMP, bytecode.FLG_S, uint64(ix))
+		e.addInstr(fn, bytecode.OP_DUMP, bytecode.FLG_Sn, uint64(ix))
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
@@ -331,11 +325,11 @@ func (e *Emitter) addTempInstr(fn *bytecode.Fn) int {
 }
 
 func (e *Emitter) updateTestInstr(fn *bytecode.Fn, ix int) {
-	fn.Is[ix] = bytecode.NewInstr(bytecode.OP_TEST, bytecode.FLG_J, uint64(len(fn.Is)-ix-1))
+	fn.Is[ix] = bytecode.NewInstr(bytecode.OP_TEST, bytecode.FLG_Jf, uint64(len(fn.Is)-ix-1))
 }
 
 func (e *Emitter) updateJumpfInstr(fn *bytecode.Fn, ix int) {
-	fn.Is[ix] = bytecode.NewInstr(bytecode.OP_JMPF, bytecode.FLG_J, uint64(len(fn.Is)-ix-1))
+	fn.Is[ix] = bytecode.NewInstr(bytecode.OP_JMP, bytecode.FLG_Jf, uint64(len(fn.Is)-ix-1))
 }
 
 func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Flag, ix uint64) {
@@ -351,11 +345,7 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD:
 		e.stackSz[fn] -= 1
 	case bytecode.OP_SFLD:
-		if flg == bytecode.FLG_Push {
-			e.stackSz[fn] -= 2
-		} else {
-			e.stackSz[fn] -= 3
-		}
+		e.stackSz[fn] -= 3
 	case bytecode.OP_CALL:
 		e.stackSz[fn] -= (int64(ix) + 1)
 	case bytecode.OP_CFLD:

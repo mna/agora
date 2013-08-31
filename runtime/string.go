@@ -10,7 +10,6 @@ import (
 var (
 	ErrInvalidOpSubOnString = errors.New("cannot apply Sub on a String value")
 	ErrInvalidOpDivOnString = errors.New("cannot apply Div on a String value")
-	ErrInvalidOpPowOnString = errors.New("cannot apply Pow on a String value")
 	ErrInvalidOpModOnString = errors.New("cannot apply Mod on a String value")
 	ErrInvalidOpUnmOnString = errors.New("cannot apply Unm on a String value")
 )
@@ -103,11 +102,6 @@ func (ø String) Div(v Val) Val {
 // Mod is an invalid operation.
 func (ø String) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnString)
-}
-
-// Pow is an invalid operation.
-func (ø String) Pow(v Val) Val {
-	panic(ErrInvalidOpPowOnString)
 }
 
 // Unm is an invalid operation.

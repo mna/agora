@@ -43,7 +43,7 @@ test
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("K"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("POP"), bytecode.NewFlag("V"), 0))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("V"), 0))),
-				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("DUMP"), bytecode.NewFlag("S"), 1))),
+				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("DUMP"), bytecode.NewFlag("Sn"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("RET"), bytecode.NewFlag("_"), 0))),
 			),
 			exp: disasmComment + `
@@ -61,7 +61,7 @@ i5
 PUSH K 1
 POP V 0
 PUSH V 0
-DUMP S 1
+DUMP Sn 1
 RET _ 0
 `,
 		},
@@ -76,8 +76,8 @@ RET _ 0
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("K"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("K"), 2))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("V"), 0))),
-				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("CALL"), bytecode.NewFlag("A"), 2))),
-				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("DUMP"), bytecode.NewFlag("S"), 1))),
+				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("CALL"), bytecode.NewFlag("An"), 2))),
+				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("DUMP"), bytecode.NewFlag("Sn"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("RET"), bytecode.NewFlag("_"), 0))),
 				Int64ToByteSlice(3), 'A', 'd', 'd', Int64ToByteSlice(2), Int64ToByteSlice(2), Int64ToByteSlice(2), ExpZeroInt64, Int64ToByteSlice(2),
 				Int64ToByteSlice(2),
@@ -106,8 +106,8 @@ POP V 0
 PUSH K 1
 PUSH K 2
 PUSH V 0
-CALL A 2
-DUMP S 1
+CALL An 2
+DUMP Sn 1
 RET _ 0
 [f]
 Add

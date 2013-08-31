@@ -225,30 +225,6 @@ func TestModFloat(t *testing.T) {
 	}
 }
 
-func TestPowFloat(t *testing.T) {
-	cases := []struct {
-		x   float64
-		y   float64
-		exp float64
-	}{
-		{x: 0.0, y: 0.0, exp: 1.0},
-		{x: 1.0, y: 0.0, exp: 1.0},
-		{x: 0.0, y: 1.0, exp: 0.0},
-		{x: 1.0, y: 1.0, exp: 1.0},
-		{x: 1.1, y: 0.9, exp: 1.089565684},
-		{x: -10.90, y: 1.1, exp: -13.841053513},
-		{x: 10.123, y: 9.456, exp: 3207776811.65194},
-	}
-
-	for _, c := range cases {
-		vx, vy := Float(c.x), Float(c.y)
-		res := vx.Pow(vy)
-		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
-			t.Errorf("%f ^ %f : expected %f, got %f", c.x, c.y, c.exp, fres)
-		}
-	}
-}
-
 func TestUnmFloat(t *testing.T) {
 	cases := []struct {
 		x   float64

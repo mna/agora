@@ -202,11 +202,6 @@ func TestInvalidOpString(t *testing.T) {
 		panic(nil)
 	}()
 	func() {
-		defer assert(ErrInvalidOpPowOnString)
-		s.Pow(String(""))
-		panic(nil)
-	}()
-	func() {
 		defer assert(ErrInvalidOpUnmOnString)
 		s.Unm()
 		panic(nil)

@@ -10,44 +10,47 @@ const (
 	FLG__    Flag = iota // Ignored
 	FLG_K                // Constant table index
 	FLG_V                // Variable table index
+	FLG_F                // Function prototype index
+	FLG_A                // Arguments array
 	FLG_N                // Nil value
 	FLG_T                // `this` keyword
-	FLG_F                // Function prototype index
-	FLG_nA               // Args count
-	FLG_AA               // Arguments array
-	FLG_J                // Jump over n instructions
-	FLG_S                // For debug, dump n Stack traces
-	FLG_Push             // For opcodes that may pop without pushing, indicates to push
+	FLG_An               // Args count in a CALL or CFLD instruction
+	FLG_Jf               // Jump forward over n instructions
+	FLG_Jb               // Jump back over n instructions
+	FLG_Sn               // For DUMP, dump n frames
+	FLG_Fn               // For NEW, set n fields
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
 var (
 	FlagNames = [...]string{
-		FLG__:    "_",
-		FLG_K:    "K",
-		FLG_V:    "V",
-		FLG_N:    "N",
-		FLG_T:    "T",
-		FLG_F:    "F",
-		FLG_nA:   "A",
-		FLG_AA:   "AA",
-		FLG_J:    "J",
-		FLG_S:    "S",
-		FLG_Push: "PSH",
+		FLG__:  "_",
+		FLG_K:  "K",
+		FLG_V:  "V",
+		FLG_F:  "F",
+		FLG_A:  "A",
+		FLG_N:  "N",
+		FLG_T:  "T",
+		FLG_An: "An",
+		FLG_Jf: "Jf",
+		FLG_Jb: "Jb",
+		FLG_Sn: "Sn",
+		FLG_Fn: "Fn",
 	}
 
 	FlagLookup = map[string]Flag{
-		"_":   FLG__,
-		"K":   FLG_K,
-		"V":   FLG_V,
-		"N":   FLG_N,
-		"T":   FLG_T,
-		"F":   FLG_F,
-		"A":   FLG_nA,
-		"AA":  FLG_AA,
-		"J":   FLG_J,
-		"S":   FLG_S,
-		"PSH": FLG_Push,
+		"_":  FLG__,
+		"K":  FLG_K,
+		"V":  FLG_V,
+		"F":  FLG_F,
+		"A":  FLG_A,
+		"N":  FLG_N,
+		"T":  FLG_T,
+		"An": FLG_An,
+		"Jf": FLG_Jf,
+		"Jb": FLG_Jb,
+		"Sn": FLG_Sn,
+		"Fn": FLG_Fn,
 	}
 )
 
@@ -66,11 +69,7 @@ func (ø Flag) String() string {
 // A bytecode instruction is a sequence of 64 bits arranged like this (a single letter=a byte):
 // `oabbbbbb`
 // o: represents the opcode, on a single byte. See opcodes.go for the list of codes.
-// a: indicates what the next value represents, the flag has the following values:
-//    - 0 means ignore
-//    - 1 means from the KTable (constant)
-//    - 2 means from the VTable (variable)
-//    - 3 means the value Nil
+// a: indicates what the next value represents (Flag)
 // b: represents the index of the data in the relevant table (K or V), on 6 bytes.
 //    Gives a possibility of 2^48 items in each table.
 type Instr uint64

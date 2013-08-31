@@ -19,7 +19,6 @@ var (
 	ErrInvalidOpSubOnNil = errors.New("cannot apply Sub on a Nil value")
 	ErrInvalidOpMulOnNil = errors.New("cannot apply Mul on a Nil value")
 	ErrInvalidOpDivOnNil = errors.New("cannot apply Div on a Nil value")
-	ErrInvalidOpPowOnNil = errors.New("cannot apply Pow on a Nil value")
 	ErrInvalidOpModOnNil = errors.New("cannot apply Mod on a Nil value")
 	ErrInvalidOpUnmOnNil = errors.New("cannot apply Unm on a Nil value")
 )
@@ -86,11 +85,6 @@ func (ø null) Div(v Val) Val {
 // Mod is an invalid operation.
 func (ø null) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnNil)
-}
-
-// Pow is an invalid operation.
-func (ø null) Pow(v Val) Val {
-	panic(ErrInvalidOpPowOnNil)
 }
 
 // Unm is an invalid operation.

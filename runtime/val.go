@@ -18,7 +18,6 @@ type Arithmetic interface {
 	Mul(Val) Val
 	Div(Val) Val
 	Mod(Val) Val
-	Pow(Val) Val
 	Unm() Val
 }
 

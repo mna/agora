@@ -16,7 +16,6 @@ var (
 	ErrInvalidOpSubOnObj = errors.New("cannot apply Sub on this Object")
 	ErrInvalidOpMulOnObj = errors.New("cannot apply Mul on this Object")
 	ErrInvalidOpDivOnObj = errors.New("cannot apply Div on this Object")
-	ErrInvalidOpPowOnObj = errors.New("cannot apply Pow on this Object")
 	ErrInvalidOpModOnObj = errors.New("cannot apply Mod on this Object")
 	ErrInvalidOpUnmOnObj = errors.New("cannot apply Unm on this Object")
 
@@ -129,10 +128,6 @@ func (ø *Object) Div(v Val) Val {
 
 func (ø *Object) Mod(v Val) Val {
 	return ø.callBinaryMethod(String("__mod"), ErrInvalidOpModOnObj, v)
-}
-
-func (ø *Object) Pow(v Val) Val {
-	return ø.callBinaryMethod(String("__pow"), ErrInvalidOpPowOnObj, v)
 }
 
 func (ø *Object) Unm() Val {

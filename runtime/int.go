@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 )
 
@@ -76,12 +75,6 @@ func (ø Int) Div(v Val) Val {
 // another Val value, converted to an int.
 func (ø Int) Mod(v Val) Val {
 	return Int(int(ø) % v.Int())
-}
-
-// Pow returns the integer raised at the power of the other Val value, converted
-// to an int.
-func (ø Int) Pow(v Val) Val {
-	return Int(math.Pow(float64(ø), float64(v.Int())))
 }
 
 // Unm returns the unary minus operation applied to the integer value.
