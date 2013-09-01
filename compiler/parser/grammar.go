@@ -153,19 +153,23 @@ func (p *Parser) defineGrammar() {
 
 	// For loop
 	p.stmt("for", func(sym *Symbol) interface{} {
-		f := p.expression(0)
-		if p.tkn.Id == "{" {
-			// Single expression form (i.e. `while`)
-			sym.First = f
-		} else {
-			// 3-part for (for stmt ; expr ; stmt {})
-			pt1 := p.statement()
-			p.advance(";")
-			pt2 := p.expression(0)
-			p.advance(";")
-			pt3 := p.statement()
-			// Special case for the 3-part for, each part is in a slice of interface{}
-			sym.First = []interface{}{pt1, pt2, pt3}
+		// Check for the infinite loop form (i.e. `for {}`). If this is the case,
+		// sym.First is nil, while sym.Second holds the body.
+		if p.tkn.Id != "{" {
+			f := p.expression(0)
+			if p.tkn.Id == "{" {
+				// Single expression form (i.e. `while`)
+				sym.First = f
+			} else {
+				// 3-part for (for stmt ; expr ; stmt {})
+				pt1 := f
+				p.advance(";")
+				pt2 := p.expression(0)
+				p.advance(";")
+				pt3 := p.expression(0)
+				// Special case for the 3-part for, each part is in a slice of interface{}
+				sym.First = []interface{}{pt1, pt2, pt3}
+			}
 		}
 		sym.Second = p.block()
 		p.advance(";")

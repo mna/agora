@@ -182,7 +182,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, binAsgSym2op[sym.Id], bytecode.FLG__, 0)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
 	case "++", "--":
-		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `"+sym.Id+"` to have unary arity"))
+		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `"+sym.Id+"` to have statement arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		// Implicit `1` constant
 		ix := e.registerK(fn, "1", false)
@@ -320,6 +320,8 @@ func (e *Emitter) isEmpty(v interface{}) bool {
 	case *parser.Symbol:
 		return s == nil
 	case []*parser.Symbol:
+		return len(s) == 0
+	case []interface{}:
 		return len(s) == 0
 	}
 	return true

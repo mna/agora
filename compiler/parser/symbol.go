@@ -137,7 +137,8 @@ func (s *Symbol) indentString(ind int) string {
 	buf.WriteString(fmt.Sprintf(" (arity: %s)", s.Ar))
 	buf.WriteString("\n")
 
-	fmtChild := func(idx int, child interface{}) {
+	var fmtChild func(int, interface{})
+	fmtChild = func(idx int, child interface{}) {
 		if child != nil {
 			switch v := child.(type) {
 			case []*Symbol:
@@ -146,6 +147,10 @@ func (s *Symbol) indentString(ind int) string {
 				}
 			case *Symbol:
 				buf.WriteString(fmt.Sprintf("%s[%d] %s", strings.Repeat(" ", (ind+1)*3), idx, v.indentString(ind+1)))
+			case []interface{}:
+				for i, c := range v {
+					fmtChild(i, c)
+				}
 			}
 		}
 	}

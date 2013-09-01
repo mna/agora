@@ -568,6 +568,78 @@ if true {
 `),
 			err: true,
 		},
+		22: {
+			src: []byte(`
+			true
+`),
+			err: true,
+		},
+		23: {
+			src: []byte(`
+			3 > 7
+`),
+			err: true,
+		},
+		24: {
+			src: []byte(`
+			for a := 3 > 7 {
+			}
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "for", Ar: ArStatement},
+				&Symbol{Id: ":="},
+				&Symbol{Id: "(name)", Val: "a"},
+				&Symbol{Id: ">"},
+				&Symbol{Id: "(literal)", Val: "3"},
+				&Symbol{Id: "(literal)", Val: "7"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
+		25: {
+			src: []byte(`
+			for import("test") {
+			}
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "for"},
+				&Symbol{Id: "("},
+				&Symbol{Id: "import"},
+				&Symbol{Id: "(literal)", Val: `"test"`},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
+		26: {
+			src: []byte(`
+		for {
+		}
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "for"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
+		27: {
+			src: []byte(`
+			for i := 0 ; i < 10 ; i++ {
+		}
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "for"},
+				&Symbol{Id: ":="},
+				&Symbol{Id: "(name)", Val: "i"},
+				&Symbol{Id: "(literal)", Val: "0"},
+				&Symbol{Id: "<"},
+				&Symbol{Id: "(name)", Val: "i"},
+				&Symbol{Id: "(literal)", Val: "10"},
+				&Symbol{Id: "++", Ar: ArStatement},
+				&Symbol{Id: "(name)", Val: "i"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
 	}
 
 	isolateCase = -1
@@ -606,11 +678,18 @@ func TestParse(t *testing.T) {
 					if c.exp[ix].Key != "" && v.Key != c.exp[ix].Key {
 						t.Errorf("[%d] - expected symbol key %s, got %s", i, c.exp[ix].Key, v.Key)
 					}
+					if c.exp[ix].Ar != 0 && v.Ar != c.exp[ix].Ar {
+						t.Errorf("[%d] - expected symbol arity %s, got %s", i, c.exp[ix].Ar, v.Ar)
+					}
 				}
 				check(v.First)
 				check(v.Second)
 				check(v.Third)
 			case []*Symbol:
+				for _, s := range v {
+					check(s)
+				}
+			case []interface{}:
 				for _, s := range v {
 					check(s)
 				}

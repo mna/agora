@@ -4,7 +4,6 @@ package parser
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/PuerkitoBio/agora/compiler/scanner"
 	"github.com/PuerkitoBio/agora/compiler/token"
@@ -253,7 +252,7 @@ func (p *Parser) suffix(id string) *Symbol {
 		}
 		sym.First = left
 		sym.asg = true
-		sym.Ar = ArUnary
+		sym.Ar = ArStatement
 		return sym
 	})
 }
@@ -358,57 +357,6 @@ func (p *Parser) block() interface{} {
 	t := p.tkn
 	p.advance("{")
 	return t.std()
-}
-
-// Returns a slice of imports, in pairs (one import = 2 items, first the identifier,
-// then the path).
-func (p *Parser) importMany() []*Symbol {
-	var a []*Symbol
-	for p.tkn.Id != ")" {
-		id, pth := p.importOne()
-		a = append(a, id, pth)
-	}
-	p.advance(")")
-	p.advance(";")
-	return a
-}
-
-// Return a pair of Symbols, the identifier and the path
-func (p *Parser) importOne() (id *Symbol, pth *Symbol) {
-	if p.tkn.Ar == ArName {
-		// Define in scope
-		p.scp.define(p.tkn)
-		id = p.tkn
-		p.advance(_SYM_ANY)
-	}
-	var path string
-	var ok bool
-	if path, ok = p.tkn.Val.(string); p.tkn.Ar != ArLiteral || !ok {
-		p.error(p.tkn, "import path must be a string literal")
-	}
-	if id == nil {
-		// No explicit identifier for the import, use the last portion of the import path
-		path = path[1 : len(path)-1] // Remove \"
-		if strings.HasSuffix(path, "/") {
-			path = path[:len(path)-1]
-		}
-		idx := strings.LastIndex(path, "/")
-		nm := path[idx+1:]
-		if len(nm) == 0 {
-			p.error(p.tkn, "invalid import path")
-		}
-		// Create new name Symbol for this identifier
-		o := p.tbl[_SYM_NAME]
-		sym := o.clone()
-		sym.Ar = ArName
-		sym.Val = nm
-		p.scp.define(sym)
-		id = sym
-	}
-	pth = p.tkn
-	p.advance(_SYM_ANY)
-	p.advance(";")
-	return
 }
 
 func (p *Parser) error(s *Symbol, msg string) {
