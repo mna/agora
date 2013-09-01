@@ -151,7 +151,6 @@ func (p *Parser) defineGrammar() {
 	// The define operator, to declare-assign variables
 	p.define(":=")
 
-	// TODO : This supports the for [condition] notation, nothing else
 	// For loop
 	p.stmt("for", func(sym *Symbol) interface{} {
 		f := p.expression(0)
@@ -159,16 +158,14 @@ func (p *Parser) defineGrammar() {
 			// Single expression form (i.e. `while`)
 			sym.First = f
 		} else {
-			/*
-				var a []*Symbol
-				a = append(a, f)
-				// Three-part for (i.e. `for x := n; x < y; x++`)
-				p.advance(";")
-				a = append(a, p.statement())
-				p.advance(";")
-				a = append(a, p.expression(0))
-				sym.First = a
-			*/
+			// 3-part for (for stmt ; expr ; stmt {})
+			pt1 := p.statement()
+			p.advance(";")
+			pt2 := p.expression(0)
+			p.advance(";")
+			pt3 := p.statement()
+			// Special case for the 3-part for, each part is in a slice of interface{}
+			sym.First = []interface{}{pt1, pt2, pt3}
 		}
 		sym.Second = p.block()
 		p.advance(";")
