@@ -1,0 +1,40 @@
+/*func test1() {
+	else := 1 // No error, but is ok
+	//true := 2
+	//false := 3
+	//nil := 4
+	//if := 6
+	//for := 5
+	//break := 7
+	//debug := 8
+	//return := 9
+	//import := 10
+	//panic := 11
+	//recover := 12
+	//len := 13
+	//func := 14
+	//this := 15
+	//args := 16
+}*/
+
+func test2() {
+	//else = 1
+	//true = 2
+	//false = 3
+	//nil = 4
+	//for = 5
+	//if = 6
+	//break = 7
+	//debug = 8
+	//return = 9
+	//import = 10
+	//panic = 11 
+	//recover = 12 
+	//len = 13 
+	//func = 14
+	//this = 15 
+	//args = 16 
+}
+
+//test1()
+test2()

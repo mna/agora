@@ -263,6 +263,9 @@ func (p *Parser) assignment(id string) *Symbol {
 		if left.Id != "." && left.Id != "[" && left.Ar != ArName {
 			p.error(left, "bad lvalue")
 		}
+		if left.res {
+			p.error(left, "cannot assign to a reserved identifier")
+		}
 		sym.First = left
 		sym.Second = p.expression(9)
 		sym.asg = true
