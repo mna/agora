@@ -1,5 +1,8 @@
 package parser
 
+// A Scope holds the valid identifiers. In agora, the only scopes are the functions,
+// so each function starts a new scope, and the top-level code is in an implicit
+// top-level function (and thus scope).
 type Scope struct {
 	def    map[string]*Symbol
 	parent *Scope

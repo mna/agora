@@ -1,63 +1,6 @@
 package parser
 
-func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
-	return func(sym *Symbol) *Symbol {
-		var a []*Symbol
-		if !prefix && p.tkn.Ar == ArName { // Only for statement notation
-			p.scp.define(p.tkn)
-			sym.Name = p.tkn.Val.(string)
-			p.advance(_SYM_ANY)
-		}
-		p.newScope()
-		p.advance("(")
-		if p.tkn.Id != ")" {
-			for {
-				if p.tkn.Ar != ArName {
-					p.error(p.tkn, "expected a parameter name")
-				}
-				p.scp.define(p.tkn)
-				a = append(a, p.tkn)
-				p.advance(_SYM_ANY)
-				if p.tkn.Id != "," {
-					break
-				}
-				p.advance(",")
-			}
-		}
-		sym.First = a
-		p.advance(")")
-		p.advance("{")
-		stmts := p.statements()
-		stmts = p.appendReturnNil(stmts)
-		sym.Second = stmts
-		p.advance("}")
-		if !prefix { // Don't consume the ending semicolon when func is an expression
-			p.advance(";")
-		}
-		sym.Ar = ArFunction
-		p.popScope()
-		return sym
-	}
-}
-
-func makeFuncParserIface(p *Parser, prefix bool) func(*Symbol) interface{} {
-	f := makeFuncParser(p, prefix)
-	return func(s *Symbol) interface{} {
-		return f(s)
-	}
-}
-
-func (p *Parser) appendReturnNil(s []*Symbol) []*Symbol {
-	// Make sure the function ends with a return statement, adding a return nil otherwise
-	if l := len(s); l == 0 || s[l-1].Id != "return" {
-		ret := p.makeSymbol("return", 0).clone()
-		ret.Ar = ArStatement
-		ret.First = p.makeSymbol("nil", 0).clone()
-		s = append(s, ret)
-	}
-	return s
-}
-
+// This function defines the whole grammar of the language.
 func (p *Parser) defineGrammar() {
 	// Ponctuation symbols
 	p.makeSymbol(":", 0)
@@ -328,4 +271,62 @@ func (p *Parser) defineGrammar() {
 	// Increment/decrement statements
 	p.suffix("--")
 	p.suffix("++")
+}
+
+func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
+	return func(sym *Symbol) *Symbol {
+		var a []*Symbol
+		if !prefix && p.tkn.Ar == ArName { // Only for statement notation
+			p.scp.define(p.tkn)
+			sym.Name = p.tkn.Val.(string)
+			p.advance(_SYM_ANY)
+		}
+		p.newScope()
+		p.advance("(")
+		if p.tkn.Id != ")" {
+			for {
+				if p.tkn.Ar != ArName {
+					p.error(p.tkn, "expected a parameter name")
+				}
+				p.scp.define(p.tkn)
+				a = append(a, p.tkn)
+				p.advance(_SYM_ANY)
+				if p.tkn.Id != "," {
+					break
+				}
+				p.advance(",")
+			}
+		}
+		sym.First = a
+		p.advance(")")
+		p.advance("{")
+		stmts := p.statements()
+		stmts = p.appendReturnNil(stmts)
+		sym.Second = stmts
+		p.advance("}")
+		if !prefix { // Don't consume the ending semicolon when func is an expression
+			p.advance(";")
+		}
+		sym.Ar = ArFunction
+		p.popScope()
+		return sym
+	}
+}
+
+func makeFuncParserIface(p *Parser, prefix bool) func(*Symbol) interface{} {
+	f := makeFuncParser(p, prefix)
+	return func(s *Symbol) interface{} {
+		return f(s)
+	}
+}
+
+func (p *Parser) appendReturnNil(s []*Symbol) []*Symbol {
+	// Make sure the function ends with a return statement, adding a return nil otherwise
+	if l := len(s); l == 0 || s[l-1].Id != "return" {
+		ret := p.makeSymbol("return", 0).clone()
+		ret.Ar = ArStatement
+		ret.First = p.makeSymbol("nil", 0).clone()
+		s = append(s, ret)
+	}
+	return s
 }

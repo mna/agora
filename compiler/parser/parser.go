@@ -1,5 +1,7 @@
-// Top-down operator precedence parser
-// Totally based on http://javascript.crockford.com/tdop/tdop.html
+// Package parser provides the agora source code parser. It is a top-down operator
+// precedence parser, based on this article from Douglas Crockford.
+//
+// http://javascript.crockford.com/tdop/tdop.html
 package parser
 
 import (
@@ -25,6 +27,7 @@ var (
 	}
 )
 
+// A Parser is an agora source code parser.
 type Parser struct {
 	// Created with the Parser
 	scn *scanner.Scanner // the Scanner
@@ -39,7 +42,7 @@ type Parser struct {
 	Debug bool
 }
 
-// Create a new Parser
+// New returns a new parser, initialized with its scanner.Scanner.
 func New() *Parser {
 	return &Parser{
 		scn: new(scanner.Scanner),
@@ -47,7 +50,7 @@ func New() *Parser {
 }
 
 // Parse the provided source code and returns the AST along with the
-// various scopes and an error (corresponding to the scanner.ErrorList)
+// various scopes and an error (corresponding to the scanner.ErrorList).
 func (p *Parser) Parse(filename string, src []byte) ([]*Symbol, *Scope, error) {
 	// Initialize parsing state
 	p.tbl = make(map[string]*Symbol)
