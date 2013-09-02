@@ -470,10 +470,10 @@ func (s *Scanner) switch4(tok0, tok1 token.Token, ch2 rune, tok2, tok3 token.Tok
 
 func (s *Scanner) getPosition() token.Position {
 	return token.Position{
-		s.filename,
-		s.offset,
-		s.line,
-		s.tokStartOffset - s.lineOffset + 1,
+		Filename: s.filename,
+		Offset:   s.offset,
+		Line:     s.line,
+		Column:   s.tokStartOffset - s.lineOffset + 1,
 	}
 }
 

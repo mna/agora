@@ -214,7 +214,7 @@ func TestModInt(t *testing.T) {
 		vx, vy := Int(c.x), Int(c.y)
 		res := vx.Mod(vy)
 		if ires := int(res.(Int)); c.exp != ires {
-			t.Errorf("%d % %d : expected %d, got %d", c.x, c.y, c.exp, ires)
+			t.Errorf("%d %% %d : expected %d, got %d", c.x, c.y, c.exp, ires)
 		}
 	}
 }

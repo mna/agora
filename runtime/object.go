@@ -139,31 +139,31 @@ func (ø *Object) Unm() Val {
 	panic(ErrInvalidOpUnmOnObj)
 }
 
-func (ø *Object) Get(key Val) Val {
-	if v, ok := ø.m[key]; ok {
+func (o *Object) Get(key Val) Val {
+	if v, ok := o.m[key]; ok {
 		return v
 	}
 	return Nil
 }
 
-func (ø *Object) Set(key Val, v Val) {
-	ø.m[key] = v
+func (o *Object) Set(key Val, v Val) {
+	o.m[key] = v
 }
 
-func (ø *Object) callMethod(nm Val, args ...Val) Val {
-	v, ok := ø.m[nm]
+func (o *Object) callMethod(nm Val, args ...Val) Val {
+	v, ok := o.m[nm]
 	if ok {
 		if f, ok := v.(Func); ok {
-			return f.Call(ø, args...)
+			return f.Call(o, args...)
 		} else {
 			panic(ErrFieldNotFunction)
 		}
 	} else {
 		// Method not found - call __noSuchMethod if it exists, otherwise panic
-		if m, ok := ø.m[String("__noSuchMethod")]; ok {
+		if m, ok := o.m[String("__noSuchMethod")]; ok {
 			if f, ok := m.(Func); ok {
 				args = append([]Val{nm}, args...)
-				return f.Call(ø, args...)
+				return f.Call(o, args...)
 			}
 		}
 		panic(ErrNoSuchMethod)

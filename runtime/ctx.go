@@ -30,9 +30,9 @@ type Ctx struct {
 	Stdin    io.ReadWriter  // ...
 	Stderr   io.ReadWriter  // ...
 	Logic    LogicProcessor // The boolean logic processor (And, Or, Not)
-	Resolver ModuleResolver
-	Compiler Compiler
-	Debug    bool
+	Resolver ModuleResolver // The module loading resolver (match a module to a string literal)
+	Compiler Compiler       // The source code compiler
+	Debug    bool           // Debug mode outputs helpful messages
 
 	// Call stack
 	frames []*frame
@@ -156,7 +156,9 @@ func (c *Ctx) getVar(nm string) (Val, bool) {
 			}
 		}
 	}
-	b := c.builtin.Get(String(nm)) // Will return Nil if not found
+	// Finally, look if the identifier refers to a built-in function.
+	// This will return Nil if it doesn't match any built-in.
+	b := c.builtin.Get(String(nm))
 	return b, b != Nil
 }
 

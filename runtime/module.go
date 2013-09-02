@@ -26,50 +26,51 @@ type agoraModule struct {
 }
 
 func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
-	gm := &agoraModule{
+	m := &agoraModule{
 		id: f.Name,
 	}
-	gm.fns = make([]*AgoraFunc, len(f.Fns))
+	m.fns = make([]*AgoraFunc, len(f.Fns))
 	for i, fn := range f.Fns {
-		gf := newAgoraFunc(gm, c)
-		gf.name = fn.Header.Name
-		gf.stackSz = fn.Header.StackSz
-		gf.expArgs = fn.Header.ExpArgs
-		gf.expVars = fn.Header.ExpVars
+		af := newAgoraFunc(m, c)
+		af.name = fn.Header.Name
+		af.stackSz = fn.Header.StackSz
+		af.expArgs = fn.Header.ExpArgs
+		af.expVars = fn.Header.ExpVars
 		// TODO : Ignore LineStart and LineEnd at the moment, unused.
-		gm.fns[i] = gf
-		gf.kTable = make([]Val, len(fn.Ks))
+		m.fns[i] = af
+		af.kTable = make([]Val, len(fn.Ks))
 		for j, k := range fn.Ks {
 			switch k.Type {
 			case bytecode.KtBoolean:
-				gf.kTable[j] = Bool(k.Val.(int64) != 0)
+				af.kTable[j] = Bool(k.Val.(int64) != 0)
 			case bytecode.KtInteger:
-				gf.kTable[j] = Int(k.Val.(int64))
+				af.kTable[j] = Int(k.Val.(int64))
 			case bytecode.KtFloat:
-				gf.kTable[j] = Float(k.Val.(float64))
+				af.kTable[j] = Float(k.Val.(float64))
 			case bytecode.KtString:
-				gf.kTable[j] = String(k.Val.(string))
+				af.kTable[j] = String(k.Val.(string))
 			default:
 				panic("invalid constant value type")
 			}
 		}
-		gf.code = make([]bytecode.Instr, len(fn.Is))
+		af.code = make([]bytecode.Instr, len(fn.Is))
 		for j, ins := range fn.Is {
-			gf.code[j] = ins
+			af.code[j] = ins
 		}
 	}
-	return gm
+	return m
 }
 
-func (g *agoraModule) Run() (v Val, err error) {
+func (m *agoraModule) Run() (v Val, err error) {
 	defer PanicToError(&err)
-	if len(g.fns) == 0 {
+	if len(m.fns) == 0 {
 		return Nil, ErrModuleHasNoFunc
 	}
-	if g.v == nil {
-		g.v = g.fns[0].Call(nil)
+	// Do not re-run a module if it has already been imported. Use the cached value.
+	if m.v == nil {
+		m.v = m.fns[0].Call(nil)
 	}
-	return g.v, nil
+	return m.v, nil
 }
 
 func PanicToError(err *error) {
@@ -82,8 +83,8 @@ func PanicToError(err *error) {
 	}
 }
 
-func (g *agoraModule) ID() string {
-	return g.id
+func (m *agoraModule) ID() string {
+	return m.id
 }
 
 type ModuleResolver interface {
