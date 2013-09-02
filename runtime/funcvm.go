@@ -70,7 +70,7 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 		varNm := f.proto.kTable[ix].String()
 		v, ok := f.proto.ctx.getVar(varNm)
 		if !ok {
-			panic("variable not found: " + varNm) // TODO : Better error messages
+			panic("variable not found: " + varNm)
 		}
 		return v
 	case bytecode.FLG_N:
@@ -337,7 +337,6 @@ func (ø *funcVM) run(args ...Val) Val {
 			x := ø.pop()
 			f, ok := x.(Func)
 			if !ok {
-				// TODO : Make an ErrXxx
 				panic("call on a non-function value")
 			}
 			// Pop the arguments in reverse order

@@ -201,18 +201,18 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
 	case "func":
+		funcIx := len(f.Fns) // New Fn will be added at this index
 		if sym.Name != "" {
 			// Function defined as a statement, register the name as a K,
 			// and push the function's value into this variable.
 			kix := e.registerK(fn, sym.Name, true)
-			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_F, uint64(len(f.Fns))) // New Fn will be added at this index
+			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_F, uint64(funcIx))
 			e.addInstr(fn, bytecode.OP_POP, bytecode.FLG_V, kix)
 		}
 		e.emitFn(f, sym)
 		if sym.Name == "" {
-			fix := len(f.Fns) - 1 // TODO : Will not work if there's a func within the func
 			// Func defined as an expression, must be pushed on the stack
-			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_F, uint64(fix))
+			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_F, uint64(funcIx))
 		}
 	case "(":
 		e.assert(sym.Ar == parser.ArBinary || sym.Ar == parser.ArTernary, errors.New("expected `(` to have binary or ternary arity"))

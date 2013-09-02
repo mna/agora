@@ -28,7 +28,6 @@ type Error struct {
 func (e Error) Error() string {
 	if e.Pos.Filename != "" || e.Pos.IsValid() {
 		// don't print "<unknown position>"
-		// TODO(gri) reconsider the semantics of Position.IsValid
 		return e.Pos.String() + ": " + e.Msg
 	}
 	return e.Msg

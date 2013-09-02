@@ -1,0 +1,15 @@
+// Test the index of the Func pushed onto the stack when anonymous
+fmt := import("fmt")
+a := func() {
+	fmt.Println("a")
+	b := func() {
+		fmt.Println("b")
+		c := func() {
+			fmt.Println("c")
+		}
+		c()
+	}
+	b()
+}
+
+a()
