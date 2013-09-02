@@ -28,13 +28,15 @@ type Comparer interface {
 	Cmp(Val) int
 }
 
+// The dumper interface defines the required behaviour to pretty-print
+// the values.
 type dumper interface {
 	dump() string
 }
 
 // Val is the representation of a value, any value, in the language.
 // The supported value types are the following:
-// * Integer (Int)
+// * Integer (Int) - will likely disappear in future versions
 // * Float
 // * String
 // * Boolean (Bool)
@@ -48,22 +50,26 @@ type Val interface {
 	dumper
 }
 
+// The LogicProcessor interface defines the method required to implement
+// boolean logic. It is defined as an interface for pluggable replacement
+// for testing.
 type LogicProcessor interface {
 	Not(v Val) Bool
 	And(x, y Val) Bool
 	Or(x, y Val) Bool
 }
 
+// The default implementation of the logic processor.
 type defaultLogic struct{}
 
-func (ø defaultLogic) Not(v Val) Bool {
+func (d defaultLogic) Not(v Val) Bool {
 	return Bool(!v.Bool())
 }
 
-func (ø defaultLogic) And(x, y Val) Bool {
+func (d defaultLogic) And(x, y Val) Bool {
 	return Bool(x.Bool() && y.Bool())
 }
 
-func (ø defaultLogic) Or(x, y Val) Bool {
+func (d defaultLogic) Or(x, y Val) Bool {
 	return Bool(x.Bool() || y.Bool())
 }

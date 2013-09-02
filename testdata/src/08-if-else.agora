@@ -1,4 +1,4 @@
-import "fmt"
+fmt := import("fmt")
 a := "ok"
 if a { 
   fmt.Println("true")

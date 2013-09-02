@@ -12,9 +12,12 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrValNotAnObject = errors.New("value is not an object")
 )
 
+// A funcVM is an instance of a function prototype. It holds the virtual machine
+// required to execute the instructions.
 type funcVM struct {
 	proto *AgoraFunc
 	pc    int
@@ -85,75 +88,77 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
 }
 
-func (ø *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
+// Pretty-print an instruction.
+func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 	switch i.Flag() {
 	case bytecode.FLG_K:
-		fmt.Fprintf(w, " ; %s", ø.proto.kTable[i.Index()].dump())
+		fmt.Fprintf(w, " ; %s", f.proto.kTable[i.Index()].dump())
 	case bytecode.FLG_V:
-		fmt.Fprintf(w, " ; var %s", ø.proto.kTable[i.Index()])
+		fmt.Fprintf(w, " ; var %s", f.proto.kTable[i.Index()])
 	case bytecode.FLG_N:
 		fmt.Fprintf(w, " ; %s", Nil.dump())
 	case bytecode.FLG_T:
 		fmt.Fprint(w, " ; [this]")
 	case bytecode.FLG_F:
-		fmt.Fprintf(w, " ; %s", ø.proto.mod.fns[i.Index()].dump())
+		fmt.Fprintf(w, " ; %s", f.proto.mod.fns[i.Index()].dump())
 	case bytecode.FLG_A:
 		fmt.Fprintf(w, " ; args[%d]", i.Index())
 	}
 }
 
-func (ø *funcVM) dump() string {
+// Pretty-print a function's execution context.
+func (f *funcVM) dump() string {
 	buf := bytes.NewBuffer(nil)
-	fmt.Fprintf(buf, "\n> %s\n", ø.proto.dump())
+	fmt.Fprintf(buf, "\n> %s\n", f.proto.dump())
 	// Constants
 	fmt.Fprintf(buf, "  Constants:\n")
-	for i, v := range ø.proto.kTable {
+	for i, v := range f.proto.kTable {
 		fmt.Fprintf(buf, "    [%3d] %s\n", i, v.dump())
 	}
 	// Variables
 	fmt.Fprintf(buf, "\n  Variables:\n")
-	if ø.this != nil {
-		fmt.Fprintf(buf, "    [this] = %s\n", ø.this.dump())
+	if f.this != nil {
+		fmt.Fprintf(buf, "    [this] = %s\n", f.this.dump())
 	}
 	// Sort the vars for deterministic output
-	sortedVars := make([]string, len(ø.vars))
+	sortedVars := make([]string, len(f.vars))
 	j := 0
-	for k, _ := range ø.vars {
+	for k, _ := range f.vars {
 		sortedVars[j] = k
 		j++
 	}
 	sort.Strings(sortedVars)
 	for _, k := range sortedVars {
-		fmt.Fprintf(buf, "    %s = %s\n", k, ø.vars[k].dump())
+		fmt.Fprintf(buf, "    %s = %s\n", k, f.vars[k].dump())
 	}
 	// Stack
 	fmt.Fprintf(buf, "\n  Stack:\n")
-	i := int(math.Max(0, float64(ø.sp-5)))
-	for i <= ø.sp {
-		if i == ø.sp {
+	i := int(math.Max(0, float64(f.sp-5)))
+	for i <= f.sp {
+		if i == f.sp {
 			fmt.Fprint(buf, "sp->")
 		} else {
 			fmt.Fprint(buf, "    ")
 		}
 		v := Val(Nil)
-		if i < len(ø.stack) {
-			v = ø.stack[i]
+		if i < len(f.stack) {
+			v = f.stack[i]
 		}
 		fmt.Fprintf(buf, "[%3d] %s\n", i, v.dump())
 		i++
 	}
 	// Instructions
 	fmt.Fprintf(buf, "\n  Instructions:\n")
-	i = int(math.Max(0, float64(ø.pc-10)))
-	for i <= ø.pc+10 {
-		if i == ø.pc {
+	i = int(math.Max(0, float64(f.pc-10)))
+	for i <= f.pc+10 {
+		if i == f.pc {
 			fmt.Fprintf(buf, "pc->")
 		} else {
 			fmt.Fprintf(buf, "    ")
 		}
-		if i < len(ø.proto.code) {
-			fmt.Fprintf(buf, "[%3d] %s", i, ø.proto.code[i])
-			ø.dumpInstrInfo(buf, ø.proto.code[i])
+		if i < len(f.proto.code) {
+			fmt.Fprintf(buf, "[%3d] %s", i, f.proto.code[i])
+			f.dumpInstrInfo(buf, f.proto.code[i])
 			fmt.Fprintln(buf)
 		} else {
 			break
@@ -164,6 +169,7 @@ func (ø *funcVM) dump() string {
 	return buf.String()
 }
 
+// Create the reserved identifier `args` value, as an Object.
 func (vm *funcVM) createArgsVal(args []Val) Val {
 	if len(args) == 0 {
 		return Nil
@@ -175,124 +181,129 @@ func (vm *funcVM) createArgsVal(args []Val) Val {
 	return o
 }
 
-func (ø *funcVM) run(args ...Val) Val {
+// run executes the instructions of the function. This is the actual implementation
+// of the Virtual Machine.
+func (f *funcVM) run(args ...Val) Val {
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
-	for j, l := int64(0), int64(len(args)); j < ø.proto.expArgs; j++ {
+	for j, l := int64(0), int64(len(args)); j < f.proto.expArgs; j++ {
 		if j < l {
-			ø.vars[ø.proto.kTable[j].String()] = args[j]
+			f.vars[f.proto.kTable[j].String()] = args[j]
 		} else {
-			ø.vars[ø.proto.kTable[j].String()] = Nil
+			f.vars[f.proto.kTable[j].String()] = Nil
 		}
 	}
 	// Keep the args array
-	ø.args = ø.createArgsVal(args)
+	f.args = f.createArgsVal(args)
 
 	// Execute the instructions
 	for {
 		// Get the instruction to process
-		i := ø.proto.code[ø.pc]
+		i := f.proto.code[f.pc]
 		// Decode the instruction
 		op, flg, ix := i.Opcode(), i.Flag(), i.Index()
+		if f.proto.ctx.Debug {
+			fmt.Printf("[%d] - %s\n", f.pc, i)
+		}
 		// Increment the PC, if a jump requires a different PC delta, it will set it explicitly
-		ø.pc++
+		f.pc++
 		switch op {
 		case bytecode.OP_RET:
 			// End this function call, return the value on top of the stack
-			return ø.pop()
+			return f.pop()
 
 		case bytecode.OP_PUSH:
-			ø.push(ø.getVal(flg, ix))
+			f.push(f.getVal(flg, ix))
 
 		case bytecode.OP_POP:
-			if nm, v := ø.proto.kTable[ix].String(), ø.pop(); !ø.proto.ctx.setVar(nm, v) {
+			if nm, v := f.proto.kTable[ix].String(), f.pop(); !f.proto.ctx.setVar(nm, v) {
 				// Not found anywhere, create variable locally
-				ø.vars[nm] = v
+				f.vars[nm] = v
 			}
 
 		case bytecode.OP_ADD:
-			y, x := ø.pop(), ø.pop()
-			ø.push(x.Add(y))
+			y, x := f.pop(), f.pop()
+			f.push(x.Add(y))
 
 		case bytecode.OP_SUB:
-			y, x := ø.pop(), ø.pop()
-			ø.push(x.Sub(y))
+			y, x := f.pop(), f.pop()
+			f.push(x.Sub(y))
 
 		case bytecode.OP_MUL:
-			y, x := ø.pop(), ø.pop()
-			ø.push(x.Mul(y))
+			y, x := f.pop(), f.pop()
+			f.push(x.Mul(y))
 
 		case bytecode.OP_DIV:
-			y, x := ø.pop(), ø.pop()
-			ø.push(x.Div(y))
+			y, x := f.pop(), f.pop()
+			f.push(x.Div(y))
 
 		case bytecode.OP_MOD:
-			y, x := ø.pop(), ø.pop()
-			ø.push(x.Mod(y))
+			y, x := f.pop(), f.pop()
+			f.push(x.Mod(y))
 
 		case bytecode.OP_NOT:
-			x := ø.pop()
-			ø.push(ø.proto.ctx.Logic.Not(x))
+			x := f.pop()
+			f.push(f.proto.ctx.Logic.Not(x))
 
 		case bytecode.OP_UNM:
-			x := ø.pop()
-			ø.push(x.Unm())
+			x := f.pop()
+			f.push(x.Unm())
 
 		case bytecode.OP_EQ:
-			y, x := ø.pop(), ø.pop()
+			y, x := f.pop(), f.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp == 0))
+			f.push(Bool(cmp == 0))
 
 		case bytecode.OP_LT:
-			y, x := ø.pop(), ø.pop()
+			y, x := f.pop(), f.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp < 0))
+			f.push(Bool(cmp < 0))
 
 		case bytecode.OP_LTE:
-			y, x := ø.pop(), ø.pop()
+			y, x := f.pop(), f.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp <= 0))
+			f.push(Bool(cmp <= 0))
 
 		case bytecode.OP_GT:
-			y, x := ø.pop(), ø.pop()
+			y, x := f.pop(), f.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp > 0))
+			f.push(Bool(cmp > 0))
 
 		case bytecode.OP_GTE:
-			y, x := ø.pop(), ø.pop()
+			y, x := f.pop(), f.pop()
 			cmp := x.Cmp(y)
-			ø.push(Bool(cmp >= 0))
+			f.push(Bool(cmp >= 0))
 
 		case bytecode.OP_AND:
-			y, x := ø.pop(), ø.pop()
-			ø.push(ø.proto.ctx.Logic.And(x, y))
+			y, x := f.pop(), f.pop()
+			f.push(f.proto.ctx.Logic.And(x, y))
 
 		case bytecode.OP_OR:
-			y, x := ø.pop(), ø.pop()
-			ø.push(ø.proto.ctx.Logic.Or(x, y))
+			y, x := f.pop(), f.pop()
+			f.push(f.proto.ctx.Logic.Or(x, y))
 
 		case bytecode.OP_TEST:
-			if !ø.pop().Bool() {
+			if !f.pop().Bool() {
 				// Do the jump over ix instructions
-				ø.pc += int(ix)
+				f.pc += int(ix)
 			}
 
 		case bytecode.OP_JMP:
 			if flg == bytecode.FLG_Jf {
-				ø.pc += int(ix)
+				f.pc += int(ix)
 			} else {
-				ø.pc -= (int(ix) + 1) // +1 because pc is already on next instr
+				f.pc -= (int(ix) + 1) // +1 because pc is already on next instr
 			}
 
 		case bytecode.OP_NEW:
 			ob := NewObject()
 			for j := ix; j > 0; j-- {
-				key, val := ø.pop(), ø.pop()
+				key, val := f.pop(), f.pop()
 				ob.Set(key, val)
 			}
-			ø.push(ob)
+			f.push(ob)
 
 		case bytecode.OP_SFLD:
-			vr, k, vl := ø.pop(), ø.pop(), ø.pop()
+			vr, k, vl := f.pop(), f.pop(), f.pop()
 			if ob, ok := vr.(*Object); ok {
 				ob.Set(k, vl)
 			} else {
@@ -300,22 +311,22 @@ func (ø *funcVM) run(args ...Val) Val {
 			}
 
 		case bytecode.OP_GFLD:
-			vr, k := ø.pop(), ø.pop()
+			vr, k := f.pop(), f.pop()
 			if ob, ok := vr.(*Object); ok {
-				ø.push(ob.Get(k))
+				f.push(ob.Get(k))
 			} else {
 				panic(ErrValNotAnObject)
 			}
 
 		case bytecode.OP_CFLD:
-			vr, k := ø.pop(), ø.pop()
+			vr, k := f.pop(), f.pop()
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
-				args[j-1] = ø.pop()
+				args[j-1] = f.pop()
 			}
 			if ob, ok := vr.(*Object); ok {
-				ø.push(ob.callMethod(k, args...))
+				f.push(ob.callMethod(k, args...))
 			} else {
 				panic(ErrValNotAnObject)
 			}
@@ -323,23 +334,23 @@ func (ø *funcVM) run(args ...Val) Val {
 		case bytecode.OP_CALL:
 			// ix is the number of args
 			// Pop the function itself, ensure it is a function
-			x := ø.pop()
-			f, ok := x.(Func)
+			x := f.pop()
+			fn, ok := x.(Func)
 			if !ok {
 				panic("call on a non-function value")
 			}
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
-				args[j-1] = ø.pop()
+				args[j-1] = f.pop()
 			}
 			// Call the function, and store the return value on the stack
-			ø.push(f.Call(nil, args...))
+			f.push(fn.Call(nil, args...))
 
 		case bytecode.OP_DUMP:
-			if ø.proto.ctx.Debug {
+			if f.proto.ctx.Debug {
 				// Dumps `ix` number of stack traces
-				ø.proto.ctx.dump(int(ix))
+				f.proto.ctx.dump(int(ix))
 			}
 
 		default:

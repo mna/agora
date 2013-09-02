@@ -1,3 +1,5 @@
+// Package testing is for internal use only, it groups useful utility functions
+// and variables to help in testing bytecode results.
 package testing
 
 import (

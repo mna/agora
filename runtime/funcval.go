@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrInvalidConvFuncToInt    = errors.New("cannot convert Func to Int")
 	ErrInvalidConvFuncToFloat  = errors.New("cannot convert Func to Float")
 	ErrInvalidConvFuncToString = errors.New("cannot convert Func to String")
@@ -27,56 +28,56 @@ type funcVal struct {
 	// automatically.
 }
 
-func (ø *funcVal) dump() string {
-	return fmt.Sprintf("%s (Func)", ø.name)
+func (f *funcVal) dump() string {
+	return fmt.Sprintf("%s (Func)", f.name)
 }
 
 // Int is an invalid conversion.
-func (ø *funcVal) Int() int {
+func (f *funcVal) Int() int {
 	panic(ErrInvalidConvFuncToInt)
 }
 
 // Float is an invalid conversion.
-func (ø *funcVal) Float() float64 {
+func (f *funcVal) Float() float64 {
 	panic(ErrInvalidConvFuncToFloat)
 }
 
 // String is an invalid conversion.
-func (ø *funcVal) String() string {
+func (f *funcVal) String() string {
 	panic(ErrInvalidConvFuncToString)
 }
 
 // Bool returns true.
-func (ø *funcVal) Bool() bool {
+func (f *funcVal) Bool() bool {
 	return true
 }
 
 // Add is an invalid operation.
-func (ø *funcVal) Add(v Val) Val {
+func (f *funcVal) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnFunc)
 }
 
 // Sub is an invalid operation.
-func (ø *funcVal) Sub(v Val) Val {
+func (f *funcVal) Sub(v Val) Val {
 	panic(ErrInvalidOpSubOnFunc)
 }
 
 // Mul is an invalid operation.
-func (ø *funcVal) Mul(v Val) Val {
+func (f *funcVal) Mul(v Val) Val {
 	panic(ErrInvalidOpMulOnFunc)
 }
 
 // Div is an invalid operation.
-func (ø *funcVal) Div(v Val) Val {
+func (f *funcVal) Div(v Val) Val {
 	panic(ErrInvalidOpDivOnFunc)
 }
 
 // Mod is an invalid operation.
-func (ø *funcVal) Mod(v Val) Val {
+func (f *funcVal) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnFunc)
 }
 
 // Unm is an invalid operation.
-func (ø *funcVal) Unm() Val {
+func (f *funcVal) Unm() Val {
 	panic(ErrInvalidOpUnmOnFunc)
 }

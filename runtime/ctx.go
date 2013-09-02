@@ -10,11 +10,13 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrModuleNotFound  = errors.New("module not found")
 	ErrModuleHasNoFunc = errors.New("module has no function")
 	ErrCyclicDepFound  = errors.New("cyclic module dependency found")
 )
 
+// The Compiler interface defines the required behaviour for a Compiler.
 type Compiler interface {
 	Compile(string, io.Reader) (*bytecode.File, error)
 }
@@ -24,6 +26,12 @@ type frame struct {
 	fvm *funcVM
 }
 
+// A Ctx represents the execution context. It is self-contained, share-nothing
+// with other contexts. An execution context is *not* thread-safe, it should
+// not be used concurrently. However, different instances of Ctx can be run
+// concurrently, provided their components - Compiler, Resolver, etc. - are
+// distinct instances too or do not rely on shared state or do so in a
+// thread-safe way.
 type Ctx struct {
 	// Public fields
 	Stdout   io.ReadWriter  // The standard streams
@@ -44,6 +52,8 @@ type Ctx struct {
 	builtin     *Object
 }
 
+// NewCtx returns a new execution context, using the provided module resolver
+// and compiler.
 func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	c := &Ctx{
 		Stdout:      os.Stdout,
@@ -65,25 +75,29 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	return c
 }
 
-/*
-Sequence for loading, compiling, and bootstrapping execution:
-
-* Get or create a Ctx (DefaultCtx or NewCtx())
-* ctx.LoadFile(id string) (Val, error)
-* If module is cached (ctx.loadedMods), return the Val, done.
-* If module is native (ctx.nativeMods), call Module.Load(ctx), cache and return the value, done.
-* If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
-* If Resolve returns an error, return nil, error, done.
-* If file is already bytecode, just decode
-* Otherwise call Compiler.Compile(id string, r io.Reader) (*bytecode.File, error)
-* If Compile returns an error, return nil, error, done.
-* Create module from *bytecode.File
-* Cache module and return, do NOT execute the module.
-*/
+// Load resolves the module identified by the provided identifier, and loads
+// it into memory. It returns a ready-to-run module, or an error.
+//
+// The sequence for loading, compiling, and bootstrapping execution is the
+// following:
+//
+// * If id is empty string, return error.
+// * If this identifier is currently being loaded, there is a cyclic dependency, return error.
+// * If module is cached (ctx.loadedMods), return the Module, done.
+// * If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
+// * If Resolve returns an error, return nil, error, done.
+// * If file is already bytecode, just load it into memory using a decoder
+// * If decoder returns an error, return ni, error, done.
+// * Otherwise (if not bytecode) call Compiler.Compile(id string, r io.Reader) (*bytecode.File, error)
+// * If Compile returns an error, return nil, error, done.
+// * Create module from *bytecode.File
+// * Cache module and return, do NOT execute the module.
+//
 func (c *Ctx) Load(id string) (Module, error) {
 	if id == "" {
 		return nil, ErrModuleNotFound
 	}
+	// TODO : This doesn't work anymore, since Load doesn't Run the module
 	if c.loadingMods[id] {
 		return nil, ErrCyclicDepFound
 	}
@@ -123,11 +137,14 @@ func (c *Ctx) Load(id string) (Module, error) {
 	return mod, nil
 }
 
+// RegisterNativeModule adds the provided native module to the list of loaded and cached
+// modules in this execution context (replacing any other module with the same ID).
 func (c *Ctx) RegisterNativeModule(m NativeModule) {
 	m.SetCtx(c)
 	c.loadedMods[m.ID()] = m
 }
 
+// Push a function onto the frame stack.
 func (c *Ctx) push(f Func, fvm *funcVM) {
 	// Stack has to grow as needed
 	if c.frmsp == len(c.frames) {
@@ -141,11 +158,14 @@ func (c *Ctx) push(f Func, fvm *funcVM) {
 	c.frmsp++
 }
 
+// Pop the top function from the frame stack.
 func (ø *Ctx) pop() {
 	ø.frmsp--
 	ø.frames[ø.frmsp] = nil // free this reference for gc
 }
 
+// Get the variable identified by name, looking up the frame stack and ultimately the
+// built-ins.
 func (c *Ctx) getVar(nm string) (Val, bool) {
 	// Current frame is c.frmsp - 1
 	for i := c.frmsp - 1; i >= 0; i-- {
@@ -162,10 +182,12 @@ func (c *Ctx) getVar(nm string) (Val, bool) {
 	return b, b != Nil
 }
 
-func (ø *Ctx) setVar(nm string, v Val) bool {
+// Set the value of the variable identified by the provided name, looking up the
+// frame stack if necessary. Returns true if the variable was found.
+func (c *Ctx) setVar(nm string, v Val) bool {
 	// Current frame is ø.frmsp - 1
-	for i := ø.frmsp - 1; i >= 0; i-- {
-		frm := ø.frames[i]
+	for i := c.frmsp - 1; i >= 0; i-- {
+		frm := c.frames[i]
 		if frm.fvm != nil {
 			if _, ok := frm.fvm.vars[nm]; ok {
 				frm.fvm.vars[nm] = v
@@ -176,16 +198,17 @@ func (ø *Ctx) setVar(nm string, v Val) bool {
 	return false
 }
 
-func (ø *Ctx) dump(n int) {
+// Pretty-print the execution context, up to n number of frames.
+func (c *Ctx) dump(n int) {
 	if n < 0 {
 		return
 	}
-	for i, cnt := ø.frmsp, ø.frmsp-n; i > 0 && i > cnt; i-- {
-		fmt.Fprintf(ø.Stdout, "\n[Frame %3d]\n===========", i-1)
-		if frm := ø.frames[i-1]; frm.fvm != nil {
-			fmt.Fprintln(ø.Stdout, frm.fvm.dump())
+	for i, cnt := c.frmsp, c.frmsp-n; i > 0 && i > cnt; i-- {
+		fmt.Fprintf(c.Stdout, "\n[Frame %3d]\n===========", i-1)
+		if frm := c.frames[i-1]; frm.fvm != nil {
+			fmt.Fprintln(c.Stdout, frm.fvm.dump())
 		} else {
-			fmt.Fprintln(ø.Stdout, frm.f.(dumper).dump())
+			fmt.Fprintln(c.Stdout, frm.f.(dumper).dump())
 		}
 	}
 }

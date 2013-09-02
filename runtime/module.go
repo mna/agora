@@ -9,11 +9,14 @@ import (
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
+// The Module interface defines the required behaviours for a Module.
 type Module interface {
 	ID() string
 	Run() (Val, error)
 }
 
+// A NativeModule is a Module with added behaviour required for supporting
+// native Go modules.
 type NativeModule interface {
 	Module
 	SetCtx(*Ctx)
@@ -61,6 +64,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 	return m
 }
 
+// Run executes the module and returns its return value, or an error.
 func (m *agoraModule) Run() (v Val, err error) {
 	defer PanicToError(&err)
 	if len(m.fns) == 0 {
@@ -73,6 +77,9 @@ func (m *agoraModule) Run() (v Val, err error) {
 	return m.v, nil
 }
 
+// PanicToError is a utility function for modules implementations to catch panics
+// and translate them to an error interface. It should be called in a defer statement,
+// with the address of an error variable (usually a named return value) as argument.
 func PanicToError(err *error) {
 	if p := recover(); p != nil {
 		if e, ok := p.(error); ok {
@@ -83,20 +90,36 @@ func PanicToError(err *error) {
 	}
 }
 
+// ID returns the identifier of the module.
 func (m *agoraModule) ID() string {
 	return m.id
 }
 
+// A ModuleResolver interface represents the required behaviour for the component
+// responsible for matching a module identifier to actual source code.
+// Various implementations can be provided, for example by loading modules
+// in a database, over http, compressed, secured and signed, etc.
 type ModuleResolver interface {
 	Resolve(string) (io.Reader, error)
 }
 
+// A FileResolver is a ModuleResolver that turns the module identifier into
+// a file path to find the matching source code.
 type FileResolver struct{}
 
 var (
 	extensions = [...]string{".agorac", ".agoraa", ".agora"}
 )
 
+// Resolve matches the provided identifier with a source file.
+//
+// If the identifier has no extension (which is recommended), Resolve looks
+// for files in the following order:
+//
+// 1- .agorac (compiled bytecode)
+// 2- .agoraa (agora assembly code)
+// 3- .agora  (agora source code)
+//
 // TODO : This doesn't work, the Ctx has a single compiler, that may
 // compile assembly or source, but not both. The Resolver should look
 // for compiled bytecode or the same source code as the initial Ctx.Load.
@@ -111,10 +134,6 @@ func (f FileResolver) Resolve(id string) (io.Reader, error) {
 		}
 		nm = filepath.Join(pwd, id)
 	}
-	// If there is no extension, try files in the following order:
-	// 1- .agorac (compiled bytecode)
-	// 2- .agoraa (agora assembly code)
-	// 3- .agora  (agora source code)
 	if filepath.Ext(nm) == "" {
 		for _, ext := range extensions {
 			if _, err := os.Stat(nm + ext); err != nil {

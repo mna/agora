@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrInvalidOpSubOnString = errors.New("cannot apply Sub on a String value")
 	ErrInvalidOpDivOnString = errors.New("cannot apply Div on a String value")
 	ErrInvalidOpModOnString = errors.New("cannot apply Mod on a String value")
@@ -18,15 +19,16 @@ var (
 // to Go's string type.
 type String string
 
-func (ø String) dump() string {
-	return fmt.Sprintf("\"%s\" (String)", string(ø))
+// Pretty-prints the string value.
+func (s String) dump() string {
+	return fmt.Sprintf("\"%s\" (String)", string(s))
 }
 
 // Int converts the string representation of an integer to an integer value.
 // If the string doesn't hold a valid integer representation,
 // it panics.
-func (ø String) Int() int {
-	i, err := strconv.ParseInt(string(ø), 10, 0)
+func (s String) Int() int {
+	i, err := strconv.ParseInt(string(s), 10, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -36,8 +38,8 @@ func (ø String) Int() int {
 // Float converts the string representation of a float to a float value.
 // If the string doesn't hold a valid float representation,
 // it panics.
-func (ø String) Float() float64 {
-	f, err := strconv.ParseFloat(string(ø), 64)
+func (s String) Float() float64 {
+	f, err := strconv.ParseFloat(string(s), 64)
 	if err != nil {
 		panic(err)
 	}
@@ -45,23 +47,25 @@ func (ø String) Float() float64 {
 }
 
 // String returns itself.
-func (ø String) String() string {
-	return string(ø)
+func (s String) String() string {
+	return string(s)
 }
 
 // Bool returns true if the string value is not empty, false otherwise.
-func (ø String) Bool() bool {
-	return len(string(ø)) > 0
+func (s String) Bool() bool {
+	return len(string(s)) > 0
 }
 
-func (ø String) Native() interface{} {
-	return string(ø)
+// Native returns the Go native representation of the value.
+func (s String) Native() interface{} {
+	return string(s)
 }
 
-func (ø String) Cmp(v Val) int {
-	if s := v.String(); string(ø) > s {
+// Cmp compares the value with another value.
+func (s String) Cmp(v Val) int {
+	if vs := v.String(); string(s) > vs {
 		return 1
-	} else if string(ø) < s {
+	} else if string(s) < vs {
 		return -1
 	} else {
 		return 0
@@ -70,32 +74,33 @@ func (ø String) Cmp(v Val) int {
 
 // Add performs the concatenation of the string with the supplied value,
 // converted to a string.
-func (ø String) Add(v Val) Val {
-	return String(string(ø) + v.String())
+func (s String) Add(v Val) Val {
+	return String(string(s) + v.String())
 }
 
 // Sub is an invalid operation.
-func (ø String) Sub(v Val) Val {
+func (s String) Sub(v Val) Val {
 	panic(ErrInvalidOpSubOnString)
 }
 
 // Mul repeats n number of times the string, n being the
 // value converted to an integer.
-func (ø String) Mul(v Val) Val {
-	return String(strings.Repeat(string(ø), v.Int()))
+// TODO : Is this a *good idea*?
+func (s String) Mul(v Val) Val {
+	return String(strings.Repeat(string(s), v.Int()))
 }
 
 // Div is an invalid operation.
-func (ø String) Div(v Val) Val {
+func (s String) Div(v Val) Val {
 	panic(ErrInvalidOpDivOnString)
 }
 
 // Mod is an invalid operation.
-func (ø String) Mod(v Val) Val {
+func (s String) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnString)
 }
 
 // Unm is an invalid operation.
-func (ø String) Unm() Val {
+func (s String) Unm() Val {
 	panic(ErrInvalidOpUnmOnString)
 }

@@ -75,6 +75,7 @@ func (b *builtinMod) _recover(args ...Val) (ret Val) {
 	// Return value is discarded, because recover returns the error, if any, or Nil.
 	// The function to run in recovery mode must be a closure or assign its return
 	// value to an outer-scope variable.
+
 	// TODO : This would lose the `this` keyword in case of recover being called
 	// on an object's method.
 	f.Call(Nil, args[1:]...)

@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrInvalidConvObjToInt    = errors.New("cannot convert Object to Int")
 	ErrInvalidConvObjToFloat  = errors.New("cannot convert Object to Float")
 	ErrInvalidConvObjToString = errors.New("cannot convert Object to String")
@@ -23,79 +24,95 @@ var (
 	ErrFieldNotFunction = errors.New("field is not a function")
 )
 
+// An Object is a map of values, an associative array.
 type Object struct {
 	m map[Val]Val
 }
 
+// NewObject returns a new instance of an object.
 func NewObject() *Object {
 	return &Object{
 		make(map[Val]Val),
 	}
 }
 
-func (ø *Object) dump() string {
+// dump pretty-prints the content of the object.
+func (o *Object) dump() string {
 	buf := bytes.NewBuffer(nil)
-	for k, v := range ø.m {
+	for k, v := range o.m {
 		buf.WriteString(fmt.Sprintf(" %s: %s, ", k.dump(), v.dump()))
 	}
 	return fmt.Sprintf("{%s} (Object)", buf)
 }
 
-func (ø *Object) Int() int {
-	if i, ok := ø.m[String("__toInt")]; ok {
+// Int returns the integer value of the object. Such behaviour can be defined
+// if a `__toInt` method is available on the object.
+func (o *Object) Int() int {
+	if i, ok := o.m[String("__toInt")]; ok {
 		if f, ok := i.(Func); ok {
-			return f.Call(ø).Int()
+			return f.Call(o).Int()
 		}
 	}
 	panic(ErrInvalidConvObjToInt)
 }
 
-func (ø *Object) Float() float64 {
-	if l, ok := ø.m[String("__toFloat")]; ok {
+// Float returns the float value of the object. Such behaviour can be defined
+// if a `__toFloat` method is available on the object.
+func (o *Object) Float() float64 {
+	if l, ok := o.m[String("__toFloat")]; ok {
 		if f, ok := l.(Func); ok {
-			return f.Call(ø).Float()
+			return f.Call(o).Float()
 		}
 	}
 	panic(ErrInvalidConvObjToFloat)
 }
 
-func (ø *Object) String() string {
-	if s, ok := ø.m[String("__toString")]; ok {
+// String returns the string value of the object. Such behaviour can be defined
+// if a `__toString` method is available on the object.
+func (o *Object) String() string {
+	if s, ok := o.m[String("__toString")]; ok {
 		if f, ok := s.(Func); ok {
-			return f.Call(ø).String()
+			return f.Call(o).String()
 		}
 	}
 	panic(ErrInvalidConvObjToString)
 }
 
-func (ø *Object) Bool() bool {
-	if b, ok := ø.m[String("__toBool")]; ok {
+// Bool returns the boolean value of the object. Such behaviour can be defined
+// if a `__toBool` method is available on the object. Otherwise it returns true.
+func (o *Object) Bool() bool {
+	if b, ok := o.m[String("__toBool")]; ok {
 		if f, ok := b.(Func); ok {
-			return f.Call(ø).Bool()
+			return f.Call(o).Bool()
 		}
 	}
 	// If __toBool is not defined, object returns true (since it is not nil)
 	return true
 }
 
-func (ø *Object) Native() interface{} {
-	if o, ok := ø.m[String("__toNative")]; ok {
-		if f, ok := o.(Func); ok {
-			return f.Call(ø).Native()
+// Native returns the Go native value of the object. Such behaviour can be defined
+// if a `__toNative` method is available on the object.
+func (o *Object) Native() interface{} {
+	if n, ok := o.m[String("__toNative")]; ok {
+		if f, ok := n.(Func); ok {
+			return f.Call(o).Native()
 		}
 	}
 	panic(ErrInvalidConvObjToNative)
 }
 
-func (ø *Object) Cmp(v Val) int {
+// Cmp compares the object to another value. Such behaviour can be defined
+// if a `__cmp` method is available on the object. Otherwise it returns 0 if
+// the compared value is the object, or -1 otherwise.
+func (o *Object) Cmp(v Val) int {
 	// First check for a custom Cmp method
-	if c, ok := ø.m[String("__cmp")]; ok {
+	if c, ok := o.m[String("__cmp")]; ok {
 		if f, ok := c.(Func); ok {
-			return f.Call(ø, v).Int()
+			return f.Call(o, v).Int()
 		}
 	}
 	// Else, default Cmp - if same reference as v, return 0 (equal)
-	if ø == v {
+	if o == v {
 		return 0
 	}
 	return -1
@@ -110,35 +127,49 @@ func (ø *Object) callBinaryMethod(nm String, err error, v Val) Val {
 	panic(err)
 }
 
-func (ø *Object) Add(v Val) Val {
-	return ø.callBinaryMethod(String("__add"), ErrInvalidOpAddOnObj, v)
+// Add performs addition. Such behaviour can be defined
+// if a `__add` method is available on the object.
+func (o *Object) Add(v Val) Val {
+	return o.callBinaryMethod(String("__add"), ErrInvalidOpAddOnObj, v)
 }
 
-func (ø *Object) Sub(v Val) Val {
-	return ø.callBinaryMethod(String("__sub"), ErrInvalidOpSubOnObj, v)
+// Sub performs subtraction. Such behaviour can be defined
+// if a `__sub` method is available on the object.
+func (o *Object) Sub(v Val) Val {
+	return o.callBinaryMethod(String("__sub"), ErrInvalidOpSubOnObj, v)
 }
 
-func (ø *Object) Mul(v Val) Val {
-	return ø.callBinaryMethod(String("__mul"), ErrInvalidOpMulOnObj, v)
+// Mul performs multiplication. Such behaviour can be defined
+// if a `__mul` method is available on the object.
+func (o *Object) Mul(v Val) Val {
+	return o.callBinaryMethod(String("__mul"), ErrInvalidOpMulOnObj, v)
 }
 
-func (ø *Object) Div(v Val) Val {
-	return ø.callBinaryMethod(String("__div"), ErrInvalidOpDivOnObj, v)
+// Div performs division. Such behaviour can be defined
+// if a `__div` method is available on the object.
+func (o *Object) Div(v Val) Val {
+	return o.callBinaryMethod(String("__div"), ErrInvalidOpDivOnObj, v)
 }
 
-func (ø *Object) Mod(v Val) Val {
-	return ø.callBinaryMethod(String("__mod"), ErrInvalidOpModOnObj, v)
+// Mod computes the modulo. Such behaviour can be defined
+// if a `__mod` method is available on the object.
+func (o *Object) Mod(v Val) Val {
+	return o.callBinaryMethod(String("__mod"), ErrInvalidOpModOnObj, v)
 }
 
-func (ø *Object) Unm() Val {
-	if m, ok := ø.m[String("__unm")]; ok {
+// Unm computes the unary minus. Such behaviour can be defined
+// if a `__unm` method is available on the object.
+func (o *Object) Unm() Val {
+	if m, ok := o.m[String("__unm")]; ok {
 		if f, ok := m.(Func); ok {
-			return f.Call(ø)
+			return f.Call(o)
 		}
 	}
 	panic(ErrInvalidOpUnmOnObj)
 }
 
+// Get returns the value of the field identified by key. It returns Nil
+// if the field does not exist.
 func (o *Object) Get(key Val) Val {
 	if v, ok := o.m[key]; ok {
 		return v
@@ -146,10 +177,14 @@ func (o *Object) Get(key Val) Val {
 	return Nil
 }
 
+// Set assigns the value v to the field identified by key.
 func (o *Object) Set(key Val, v Val) {
 	o.m[key] = v
 }
 
+// callMethod calls the method identified by nm with the provided arguments.
+// It panics if the field does not hold a function. If the field does not
+// exist and a method named `__noSuchMethod` is defined, it is called instead.
 func (o *Object) callMethod(nm Val, args ...Val) Val {
 	v, ok := o.m[nm]
 	if ok {

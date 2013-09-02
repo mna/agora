@@ -14,6 +14,8 @@ type Func interface {
 	Call(this Val, args ...Val) Val
 }
 
+// NewNativeFunc returns a native function initialized with the specified context,
+// name and function implementation.
 func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
 	return &NativeFunc{
 		&funcVal{
@@ -24,6 +26,7 @@ func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
 	}
 }
 
+// An AgoraFunc represents an agora function.
 type AgoraFunc struct {
 	// Expose the default Func value's behaviour
 	*funcVal
@@ -49,25 +52,31 @@ func newAgoraFunc(mod *agoraModule, c *Ctx) *AgoraFunc {
 	}
 }
 
-func (ø *AgoraFunc) Native() interface{} {
-	return ø
+// Native returns the Go native representation of an agora function.
+func (a *AgoraFunc) Native() interface{} {
+	return a
 }
 
-func (ø *AgoraFunc) Cmp(v Val) int {
-	if ø == v {
+// Cmp compares an Agora function to another value.
+func (a *AgoraFunc) Cmp(v Val) int {
+	if a == v {
 		return 0
 	}
 	return -1
 }
 
-func (ø *AgoraFunc) Call(this Val, args ...Val) Val {
-	vm := newFuncVM(ø)
+// Call instantiates an executable function intance from this agora function
+// prototype, sets the `this` value and executes the function's instructions.
+// It returns the agora function's return value.
+func (a *AgoraFunc) Call(this Val, args ...Val) Val {
+	vm := newFuncVM(a)
 	vm.this = this
-	ø.ctx.push(ø, vm)
-	defer ø.ctx.pop()
+	a.ctx.push(a, vm)
+	defer a.ctx.pop()
 	return vm.run(args...)
 }
 
+// A NativeFunc represents a Go function exposed to agora.
 type NativeFunc struct {
 	// Expose the default Func value's behaviour
 	*funcVal
@@ -76,25 +85,31 @@ type NativeFunc struct {
 	fn FuncFn
 }
 
+// ExpectAtLeastNArgs is a utility function for native modules implementation
+// to ensure that the minimum number of arguments required are provided. It panics
+// otherwise, which is the correct way to raise errors in the agora runtime.
 func ExpectAtLeastNArgs(n int, args []Val) {
 	if len(args) < n {
 		panic(fmt.Sprintf("expected at least %d argument(s), got %d", n, len(args)))
 	}
 }
 
-func (ø *NativeFunc) Native() interface{} {
-	return ø
+// Native returns the Go native representation of the native function type.
+func (n *NativeFunc) Native() interface{} {
+	return n
 }
 
-func (ø *NativeFunc) Cmp(v Val) int {
-	if ø == v {
+// Cmp compares the native function with another value.
+func (n *NativeFunc) Cmp(v Val) int {
+	if n == v {
 		return 0
 	}
 	return -1
 }
 
-func (ø *NativeFunc) Call(_ Val, args ...Val) Val {
-	ø.ctx.push(ø, nil)
-	defer ø.ctx.pop()
-	return ø.fn(args...)
+// Call executes the native function and returns its return value.
+func (n *NativeFunc) Call(_ Val, args ...Val) Val {
+	n.ctx.push(n, nil)
+	defer n.ctx.pop()
+	return n.fn(args...)
 }

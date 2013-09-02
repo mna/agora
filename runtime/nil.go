@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	// The string representation of the nil value
 	NilString = "nil"
 )
 
@@ -12,6 +13,7 @@ var (
 	// The one and only Nil instance
 	Nil = null{}
 
+	// Predefined errors
 	ErrInvalidConvNilToInt   = errors.New("cannot convert Nil to Int")
 	ErrInvalidConvNilToFloat = errors.New("cannot convert Nil to Float")
 
@@ -24,38 +26,41 @@ var (
 )
 
 // Null is the representation of the null type. It is semantically equivalent
-// to Go's nil value, but it is represented as a struct.
+// to Go's nil value, but it is represented as an empty struct to implement
+// the Val interface so that it is a valid agora value.
 type null struct{}
 
-func (ø null) dump() string {
+func (n null) dump() string {
 	return "[Nil]"
 }
 
 // Int is an invalid conversion.
-func (ø null) Int() int {
+func (n null) Int() int {
 	panic(ErrInvalidConvNilToInt)
 }
 
 // Float is an invalid conversion.
-func (ø null) Float() float64 {
+func (n null) Float() float64 {
 	panic(ErrInvalidConvNilToFloat)
 }
 
 // String returns the string "nil".
-func (ø null) String() string {
+func (n null) String() string {
 	return NilString
 }
 
 // Bool returns false.
-func (ø null) Bool() bool {
+func (n null) Bool() bool {
 	return false
 }
 
-func (ø null) Native() interface{} {
+// Native returns the Go native representation of the value.
+func (n null) Native() interface{} {
 	return nil
 }
 
-func (ø null) Cmp(v Val) int {
+// Cmp compares the value with another value.
+func (n null) Cmp(v Val) int {
 	if v == Nil {
 		return 0
 	}
@@ -63,31 +68,31 @@ func (ø null) Cmp(v Val) int {
 }
 
 // Add is an invalid operation.
-func (ø null) Add(v Val) Val {
+func (n null) Add(v Val) Val {
 	panic(ErrInvalidOpAddOnNil)
 }
 
 // Sub is an invalid operation.
-func (ø null) Sub(v Val) Val {
+func (n null) Sub(v Val) Val {
 	panic(ErrInvalidOpSubOnNil)
 }
 
 // Mul is an invalid operation.
-func (ø null) Mul(v Val) Val {
+func (n null) Mul(v Val) Val {
 	panic(ErrInvalidOpMulOnNil)
 }
 
 // Div is an invalid operation.
-func (ø null) Div(v Val) Val {
+func (n null) Div(v Val) Val {
 	panic(ErrInvalidOpDivOnNil)
 }
 
 // Mod is an invalid operation.
-func (ø null) Mod(v Val) Val {
+func (n null) Mod(v Val) Val {
 	panic(ErrInvalidOpModOnNil)
 }
 
 // Unm is an invalid operation.
-func (ø null) Unm() Val {
+func (n null) Unm() Val {
 	panic(ErrInvalidOpUnmOnNil)
 }
