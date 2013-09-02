@@ -3,11 +3,11 @@
 // license that can be found in the LICENSE file.
 // http://golang.org/LICENSE
 
-// Package scanner implements a scanner for Go source text.
+// Package scanner implements a scanner for agora source text.
 // It takes a []byte as source which can then be tokenized
 // through repeated calls to the Scan method.
 //
-// Adapted from Go stdlib for Agora
+// Adapted from Go's stdlib for Agora.
 package scanner
 
 import (

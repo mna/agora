@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 // http://golang.org/LICENSE
 
-// Adapted from Go stdlib for Agora
 package scanner
 
 import (
@@ -49,7 +48,6 @@ func (p *ErrorList) Reset() { *p = (*p)[0:0] }
 // ErrorList implements the sort Interface.
 func (p ErrorList) Len() int      { return len(p) }
 func (p ErrorList) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
-
 func (p ErrorList) Less(i, j int) bool {
 	e := &p[i].Pos
 	f := &p[j].Pos

@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// A Position is a specific point in a source file where a token is found.
 type Position struct {
 	Filename string
 	Offset   int // Byte offset of the position in the file

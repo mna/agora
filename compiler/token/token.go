@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 // http://golang.org/LICENSE
 
-// Package token defines constants representing the lexical tokens of the Go
+// Package token defines constants representing the lexical tokens of the agora
 // programming language and basic operations on tokens (printing, predicates).
 //
 // Adapted from Go's stdlib for Agora
