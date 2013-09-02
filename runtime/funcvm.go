@@ -200,17 +200,6 @@ func (ø *funcVM) run(args ...Val) Val {
 			// End this function call, return the value on top of the stack
 			return ø.pop()
 
-		case bytecode.OP_LOAD:
-			m, err := ø.proto.ctx.Load(ø.getVal(flg, ix).String())
-			if err != nil {
-				panic(err)
-			}
-			v, err := m.Run()
-			if err != nil {
-				panic(err)
-			}
-			ø.push(v)
-
 		case bytecode.OP_PUSH:
 			ø.push(ø.getVal(flg, ix))
 

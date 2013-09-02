@@ -423,7 +423,7 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 		return
 	}
 	switch op {
-	case bytecode.OP_PUSH, bytecode.OP_LOAD:
+	case bytecode.OP_PUSH:
 		e.stackSz[fn] += 1
 	case bytecode.OP_NEW:
 		e.stackSz[fn] += (1 - (2 * int64(ix)))

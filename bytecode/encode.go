@@ -7,21 +7,28 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrVersionMismatch    = errors.New("the specified file version does not match the compiler's")
 	ErrUnexpectedKValType = errors.New("unexpected constant value type")
 	ErrInvalidKType       = errors.New("invalid constant type tag")
 	ErrUnknownOpcode      = errors.New("unknown instruction opcode")
 )
 
+// An encoder takes an in-memory representation of agora code and encodes it into
+// the agora bytecode representation.
 type Encoder struct {
 	w   io.Writer
 	err error
 }
 
+// NewEncoder returns an Encoder that will write to the provided writer.
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: w}
 }
 
+// Encode encodes the provided in-memory File structure into the bytecode format,
+// written to the encoder's writer. If an error is encountered, it is returned, otherwise
+// it returns nil.
 func (enc *Encoder) Encode(f *File) (err error) {
 	// Reset error
 	enc.err = nil

@@ -12,6 +12,7 @@ var (
 	_MINOR_VERSION = 0
 )
 
+// Version returns the major and minor version of the bytecode format.
 func Version() (int, int) {
 	return _MAJOR_VERSION, _MINOR_VERSION
 }
@@ -44,8 +45,8 @@ var (
 	}
 )
 
-// The full representation of a bytecode file, as defined
-// in /compiler/bytecode.md.
+// A File is an in-memory representation of a bytecode file, as defined
+// in /doc/bytecode.md.
 type File struct {
 	Name         string
 	MajorVersion int
@@ -53,6 +54,8 @@ type File struct {
 	Fns          []*Fn
 }
 
+// NewFile returns a File structure initialized with the specified name and
+// the current version.
 func NewFile(nm string) *File {
 	return &File{
 		Name:         nm,
@@ -61,14 +64,14 @@ func NewFile(nm string) *File {
 	}
 }
 
-// The representation of a single function in a bytecode file.
+// A Fn is the representation of a single function in a bytecode file.
 type Fn struct {
 	Header H
 	Ks     []*K
 	Is     []Instr
 }
 
-// The function header representation.
+// An H is the function header representation.
 type H struct {
 	Name      string
 	StackSz   int64
@@ -78,7 +81,7 @@ type H struct {
 	LineEnd   int64
 }
 
-// The representation of a single constant value.
+// A K is the representation of a single constant value.
 type K struct {
 	Type KType
 	Val  interface{}

@@ -7,18 +7,23 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrInvalidData = errors.New("input data is not valid bytecode")
 )
 
+// A Decoder reads a bytecode-encoded source into a structured representation in memory.
 type Decoder struct {
 	r   io.Reader
 	err error
 }
 
+// NewDecoder returns a Decoder that reads from the provided reader.
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{r: r}
 }
 
+// IsBytecode checks if the provided reader reads from a bytecode-encoded source.
+// It checks if the agora bytecode signature is present at the start of the data.
 func IsBytecode(rs io.ReadSeeker) bool {
 	var i int32
 	if err := binary.Read(rs, binary.LittleEndian, i); err != nil {
@@ -28,6 +33,8 @@ func IsBytecode(rs io.ReadSeeker) bool {
 	return i == _SIGNATURE
 }
 
+// Decode reads the bytecode-encoded source into an in-memory data structure, and
+// returns the File structure containing the translated bytecode, or an error.
 func (dec *Decoder) Decode() (*File, error) {
 	// 1- Read and assert the signature
 	sig := dec.readSignature()
