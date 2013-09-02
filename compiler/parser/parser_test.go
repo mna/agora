@@ -640,6 +640,39 @@ if true {
 				&Symbol{Id: "nil"},
 			},
 		},
+		28: {
+			src: []byte(`
+			i := 5
+			for i > 2 {
+							break
+		}
+`),
+			exp: []*Symbol{
+				&Symbol{Id: ":="},
+				&Symbol{Id: "(name)", Val: "i"},
+				&Symbol{Id: "(literal)", Val: "5"},
+				&Symbol{Id: "for"},
+				&Symbol{Id: ">"},
+				&Symbol{Id: "(name)", Val: "i"},
+				&Symbol{Id: "(literal)", Val: "2"},
+				&Symbol{Id: "break"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
+		29: {
+			src: []byte(`
+			for {
+							continue
+		}
+`),
+			exp: []*Symbol{
+				&Symbol{Id: "for"},
+				&Symbol{Id: "continue"},
+				&Symbol{Id: "return"},
+				&Symbol{Id: "nil"},
+			},
+		},
 	}
 
 	isolateCase = -1

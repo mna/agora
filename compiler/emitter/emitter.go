@@ -39,10 +39,16 @@ var (
 	}
 )
 
+type forData struct {
+	breaks []int
+	conts  []int
+}
+
 type Emitter struct {
 	err     error
 	kMap    map[*bytecode.Fn]map[string]int
 	stackSz map[*bytecode.Fn]int64
+	forNest map[*bytecode.Fn][]*forData
 }
 
 func (e *Emitter) Emit(id string, syms []*parser.Symbol, scps *parser.Scope) (*bytecode.File, error) {
@@ -50,6 +56,7 @@ func (e *Emitter) Emit(id string, syms []*parser.Symbol, scps *parser.Scope) (*b
 	e.err = nil
 	e.kMap = make(map[*bytecode.Fn]map[string]int)
 	e.stackSz = make(map[*bytecode.Fn]int64)
+	e.forNest = make(map[*bytecode.Fn][]*forData)
 
 	// Create the bytecode representation structure
 	f := bytecode.NewFile(id)
@@ -79,6 +86,10 @@ func (e *Emitter) emitFn(f *bytecode.File, sym *parser.Symbol) {
 	}
 	stmts := sym.Second.([]*parser.Symbol)
 	e.emitBlock(f, fn, stmts)
+	// Cleanup map keys of this fn
+	delete(e.kMap, fn)
+	delete(e.stackSz, fn)
+	delete(e.forNest, fn)
 }
 
 func (e *Emitter) emitAny(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, any interface{}) {
@@ -277,18 +288,48 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			e.updateJumpfInstr(fn, jmpIx)
 		}
 	case "for":
-		// TODO : Supports only the `for [condition]` at the moment (`while` equivalent)
-		// Emit the condition
+		var tstIx int
+		var parts []interface{}
+		var ok bool
 		start := len(fn.Is)
-		e.emitAny(f, fn, sym, sym.First)
-		// Add a test instruction placeholder
-		tstIx := e.addTempInstr(fn)
+		empty := e.isEmpty(sym.First)
+		longForm := false
+		if !empty {
+			var cond interface{}
+			if parts, ok = sym.First.([]interface{}); ok {
+				// 3-part form, render the init part
+				e.assert(len(parts) == 3, errors.New("expected 3-part `for` loop to have 3 parts, got "+strconv.Itoa(len(parts))))
+				longForm = true
+				e.emitAny(f, fn, sym, parts[0])
+				// The start of the loop, for the jumpback instruction, is now the next instr
+				start = len(fn.Is)
+				cond = parts[1]
+			} else {
+				cond = sym.First
+			}
+			// Emit the condition
+			e.emitAny(f, fn, sym, cond)
+			// Add a test instruction placeholder
+			tstIx = e.addTempInstr(fn)
+		}
 		// Emit the body
+		e.startFor(fn)
 		e.emitAny(f, fn, sym, sym.Second)
-		// Add the jump-back to for condition instruction
+		// Update the continue statements (must jump to the next statement)
+		e.updateForJmp(fn, false)
+		if !empty && longForm {
+			// Emit the post statement
+			e.emitAny(f, fn, sym, parts[2])
+		}
+		// Add the jump-back to for condition instruction (or for body start if no condition)
 		e.addInstr(fn, bytecode.OP_JMP, bytecode.FLG_Jb, uint64(len(fn.Is)-start))
-		// Update the test instruction
-		e.updateTestInstr(fn, tstIx)
+		if !empty {
+			// Update the test instruction
+			e.updateTestInstr(fn, tstIx)
+		}
+		// The break statements must jump to the next statement (after the whole for loop)
+		e.updateForJmp(fn, true)
+		e.endFor(fn)
 	case "debug":
 		var err error
 		var ix int64 = 1 // Default to 1 stack to dump
@@ -298,6 +339,12 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			e.assert(err == nil, errors.New("invalid number literal"))
 		}
 		e.addInstr(fn, bytecode.OP_DUMP, bytecode.FLG_Sn, uint64(ix))
+	case "break":
+		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid break statement outside any `for` loop"))
+		e.addForData(fn, true, e.addTempInstr(fn))
+	case "continue":
+		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid continue statement outside any `for` loop"))
+		e.addForData(fn, false, e.addTempInstr(fn))
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
@@ -309,6 +356,37 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Can be on name, literal, func call, any operator, hard to assert...
 		kix := e.registerK(fn, sym.Key, true)
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
+	}
+}
+
+func (e *Emitter) startFor(fn *bytecode.Fn) {
+	e.forNest[fn] = append(e.forNest[fn], &forData{})
+}
+
+func (e *Emitter) endFor(fn *bytecode.Fn) {
+	fors := e.forNest[fn]
+	e.forNest[fn] = fors[:len(fors)-1]
+}
+
+func (e *Emitter) updateForJmp(fn *bytecode.Fn, br bool) {
+	fors := e.forNest[fn]
+	f := fors[len(fors)-1]
+	sl := f.breaks
+	if !br {
+		sl = f.conts
+	}
+	for _, ix := range sl {
+		e.updateJumpfInstr(fn, ix)
+	}
+}
+
+func (e *Emitter) addForData(fn *bytecode.Fn, br bool, ix int) {
+	fors := e.forNest[fn]
+	f := fors[len(fors)-1]
+	if br {
+		f.breaks = append(f.breaks, ix)
+	} else {
+		f.conts = append(f.conts, ix)
 	}
 }
 

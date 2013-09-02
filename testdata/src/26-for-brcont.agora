@@ -1,0 +1,15 @@
+f := import("fmt")
+
+for i := 0; i < 10; i++ {
+	if i == 5 {
+		continue
+	}
+	j := i * 2
+	for j > 0 {
+		f.Println("i=", i, "j=", j)
+		if j > 10 {
+			break
+		}
+		j *= 2
+	}
+}

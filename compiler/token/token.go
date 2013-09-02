@@ -84,6 +84,7 @@ const (
 	RETURN
 	DEBUG
 	BREAK
+	CONTINUE
 	keyword_end
 )
 
@@ -140,13 +141,14 @@ var tokens = [...]string{
 	SEMICOLON: ";",
 	COLON:     ":",
 
-	ELSE:   "else",
-	FOR:    "for",
-	FUNC:   "func",
-	IF:     "if",
-	RETURN: "return",
-	DEBUG:  "debug",
-	BREAK:  "break",
+	ELSE:     "else",
+	FOR:      "for",
+	FUNC:     "func",
+	IF:       "if",
+	RETURN:   "return",
+	DEBUG:    "debug",
+	BREAK:    "break",
+	CONTINUE: "continue",
 }
 
 // String returns the string corresponding to the token tok.

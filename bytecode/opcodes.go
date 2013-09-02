@@ -1,5 +1,9 @@
 package bytecode
 
+import (
+	"strconv"
+)
+
 // The opcode takes 8 bytes, leaving 256 possible codes.
 type Opcode byte
 
@@ -103,6 +107,9 @@ func NewOpcode(nm string) Opcode {
 	return o
 }
 
-func (ø Opcode) String() string {
-	return OpNames[ø]
+func (o Opcode) String() string {
+	if o >= 0 && int(o) < len(OpNames) {
+		return OpNames[o]
+	}
+	return strconv.Itoa(int(o))
 }

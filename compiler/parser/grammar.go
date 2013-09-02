@@ -207,6 +207,13 @@ func (p *Parser) defineGrammar() {
 		return sym
 	})
 
+	// continue statement
+	p.stmt("continue", func(sym *Symbol) interface{} {
+		p.advance(";")
+		sym.Ar = ArStatement
+		return sym
+	})
+
 	// debug statement
 	p.stmt("debug", func(sym *Symbol) interface{} {
 		if p.tkn.Id != ";" {

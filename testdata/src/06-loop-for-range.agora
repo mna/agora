@@ -1,5 +1,0 @@
-import "fmt"
-// range over 0..9, there's implicit 0 (start) and 1 (step) constants
-for i := range 10 { 
-  fmt.Println(i)
-}
