@@ -10,6 +10,9 @@ import (
 )
 
 var (
+	// The cases here match the files in /compiler/emitter/testdata/*
+	// The symbols (src field of the case) are validated by running
+	// `agora ast FILE`.
 	emitcases = []struct {
 		src []*parser.Symbol
 		exp *bytecode.File
@@ -36,6 +39,78 @@ var (
 						},
 						Is: []bytecode.Instr{
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
+							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 1),
+						},
+					},
+				},
+			},
+		},
+		1: {
+			// return nil
+			src: []*parser.Symbol{
+				&parser.Symbol{Id: "return", Ar: parser.ArStatement, First: &parser.Symbol{Id: "nil", Ar: parser.ArName, Val: nil}},
+			},
+			exp: &bytecode.File{
+				Fns: []*bytecode.Fn{
+					&bytecode.Fn{
+						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_N, 0),
+							bytecode.NewInstr(bytecode.OP_RET, bytecode.FLG__, 0),
+						},
+					},
+				},
+			},
+		},
+		2: {
+			// NOT (!) operator
+			src: []*parser.Symbol{
+				&parser.Symbol{Id: ":=", Ar: parser.ArBinary, First: &parser.Symbol{Id: "(name)", Val: "a"},
+					Second: &parser.Symbol{Id: "!", Ar: parser.ArUnary, First: &parser.Symbol{Id: "true", Val: true, Ar: parser.ArLiteral}}},
+			},
+			exp: &bytecode.File{
+				Fns: []*bytecode.Fn{
+					&bytecode.Fn{
+						Ks: []*bytecode.K{
+							&bytecode.K{
+								Type: bytecode.KtBoolean,
+								Val:  int64(1),
+							},
+							&bytecode.K{
+								Type: bytecode.KtString,
+								Val:  "a",
+							},
+						},
+						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
+							bytecode.NewInstr(bytecode.OP_NOT, bytecode.FLG__, 0),
+							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 1),
+						},
+					},
+				},
+			},
+		},
+		3: {
+			// UNM (-) operator
+			src: []*parser.Symbol{
+				&parser.Symbol{Id: ":=", Ar: parser.ArBinary, First: &parser.Symbol{Id: "(name)", Val: "a"},
+					Second: &parser.Symbol{Id: "-", Ar: parser.ArUnary, First: &parser.Symbol{Id: "(literal)", Val: "1", Ar: parser.ArLiteral}}},
+			},
+			exp: &bytecode.File{
+				Fns: []*bytecode.Fn{
+					&bytecode.Fn{
+						Ks: []*bytecode.K{
+							&bytecode.K{
+								Type: bytecode.KtInteger,
+								Val:  int64(1),
+							},
+							&bytecode.K{
+								Type: bytecode.KtString,
+								Val:  "a",
+							},
+						},
+						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
+							bytecode.NewInstr(bytecode.OP_UNM, bytecode.FLG__, 0),
 							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 1),
 						},
 					},
