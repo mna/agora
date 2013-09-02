@@ -12,6 +12,8 @@ This will install the agora packages as well as the `agora` command-line tool. S
 
 ## Resources
 
+* Source code documentation on GoDoc: http://godoc.org/github.com/PuerkitoBio/agora
+
 ## Changelog
 
 ### v0.1.0 / 2013-09-05 (?)

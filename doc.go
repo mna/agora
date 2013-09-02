@@ -17,5 +17,5 @@
 // Other documentation exist for the agora language itself, the stdlib, installation,
 // and such.
 //
-// See https://github.com/PuerkitoBio/agora for more details.
+// See https://github.com/PuerkitoBio/agora#readme for more details.
 package agora
