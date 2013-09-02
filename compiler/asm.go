@@ -11,10 +11,13 @@ import (
 )
 
 var (
+	// Predefined errors
 	ErrInvalidInstruction = errors.New("invalid instruction")
 	ErrNoInput            = errors.New("no input provided")
 )
 
+// An Asm is an assembly source code compiler. It implements the runtime.Compiler
+// interface, so that it is suitable for runtime.Ctx.
 type Asm struct {
 	s     *bufio.Scanner
 	f     *bytecode.File
@@ -22,6 +25,9 @@ type Asm struct {
 	err   error
 }
 
+// Compile takes a module identifier and a reader, and compiles its assembly source
+// code to an in-memory representation of agora bytecode, ready for execution.
+// If an error is encounted, it is returned as second value, otherwise it is nil.
 func (a *Asm) Compile(id string, r io.Reader) (*bytecode.File, error) {
 	a.ended = false
 	a.err = nil

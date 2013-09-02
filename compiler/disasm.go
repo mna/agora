@@ -13,11 +13,15 @@ var (
 	disasmComment = fmt.Sprintf("// Generated from the disassembler, v%d.%d", maj, min)
 )
 
+// A Disasm translates a bytecode representation into assembly source code.
 type Disasm struct {
 	w   io.Writer
 	err error
 }
 
+// ToAsm takes the in-memory bytecode File structure and translates it to
+// assembly source code, writing the results to the provided writer. If an
+// error is encountered, it is returned, otherwise it returns nil.
 func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 	d.w = w
 	d.err = nil
@@ -53,6 +57,9 @@ func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 	return d.err
 }
 
+// Uncompile reads the bytecode source data from the provided reader, and translates
+// it to assembly source code written into the writer. If an error is encountered, it
+// is returned, otherwise it returns nil.
 func (d *Disasm) Uncompile(r io.Reader, w io.Writer) error {
 	f, err := bytecode.NewDecoder(r).Decode()
 	if err != nil {

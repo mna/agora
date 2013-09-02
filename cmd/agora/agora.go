@@ -1,3 +1,13 @@
+// Package main provides the command-line tool `agora`.
+//
+// This tool offers the following commands:
+// - agora run : run an agora source code file.
+// - agora build : compile an agora source code file.
+// - agora asm : compile an agora assembly code file.
+// - agora dasm : disassemble an agora bytecode into assembly source.
+// - agora ast : generate the abstract syntax tree for an agora source code file.
+//
+// See `agora -h` and `agora <cmd> -h` for available options.
 package main
 
 import (
