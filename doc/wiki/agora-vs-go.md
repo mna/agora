@@ -32,6 +32,8 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * There is a ternary `condition ? iftrue : iffalse` operator.
 
+* A function may receive an arbitrary number of arguments, maybe exceeding the number of expected arguments declared in its signature. All formal arguments passed to a function are always available using the reserved `args` identifier, which is an array-like object, with keys ranging from 0 to the number of arguments received minus one. Also, since the top-level function cannot declare expected arguments, this is the only way to retrieve arguments passed to the module.
+
 * Unlike Go, `import` is a built-in function, not a keyword that must appear at the top of the package. So it can be called wherever makes most sense, since this can be a costly operation (loading from a file, compiling, executing). As mentioned previously, it returns the value returned by the module and must be stored in a variable (there is no implicit "variable" derived from the import path).
 
 * There are no multiple return values, functions can only return a single value.
