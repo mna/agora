@@ -135,6 +135,7 @@ func (r *run) Execute(args []string) error {
 	if !r.NoStdlib {
 		// Register the standard lib's Fmt package
 		ctx.RegisterNativeModule(new(stdlib.FmtMod))
+		ctx.RegisterNativeModule(new(stdlib.ConvMod))
 	}
 	ctx.Debug = r.Debug
 	m, err := ctx.Load(args[0])

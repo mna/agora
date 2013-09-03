@@ -1,0 +1,22 @@
+f := import("fmt")
+f.Println("Output: `number`/`bool`/`string`/`nil`/`object`/`func`/`object`/`object`")
+c := import("conv")
+
+n := 7
+b := true
+s := "allo"
+z := nil
+o := {f1: 26}
+fn := func() {
+	return false
+}
+
+f.Println(c.Type(n))
+f.Println(c.Type(b))
+f.Println(c.Type(s))
+f.Println(c.Type(z))
+f.Println(c.Type(o))
+f.Println(c.Type(fn))
+f.Println(c.Type(f))
+f.Println(c.Type(c))
+

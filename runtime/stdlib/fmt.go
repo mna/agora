@@ -20,6 +20,7 @@ func (f *FmtMod) Run() (v runtime.Val, err error) {
 	if f.ob == nil {
 		// Prepare the object
 		f.ob = runtime.NewObject()
+		f.ob.Set(runtime.String("Print"), runtime.NewNativeFunc(f.ctx, "fmt.Print", f.fmt_Print))
 		f.ob.Set(runtime.String("Println"), runtime.NewNativeFunc(f.ctx, "fmt.Println", f.fmt_Println))
 		f.ob.Set(runtime.String("Printf"), runtime.NewNativeFunc(f.ctx, "fmt.Printf", f.fmt_Printf))
 	}
@@ -40,6 +41,15 @@ func toNative(args []runtime.Val) []interface{} {
 		}
 	}
 	return ifs
+}
+
+func (f *FmtMod) fmt_Print(args ...runtime.Val) runtime.Val {
+	ifs := toNative(args)
+	n, err := fmt.Fprint(f.ctx.Stdout, ifs...)
+	if err != nil {
+		panic(err)
+	}
+	return runtime.Int(n)
 }
 
 func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
