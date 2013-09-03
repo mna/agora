@@ -1,0 +1,10 @@
+f := import("fmt")
+func assign(x) {
+	x["b"] = 24
+	f.Println("Inside assign:", x)
+}
+
+x := {a: "hi"}
+assign(x)
+f.Println("After assign:", x)
+return x

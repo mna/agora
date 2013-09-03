@@ -1,0 +1,10 @@
+f := import("fmt")
+func add(x) {
+	x += 19
+	f.Println("Inside add:", x)
+}
+
+x := 1
+add(x)
+f.Println("After add:", x)
+return x

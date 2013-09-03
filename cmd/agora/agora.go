@@ -144,7 +144,7 @@ func (r *run) Execute(args []string) error {
 	}
 	res, err := m.Run()
 	if err == nil {
-		fmt.Printf("\n\n= %v (%T)\n", res, res)
+		fmt.Printf("\n= %v (%T)\n", res.Native(), res)
 	}
 	return err
 }

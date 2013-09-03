@@ -11,7 +11,6 @@ var (
 	ErrInvalidConvObjToInt    = errors.New("cannot convert Object to Int")
 	ErrInvalidConvObjToFloat  = errors.New("cannot convert Object to Float")
 	ErrInvalidConvObjToString = errors.New("cannot convert Object to String")
-	ErrInvalidConvObjToNative = errors.New("cannot convert Object to Native")
 
 	ErrInvalidOpAddOnObj = errors.New("cannot apply Add on this Object")
 	ErrInvalidOpSubOnObj = errors.New("cannot apply Sub on this Object")
@@ -98,7 +97,7 @@ func (o *Object) Native() interface{} {
 			return f.Call(o).Native()
 		}
 	}
-	panic(ErrInvalidConvObjToNative)
+	return o.m
 }
 
 // Cmp compares the object to another value. Such behaviour can be defined

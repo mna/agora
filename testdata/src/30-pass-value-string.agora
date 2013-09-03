@@ -1,0 +1,10 @@
+f := import("fmt")
+func concat(x) {
+	x += "-added"
+	f.Println("Inside add:", x)
+}
+
+x := "init"
+concat(x)
+f.Println("After add:", x)
+return x
