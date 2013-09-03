@@ -144,8 +144,19 @@ func (c *Ctx) RegisterNativeModule(m NativeModule) {
 	c.loadedMods[m.ID()] = m
 }
 
+func (c *Ctx) pushModule(id string) {
+	if c.loadingMods[id] {
+		panic(ErrCyclicDepFound)
+	}
+	c.loadingMods[id] = true
+}
+
+func (c *Ctx) popModule(id string) {
+	delete(c.loadingMods, id)
+}
+
 // Push a function onto the frame stack.
-func (c *Ctx) push(f Func, fvm *funcVM) {
+func (c *Ctx) pushFn(f Func, fvm *funcVM) {
 	// Stack has to grow as needed
 	if c.frmsp == len(c.frames) {
 		if c.Debug && c.frmsp == cap(c.frames) {
@@ -159,7 +170,7 @@ func (c *Ctx) push(f Func, fvm *funcVM) {
 }
 
 // Pop the top function from the frame stack.
-func (ø *Ctx) pop() {
+func (ø *Ctx) popFn() {
 	ø.frmsp--
 	ø.frames[ø.frmsp] = nil // free this reference for gc
 }

@@ -72,6 +72,9 @@ func (m *agoraModule) Run() (v Val, err error) {
 	}
 	// Do not re-run a module if it has already been imported. Use the cached value.
 	if m.v == nil {
+		fn := m.fns[0]
+		fn.ctx.pushModule(m.ID())
+		defer fn.ctx.popModule(m.ID())
 		m.v = m.fns[0].Call(nil)
 	}
 	return m.v, nil

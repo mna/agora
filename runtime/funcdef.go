@@ -71,8 +71,8 @@ func (a *AgoraFunc) Cmp(v Val) int {
 func (a *AgoraFunc) Call(this Val, args ...Val) Val {
 	vm := newFuncVM(a)
 	vm.this = this
-	a.ctx.push(a, vm)
-	defer a.ctx.pop()
+	a.ctx.pushFn(a, vm)
+	defer a.ctx.popFn()
 	return vm.run(args...)
 }
 
@@ -109,7 +109,7 @@ func (n *NativeFunc) Cmp(v Val) int {
 
 // Call executes the native function and returns its return value.
 func (n *NativeFunc) Call(_ Val, args ...Val) Val {
-	n.ctx.push(n, nil)
-	defer n.ctx.pop()
+	n.ctx.pushFn(n, nil)
+	defer n.ctx.popFn()
 	return n.fn(args...)
 }
