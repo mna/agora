@@ -12,7 +12,7 @@ import (
 // The Module interface defines the required behaviours for a Module.
 type Module interface {
 	ID() string
-	Run() (Val, error)
+	Run(...Val) (Val, error)
 }
 
 // A NativeModule is a Module with added behaviour required for supporting
@@ -65,7 +65,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 }
 
 // Run executes the module and returns its return value, or an error.
-func (m *agoraModule) Run() (v Val, err error) {
+func (m *agoraModule) Run(args ...Val) (v Val, err error) {
 	defer PanicToError(&err)
 	if len(m.fns) == 0 {
 		return Nil, ErrModuleHasNoFunc
@@ -75,7 +75,7 @@ func (m *agoraModule) Run() (v Val, err error) {
 		fn := m.fns[0]
 		fn.ctx.pushModule(m.ID())
 		defer fn.ctx.popModule(m.ID())
-		m.v = m.fns[0].Call(nil)
+		m.v = m.fns[0].Call(nil, args...)
 	}
 	return m.v, nil
 }

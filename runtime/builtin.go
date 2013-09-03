@@ -13,7 +13,7 @@ func (b *builtinMod) ID() string {
 	return "<builtin>"
 }
 
-func (b *builtinMod) Run() (v Val, err error) {
+func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
 	defer PanicToError(&err)
 	if b.ob == nil {
 		b.ob = NewObject()

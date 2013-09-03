@@ -117,6 +117,39 @@ var (
 				},
 			},
 		},
+		4: {
+			// ADD (+) operator
+			src: []*parser.Symbol{
+				&parser.Symbol{Id: ":=", Ar: parser.ArBinary, First: &parser.Symbol{Id: "(name)", Val: "a"},
+					Second: &parser.Symbol{Id: "+", Ar: parser.ArBinary, First: &parser.Symbol{Id: "(literal)", Val: "5", Ar: parser.ArLiteral}, Second: &parser.Symbol{Id: "(literal)", Val: "2", Ar: parser.ArLiteral}}},
+			},
+			exp: &bytecode.File{
+				Fns: []*bytecode.Fn{
+					&bytecode.Fn{
+						Ks: []*bytecode.K{
+							&bytecode.K{
+								Type: bytecode.KtInteger,
+								Val:  int64(5),
+							},
+							&bytecode.K{
+								Type: bytecode.KtInteger,
+								Val:  int64(2),
+							},
+							&bytecode.K{
+								Type: bytecode.KtString,
+								Val:  "a",
+							},
+						},
+						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
+							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 1),
+							bytecode.NewInstr(bytecode.OP_ADD, bytecode.FLG__, 0),
+							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 2),
+						},
+					},
+				},
+			},
+		},
 	}
 
 	isolateEmitCase = -1

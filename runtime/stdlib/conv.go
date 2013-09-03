@@ -13,7 +13,7 @@ func (c *ConvMod) ID() string {
 	return "conv"
 }
 
-func (c *ConvMod) Run() (v runtime.Val, err error) {
+func (c *ConvMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if c.ob == nil {
 		// Prepare the object

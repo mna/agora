@@ -15,7 +15,7 @@ func (f *FmtMod) ID() string {
 	return "fmt"
 }
 
-func (f *FmtMod) Run() (v runtime.Val, err error) {
+func (f *FmtMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if f.ob == nil {
 		// Prepare the object

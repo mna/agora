@@ -1,0 +1,5 @@
+num := import("./32-define-ifandelse")
+f := import("fmt")
+
+f.Println("Imported from 32: ", num)
+return num

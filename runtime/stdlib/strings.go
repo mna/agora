@@ -16,7 +16,7 @@ func (s *StringsMod) ID() string {
 	return "strings"
 }
 
-func (s *StringsMod) Run() (v runtime.Val, err error) {
+func (s *StringsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if s.ob == nil {
 		// Prepare the object
