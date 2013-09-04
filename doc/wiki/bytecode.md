@@ -41,7 +41,7 @@ There is a *header* of the K section, namely:
 
 Then comes *n* times the definition of a single constant:
 
-* **byte**   : indicates the type of the constant, where `i` indicates an integer (**int64**), `b` a boolean (stored as an **int64**, and where `0` means `false`, any other value is `true`), `f` indicates a float (**float64**), and finally `s` indicates a **string**.
+* **byte**   : indicates the type of the constant, where `i` indicates an integer ( **int64** ), `b` a boolean (stored as an **int64**, and where `0` means `false`, any other value is `true`), `f` indicates a float ( **float64** ), and finally `s` indicates a **string**.
 * **variable** : the following field depends on the type of the constant.
 
 ### The I section

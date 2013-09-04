@@ -1,0 +1,17 @@
+// This program modifies the case of each word received as argument.
+// If the first letter is uppercase, it makes the whole word lowercase,
+// and vice-versa.
+s := import("strings")
+f := import("fmt")
+
+func changeCase(word) {
+	//return word >= "a" ? s.ToUpper(word) : s.ToLower(word)
+	if word >= "a" {
+		return s.ToUpper(word)
+	}
+  return s.ToLower(word)
+}
+
+for i := 0; i < len(args); i++ {
+	f.Println(changeCase(args[i]))
+}

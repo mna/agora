@@ -32,6 +32,8 @@ A few things to note:
 
 ## Resources
 
+* Getting started: 
+* Documentation's index in the wiki: 
 * Source code documentation on GoDoc: http://godoc.org/github.com/PuerkitoBio/agora
 
 ## Changelog

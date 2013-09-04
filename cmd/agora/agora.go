@@ -122,7 +122,7 @@ type run struct {
 }
 
 func (r *run) Execute(args []string) error {
-	if len(args) != 1 {
+	if len(args) < 1 {
 		return fmt.Errorf("expected an input file")
 	}
 	var c runtime.Compiler
@@ -136,13 +136,19 @@ func (r *run) Execute(args []string) error {
 		// Register the standard lib's Fmt package
 		ctx.RegisterNativeModule(new(stdlib.FmtMod))
 		ctx.RegisterNativeModule(new(stdlib.ConvMod))
+		ctx.RegisterNativeModule(new(stdlib.StringsMod))
 	}
 	ctx.Debug = r.Debug
 	m, err := ctx.Load(args[0])
 	if err != nil {
 		return err
 	}
-	res, err := m.Run()
+	// Prepare extra parameters to send to module
+	vals := make([]runtime.Val, len(args)-1)
+	for i, s := range args[1:] {
+		vals[i] = runtime.String(s)
+	}
+	res, err := m.Run(vals...)
 	if err == nil {
 		fmt.Printf("\n= %v (%T)\n", res.Native(), res)
 	}
