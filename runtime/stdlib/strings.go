@@ -27,6 +27,7 @@ func (s *StringsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		s.ob.Set(runtime.String("HasPrefix"), runtime.NewNativeFunc(s.ctx, "strings.HasPrefix", s.strings_HasPrefix))
 		s.ob.Set(runtime.String("HasSuffix"), runtime.NewNativeFunc(s.ctx, "strings.HasSuffix", s.strings_HasSuffix))
 		s.ob.Set(runtime.String("Matches"), runtime.NewNativeFunc(s.ctx, "strings.Matches", s.strings_Matches))
+		s.ob.Set(runtime.String("CharAt"), runtime.NewNativeFunc(s.ctx, "strings.CharAt", s.strings_CharAt))
 	}
 	return s.ob, nil
 }
@@ -124,4 +125,21 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 		ob.Set(runtime.Int(i), obch)
 	}
 	return ob
+}
+
+// Args:
+// 0 - The source string
+// 1 - The 0-based index number
+//
+// Returns:
+// The character at that position, as a string, or an empty string if
+// the index is out of bounds.
+func (s *StringsMod) strings_CharAt(args ...runtime.Val) runtime.Val {
+	runtime.ExpectAtLeastNArgs(2, args)
+	src := args[0].String()
+	at := args[1].Int()
+	if at >= len(src) {
+		return runtime.String("")
+	}
+	return runtime.String(src[at : at+1])
 }
