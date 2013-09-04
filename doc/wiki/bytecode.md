@@ -1,5 +1,3 @@
-# Bytecode File Format
-
 This document presents the binary format of bytecode-compiled files. Each source file is compiled to a corresponding, standalone bytecode format file. Data is always stored in *little-endian* ordering.
 
 ## Header
@@ -59,3 +57,7 @@ An instruction is thus 8 bytes, composed of the following fields, from the most 
 * **1 byte**  : the first byte represents the opcode. See /runtime/opcodes.go for the definition of opcodes.
 * **1 byte**  : the second byte is the *flag*, that gives meaning to the following bytes or give precisions to the opcode action. See /runtime/instr.go for the definition of flags.
 * **6 bytes** : the remaining bytes contain an index into either the constant table, the `args` array or the function prototype table, or an explicit value (i.e. the number of instructions to jump over).
+
+Next: [Assembly code format][asm]
+
+[asm]: https://github.com/PuerkitoBio/agora/wiki/Assembly-code-format

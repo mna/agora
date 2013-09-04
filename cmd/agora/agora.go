@@ -239,14 +239,24 @@ func (b *build) Execute(args []string) error {
 	return nil
 }
 
+type version struct{}
+
+func (v *version) Execute(args []string) error {
+	// TODO : Use a git hook to update a revision file
+	maj, min := bytecode.Version()
+	fmt.Printf("agora version %d.%d\n", maj, min)
+	return nil
+}
+
 func main() {
-	a, d, r, s, b := new(asm), new(dasm), new(run), new(ast), new(build)
+	a, d, r, s, b, v := new(asm), new(dasm), new(run), new(ast), new(build), new(version)
 	p := flags.NewParser(nil, flags.Default)
 	p.AddCommand("asm", "assembler", "compile assembly to bytecode", a)
 	p.AddCommand("dasm", "disassembler", "disassemble bytecode to assembly", d)
 	p.AddCommand("run", "run", "execute a source program", r)
 	p.AddCommand("ast", "abstract syntax tree", "print the AST of a source program", s)
 	p.AddCommand("build", "compiler", "compile a source program", b)
+	p.AddCommand("version", "print the current version", "print the current version", v)
 	// In case of errors, usage text is automatically displayed. In case of
 	// success, the Execute() method of the matching command is called.
 	p.Parse()

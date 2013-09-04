@@ -1,5 +1,3 @@
-# Similarities and differences between Go and Agora
-
 Agora is syntactically very similar to Go. But its goal is obviously not to be a clone, so there are also important differences. Most of those differences support the goal of making a *looser*, dynamic and simple interpreted language that complements Go. This article documents these similarities and differences.
 
 ## Similarities
@@ -51,4 +49,7 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 * There is no multi-thread (goroutine) or channel support. Agora code must be single-threaded, although different execution contexts *can* be run in parallel.
 
 * There are no slices or maps, the only compound data structure is the object. It can represent a slice and a map, and eventually will be optimized for when used as a slice/array.
-'''
+
+Next: [Language reference][ref]
+
+[ref]: https://github.com/PuerkitoBio/agora/wiki/Language-reference
