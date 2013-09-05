@@ -6,10 +6,10 @@ import (
 )
 
 // Int is the representation of the Integer type. It is equivalent
-// to Go's int type (architecture-dependent sized integer).
+// to Go's int64 type
 // TODO : Will probably disappear in future versions, all numbers
 // will be of type Float.
-type Int int
+type Int int64
 
 func (i Int) dump() string {
 	return fmt.Sprintf("%d (Int)", int(i))

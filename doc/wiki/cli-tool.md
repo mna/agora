@@ -9,6 +9,18 @@ The tool supports the following sub-commands:
 * run : compile and execute agora source
 * version : print the current agora version
 
+## Shebang #!
+
+It is also possible to run scripts with the [shebang notation][shebang] on Unix-y systems. For example, provided that the `agora` command-line is in your `$PATH`:
+
+```
+#!/usr/bin/env agora run -R
+fmt := import("fmt")
+fmt.Println("Hello from agora!")
+```
+
+You just need to set your script file to be executable (`chmod +x FILE`) and then it can be run like any shell script. The agora scanner will recognize the `#!` if it is on the first line, at the very beginning of the file, and will treat it like a comment.
+
 ## asm
 
 `agora asm [OPTIONS] FILE`
@@ -31,7 +43,7 @@ The `ast` sub-command prints the abstract syntax tree of an agora source code fi
 Options:
 
 ```
--0 (--output) : save to this output file
+-o (--output) : save to this output file
 -e (--all-errors) : print all errors, not just a summary
 ```
 
@@ -71,7 +83,9 @@ Options:
 ```
 -a (--from-asm) : compile and execute from an assembly source file
 -d (--debug) : run in debug mode
--S (--nostdlib) : do not register the stdlib in the execution context
+-o (--output) : save to this output file
+-R (--no-result) : do not print the result value
+-S (--no-stdlib) : do not register the stdlib in the execution context
 ```
 
 ## version
@@ -83,3 +97,5 @@ The `version` sub-command prints the current agora version.
 Next: [Roadmap][next]
 
 [next]: https://github.com/PuerkitoBio/agora/wiki/Roadmap
+[shebang]: http://en.wikipedia.org/wiki/Shebang_(Unix)
+
