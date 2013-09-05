@@ -167,6 +167,17 @@ func (o *Object) Unm() Val {
 	panic(ErrInvalidOpUnmOnObj)
 }
 
+// Get the length of the object. The behaviour can be overridden
+// if a `__len` method is available on the object.
+func (o *Object) Len() Val {
+	if m, ok := o.m[String("__len")]; ok {
+		if f, ok := m.(Func); ok {
+			return f.Call(o)
+		}
+	}
+	return Int(len(o.m))
+}
+
 // Get returns the value of the field identified by key. It returns Nil
 // if the field does not exist.
 func (o *Object) Get(key Val) Val {

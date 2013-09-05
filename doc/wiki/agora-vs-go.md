@@ -20,6 +20,8 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * Comments use the same notation as Go, namely `//` for one-liners, and `/* */` for multi-line.
 
+* Cyclic dependencies are prohibited, they are detected and raise an error (although only at runtime).
+
 ## Differences
 
 * The most obvious and important difference is probably the lack of types. Variables, arguments and functions have no types. Values have a type (a value is either a `string`, a `number`, a `bool`, an `object`, a `func` or `nil`).
