@@ -45,7 +45,7 @@ func (a *Asm) Compile(id string, r io.Reader) (*bytecode.File, error) {
 }
 
 func (a *Asm) findSection(s string) {
-	for line, ok := a.getLine(); ok; line, ok = a.getLine() {
+	for line, ok := a.getLine(false); ok; line, ok = a.getLine(false) {
 		if line == s {
 			break
 		}
@@ -54,7 +54,7 @@ func (a *Asm) findSection(s string) {
 
 func (a *Asm) readFn() {
 	fn := new(bytecode.Fn)
-	fn.Header.Name, _ = a.getLine()
+	fn.Header.Name, _ = a.getLine(false)
 	fn.Header.StackSz = a.getInt64()
 	fn.Header.ExpArgs = a.getInt64()
 	fn.Header.ExpVars = a.getInt64()
@@ -68,17 +68,21 @@ func (a *Asm) readFn() {
 
 func (a *Asm) readKs(fn *bytecode.Fn) {
 	// While the I section is not reached
-	for l, ok := a.getLine(); ok && l != "[i]"; l, ok = a.getLine() {
+	for l, ok := a.getLine(true); ok && !strings.HasPrefix(l, "[i]"); l, ok = a.getLine(true) {
 		var err error
 		k := new(bytecode.K)
 		// The K Type is the first character of the line
 		k.Type = bytecode.KType(l[0])
 		switch k.Type {
 		case bytecode.KtInteger, bytecode.KtBoolean:
-			k.Val, err = strconv.ParseInt(l[1:], 10, 64)
+			// Finish the trim
+			val := strings.TrimRight(l[1:], " \t")
+			k.Val, err = strconv.ParseInt(val, 10, 64)
 		case bytecode.KtFloat:
-			k.Val, err = strconv.ParseFloat(l[1:], 64)
+			val := strings.TrimRight(l[1:], " \t")
+			k.Val, err = strconv.ParseFloat(val, 64)
 		default:
+			// Untrimmed string value
 			k.Val = l[1:]
 		}
 		fn.Ks = append(fn.Ks, k)
@@ -93,7 +97,7 @@ func (a *Asm) readIs(fn *bytecode.Fn) {
 	var l string
 	var ok bool
 	// While a new F section is not reached
-	for l, ok = a.getLine(); ok && l != "[f]"; l, ok = a.getLine() {
+	for l, ok = a.getLine(false); ok && l != "[f]"; l, ok = a.getLine(false) {
 		// Split in three parts
 		parts := strings.SplitN(l, " ", 3)
 		if a.assertIParts(parts) {
@@ -121,7 +125,7 @@ func (a *Asm) assertIParts(p []string) bool {
 }
 
 func (a *Asm) getInt64() int64 {
-	if v, ok := a.getLine(); ok {
+	if v, ok := a.getLine(false); ok {
 		var i int64
 		i, a.err = strconv.ParseInt(v, 10, 64)
 		return i
@@ -129,7 +133,7 @@ func (a *Asm) getInt64() int64 {
 	return 0
 }
 
-func (a *Asm) getLine() (string, bool) {
+func (a *Asm) getLine(kSect bool) (string, bool) {
 	if a.err != nil || a.ended {
 		return "", false
 	}
@@ -148,7 +152,13 @@ func (a *Asm) getLine() (string, bool) {
 		if i >= 0 {
 			l = l[:i]
 		}
-		l = strings.TrimSpace(l)
+		//  For the K section, unless the line is empty, do not trim (trim left only)
+		trimmed := strings.TrimSpace(l)
+		if kSect && len(trimmed) > 0 {
+			l = strings.TrimLeft(l, " \t")
+		} else {
+			l = trimmed
+		}
 	}
 	return l, true
 }
