@@ -27,7 +27,16 @@ func (s *StringsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		s.ob.Set(runtime.String("HasPrefix"), runtime.NewNativeFunc(s.ctx, "strings.HasPrefix", s.strings_HasPrefix))
 		s.ob.Set(runtime.String("HasSuffix"), runtime.NewNativeFunc(s.ctx, "strings.HasSuffix", s.strings_HasSuffix))
 		s.ob.Set(runtime.String("Matches"), runtime.NewNativeFunc(s.ctx, "strings.Matches", s.strings_Matches))
-		s.ob.Set(runtime.String("CharAt"), runtime.NewNativeFunc(s.ctx, "strings.CharAt", s.strings_CharAt))
+		s.ob.Set(runtime.String("ByteAt"), runtime.NewNativeFunc(s.ctx, "strings.ByteAt", s.strings_ByteAt))
+		s.ob.Set(runtime.String("Concat"), runtime.NewNativeFunc(s.ctx, "strings.Concat", s.strings_Concat))
+		s.ob.Set(runtime.String("Contains"), runtime.NewNativeFunc(s.ctx, "strings.Contains", s.strings_Contains))
+		s.ob.Set(runtime.String("Index"), runtime.NewNativeFunc(s.ctx, "strings.Index", s.strings_Index))
+		s.ob.Set(runtime.String("LastIndex"), runtime.NewNativeFunc(s.ctx, "strings.LastIndex", s.strings_LastIndex))
+		s.ob.Set(runtime.String("Slice"), runtime.NewNativeFunc(s.ctx, "strings.Slice", s.strings_Slice))
+		s.ob.Set(runtime.String("Split"), runtime.NewNativeFunc(s.ctx, "strings.Split", s.strings_Split))
+		s.ob.Set(runtime.String("Join"), runtime.NewNativeFunc(s.ctx, "strings.Join", s.strings_Join))
+		s.ob.Set(runtime.String("Replace"), runtime.NewNativeFunc(s.ctx, "strings.Replace", s.strings_Replace))
+		s.ob.Set(runtime.String("Trim"), runtime.NewNativeFunc(s.ctx, "strings.Trim", s.strings_Trim))
 	}
 	return s.ob, nil
 }
@@ -311,6 +320,47 @@ func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 	return runtime.String(buf.String())
 }
 
+// Args:
+// 0 - The source string
+// 1 - The old substring to replace
+// 2 [optional] - the new substring to insert (none by default, delete only)
+// 3 [optional] - the number of occurrences to replace. If 2 is a number, it is
+// considered the value of 3 and 2 is empty.
+// Returns:
+// The string with n occurrences of old replaced by new.
 func (s *StringsMod) strings_Replace(args ...runtime.Val) runtime.Val {
+	runtime.ExpectAtLeastNArgs(2, args)
+	src := args[0].String()
+	old := args[1].String()
+	nw := ""
+	cnt := -1
+	if len(args) > 2 {
+		switch v := args[2].(type) {
+		case runtime.Int, runtime.Float:
+			cnt = v.Int()
+		default:
+			// args[2] is the new string, args[3], if present, is the count
+			nw = v.String()
+			if len(args) > 3 {
+				cnt = args[3].Int()
+			}
+		}
+	}
+	return runtime.String(strings.Replace(src, old, nw, cnt))
+}
 
+// Args:
+// 0 - the source string
+// 1 [optional] - the cutset (all leading and trailing characters in this string will be
+// removed). Defaults to whitespace (space, \n, \t, \v and \r).
+// Returns:
+// The trimmed string.
+func (s *StringsMod) strings_Trim(args ...runtime.Val) runtime.Val {
+	runtime.ExpectAtLeastNArgs(1, args)
+	src := args[0].String()
+	cut := " \n\t\v\r"
+	if len(args) > 1 {
+		cut = args[1].String()
+	}
+	return runtime.String(strings.Trim(src, cut))
 }
