@@ -30,7 +30,12 @@ func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 	// 2- Write every function
 	for _, fn := range f.Fns {
 		d.write("[f]", true)
-		d.write(fn.Header.Name, true)
+		// If the func name is empty, set it to <anon>
+		if fn.Header.Name == "" {
+			d.write("<anon>", true)
+		} else {
+			d.write(fn.Header.Name, true)
+		}
 		d.write(fn.Header.StackSz, true)
 		d.write(fn.Header.ExpArgs, true)
 		d.write(fn.Header.ExpVars, true)
