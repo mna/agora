@@ -12,11 +12,11 @@ func TestAddMixed(t *testing.T) {
 		p   bool
 	}{
 		// Int leads
-		{x: Int(5), y: Float(3.24), exp: Int(8)},
-		{x: Int(5), y: String("2"), exp: Int(7)},
-		{x: Int(5), y: String("2.2"), exp: Nil, p: true}, // TODO : is this the correct behaviour?
+		{x: Int(5), y: Float(3.24), exp: Float(8.24)},
+		{x: Int(5), y: String("2"), exp: Float(7)},
+		{x: Int(5), y: String("2.2"), exp: Float(7.2)},
 		{x: Int(5), y: String("whatever"), exp: Nil, p: true},
-		{x: Int(5), y: Bool(true), exp: Int(6)},
+		{x: Int(5), y: Bool(true), exp: Float(6)},
 		{x: Int(5), y: Nil, exp: Nil, p: true},
 		// Float leads
 		{x: Float(2.2), y: Int(3), exp: Float(5.2)},

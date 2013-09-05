@@ -111,7 +111,7 @@ type Val interface {
 	dumper
 }
 type Converter interface {
-	Int() int
+	Int() int64
 	Float() float64
 	String() string
 	Bool() bool

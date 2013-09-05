@@ -6,13 +6,13 @@ import (
 )
 
 const (
-	floatCompareBuffer = 1e-9
+	floatCompareBuffer = 1e-6
 )
 
 func TestFloatAsInt(t *testing.T) {
 	cases := []struct {
 		x   float64
-		exp int
+		exp int64
 	}{
 		{x: 0.0, exp: 0},
 		{x: 1.0, exp: 1},

@@ -1,13 +1,14 @@
 package runtime
 
 import (
+	"math"
 	"testing"
 )
 
 func TestIntAsInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		exp int
+		x   int64
+		exp int64
 	}{
 		{x: 0, exp: 0},
 		{x: 1, exp: 1},
@@ -27,7 +28,7 @@ func TestIntAsInt(t *testing.T) {
 
 func TestIntAsFloat(t *testing.T) {
 	cases := []struct {
-		x   int
+		x   int64
 		exp float64
 	}{
 		{x: 0, exp: 0.0},
@@ -48,7 +49,7 @@ func TestIntAsFloat(t *testing.T) {
 
 func TestIntAsString(t *testing.T) {
 	cases := []struct {
-		x   int
+		x   int64
 		exp string
 	}{
 		{x: 0, exp: "0"},
@@ -69,7 +70,7 @@ func TestIntAsString(t *testing.T) {
 
 func TestIntAsBool(t *testing.T) {
 	cases := []struct {
-		x   int
+		x   int64
 		exp bool
 	}{
 		{x: 0, exp: false},
@@ -90,9 +91,9 @@ func TestIntAsBool(t *testing.T) {
 
 func TestAddInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		y   int
-		exp int
+		x   int64
+		y   int64
+		exp float64
 	}{
 		{x: 0, y: 0, exp: 0},
 		{x: 0, y: 1, exp: 1},
@@ -109,17 +110,17 @@ func TestAddInt(t *testing.T) {
 	for _, c := range cases {
 		vx, vy := Int(c.x), Int(c.y)
 		res := vx.Add(vy)
-		if ires := int(res.(Int)); c.exp != ires {
-			t.Errorf("%d + %d : expected %d, got %d", c.x, c.y, c.exp, ires)
+		if ires := float64(res.(Float)); c.exp != ires {
+			t.Errorf("%d + %d : expected %f, got %f", c.x, c.y, c.exp, ires)
 		}
 	}
 }
 
 func TestSubInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		y   int
-		exp int
+		x   int64
+		y   int64
+		exp float64
 	}{
 		{x: 0, y: 0, exp: 0},
 		{x: 0, y: 1, exp: -1},
@@ -136,17 +137,17 @@ func TestSubInt(t *testing.T) {
 	for _, c := range cases {
 		vx, vy := Int(c.x), Int(c.y)
 		res := vx.Sub(vy)
-		if ires := int(res.(Int)); c.exp != ires {
-			t.Errorf("%d - %d : expected %d, got %d", c.x, c.y, c.exp, ires)
+		if ires := float64(res.(Float)); c.exp != ires {
+			t.Errorf("%d - %d : expected %f, got %f", c.x, c.y, c.exp, ires)
 		}
 	}
 }
 
 func TestMulInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		y   int
-		exp int
+		x   int64
+		y   int64
+		exp float64
 	}{
 		{x: 0, y: 0, exp: 0},
 		{x: 0, y: 1, exp: 0},
@@ -163,42 +164,42 @@ func TestMulInt(t *testing.T) {
 	for _, c := range cases {
 		vx, vy := Int(c.x), Int(c.y)
 		res := vx.Mul(vy)
-		if ires := int(res.(Int)); c.exp != ires {
-			t.Errorf("%d * %d : expected %d, got %d", c.x, c.y, c.exp, ires)
+		if ires := float64(res.(Float)); c.exp != ires {
+			t.Errorf("%d * %d : expected %f, got %f", c.x, c.y, c.exp, ires)
 		}
 	}
 }
 
 func TestDivInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		y   int
-		exp int
+		x   int64
+		y   int64
+		exp float64
 	}{
 		{x: 0, y: 1, exp: 0},
 		{x: 20, y: 5, exp: 4},
-		{x: -12, y: 356, exp: 0},
+		{x: -12, y: 356, exp: -0.033708},
 		{x: -1, y: 1, exp: -1},
 		{x: -1, y: -1, exp: 1},
 		{x: 4294967296, y: 1, exp: 4294967296},
 		{x: 1000, y: -100, exp: -10},
-		{x: 10, y: 3, exp: 3},
+		{x: 10, y: 3, exp: 3.333333},
 	}
 
 	for _, c := range cases {
 		vx, vy := Int(c.x), Int(c.y)
 		res := vx.Div(vy)
-		if ires := int(res.(Int)); c.exp != ires {
-			t.Errorf("%d / %d : expected %d, got %d", c.x, c.y, c.exp, ires)
+		if ires := float64(res.(Float)); math.Abs(c.exp-ires) > floatCompareBuffer {
+			t.Errorf("%d / %d : expected %f, got %f", c.x, c.y, c.exp, ires)
 		}
 	}
 }
 
 func TestModInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		y   int
-		exp int
+		x   int64
+		y   int64
+		exp int64
 	}{
 		{x: 0, y: 1, exp: 0},
 		{x: 20, y: 5, exp: 0},
@@ -213,7 +214,7 @@ func TestModInt(t *testing.T) {
 	for _, c := range cases {
 		vx, vy := Int(c.x), Int(c.y)
 		res := vx.Mod(vy)
-		if ires := int(res.(Int)); c.exp != ires {
+		if ires := int64(res.(Int)); c.exp != ires {
 			t.Errorf("%d %% %d : expected %d, got %d", c.x, c.y, c.exp, ires)
 		}
 	}
@@ -221,8 +222,8 @@ func TestModInt(t *testing.T) {
 
 func TestUnmInt(t *testing.T) {
 	cases := []struct {
-		x   int
-		exp int
+		x   int64
+		exp int64
 	}{
 		{x: 0, exp: 0},
 		{x: 1, exp: -1},
@@ -234,7 +235,7 @@ func TestUnmInt(t *testing.T) {
 	for _, c := range cases {
 		vx := Int(c.x)
 		res := vx.Unm()
-		if ires := int(res.(Int)); c.exp != ires {
+		if ires := int64(res.(Int)); c.exp != ires {
 			t.Errorf("-%d : expected %d, got %d", c.x, c.exp, ires)
 		}
 	}

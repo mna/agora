@@ -132,7 +132,7 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 	rx := regexp.MustCompile(args[1].String())
 	n := -1 // By default, return all matches
 	if len(args) > 2 {
-		n = args[2].Int()
+		n = int(args[2].Int())
 	}
 	strmtch := rx.FindAllStringSubmatch(src, n)
 	if strmtch == nil {
@@ -164,7 +164,7 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 func (s *StringsMod) strings_ByteAt(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
-	at := args[1].Int()
+	at := int(args[1].Int())
 	if at >= len(src) {
 		return runtime.String("")
 	}
@@ -217,7 +217,7 @@ func (s *StringsMod) strings_Index(args ...runtime.Val) runtime.Val {
 	switch v := args[1].(type) {
 	case runtime.Int, runtime.Float:
 		runtime.ExpectAtLeastNArgs(3, args)
-		start = v.Int()
+		start = int(v.Int())
 		find = 2
 	}
 	src = src[start:]
@@ -243,7 +243,7 @@ func (s *StringsMod) strings_LastIndex(args ...runtime.Val) runtime.Val {
 	switch v := args[1].(type) {
 	case runtime.Int, runtime.Float:
 		runtime.ExpectAtLeastNArgs(3, args)
-		start = v.Int()
+		start = int(v.Int())
 		find = 2
 	}
 	src = src[start:]
@@ -268,7 +268,7 @@ func (s *StringsMod) strings_Slice(args ...runtime.Val) runtime.Val {
 	start := args[1].Int()
 	end := len(src)
 	if len(args) > 2 {
-		end = args[2].Int()
+		end = int(args[2].Int())
 	}
 	return runtime.String(src[start:end])
 }
@@ -285,7 +285,7 @@ func (s *StringsMod) strings_Split(args ...runtime.Val) runtime.Val {
 	sep := args[1].String()
 	cnt := -1
 	if len(args) > 2 {
-		cnt = args[2].Int()
+		cnt = int(args[2].Int())
 	}
 	splits := strings.SplitN(src, sep, cnt)
 	ob := runtime.NewObject()
@@ -307,7 +307,7 @@ func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 	if len(args) > 1 {
 		sep = args[1].String()
 	}
-	l := ob.Len().Int()
+	l := int(ob.Len().Int())
 	buf := bytes.NewBuffer(nil)
 	for i := 0; i < l; i++ {
 		if _, err := buf.WriteString(ob.Get(runtime.Int(i)).String()); err != nil {
@@ -337,12 +337,12 @@ func (s *StringsMod) strings_Replace(args ...runtime.Val) runtime.Val {
 	if len(args) > 2 {
 		switch v := args[2].(type) {
 		case runtime.Int, runtime.Float:
-			cnt = v.Int()
+			cnt = int(v.Int())
 		default:
 			// args[2] is the new string, args[3], if present, is the count
 			nw = v.String()
 			if len(args) > 3 {
-				cnt = args[3].Int()
+				cnt = int(args[3].Int())
 			}
 		}
 	}

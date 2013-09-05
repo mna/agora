@@ -46,7 +46,7 @@ func (o *Object) dump() string {
 
 // Int returns the integer value of the object. Such behaviour can be defined
 // if a `__toInt` method is available on the object.
-func (o *Object) Int() int {
+func (o *Object) Int() int64 {
 	if i, ok := o.m[String("__toInt")]; ok {
 		if f, ok := i.(Func); ok {
 			return f.Call(o).Int()
@@ -107,7 +107,7 @@ func (o *Object) Cmp(v Val) int {
 	// First check for a custom Cmp method
 	if c, ok := o.m[String("__cmp")]; ok {
 		if f, ok := c.(Func); ok {
-			return f.Call(o, v).Int()
+			return int(f.Call(o, v).Int())
 		}
 	}
 	// Else, default Cmp - if same reference as v, return 0 (equal)

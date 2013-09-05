@@ -3,7 +3,7 @@ package runtime
 // Converter declares the required methods to convert a value
 // to any one of the supported types (except Object and Func).
 type Converter interface {
-	Int() int
+	Int() int64
 	Float() float64
 	String() string
 	Bool() bool

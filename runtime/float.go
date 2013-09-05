@@ -15,8 +15,8 @@ func (f Float) dump() string {
 }
 
 // Int returns the integer part of the float value.
-func (f Float) Int() int {
-	return int(math.Trunc(float64(f)))
+func (f Float) Int() int64 {
+	return int64(math.Trunc(float64(f)))
 }
 
 // Float returns the float value itself.

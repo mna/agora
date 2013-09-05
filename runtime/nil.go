@@ -35,7 +35,7 @@ func (n null) dump() string {
 }
 
 // Int is an invalid conversion.
-func (n null) Int() int {
+func (n null) Int() int64 {
 	panic(ErrInvalidConvNilToInt)
 }
 

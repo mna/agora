@@ -24,7 +24,7 @@ func (b Bool) dump() string {
 }
 
 // Int returns 1 if true, 0 if false.
-func (b Bool) Int() int {
+func (b Bool) Int() int64 {
 	if bool(b) {
 		return 1
 	}

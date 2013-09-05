@@ -33,7 +33,7 @@ func (f *funcVal) dump() string {
 }
 
 // Int is an invalid conversion.
-func (f *funcVal) Int() int {
+func (f *funcVal) Int() int64 {
 	panic(ErrInvalidConvFuncToInt)
 }
 

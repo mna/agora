@@ -7,7 +7,7 @@ import (
 func TestStringAsInt(t *testing.T) {
 	cases := []struct {
 		x   string
-		exp int
+		exp int64
 		p   bool
 	}{
 		{x: "0", exp: 0},

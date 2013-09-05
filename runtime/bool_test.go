@@ -7,7 +7,7 @@ import (
 func TestBoolAsInt(t *testing.T) {
 	cases := []struct {
 		x   bool
-		exp int
+		exp int64
 	}{
 		{x: true, exp: 1},
 		{x: false, exp: 0},

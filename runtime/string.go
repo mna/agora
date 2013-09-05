@@ -27,12 +27,12 @@ func (s String) dump() string {
 // Int converts the string representation of an integer to an integer value.
 // If the string doesn't hold a valid integer representation,
 // it panics.
-func (s String) Int() int {
+func (s String) Int() int64 {
 	i, err := strconv.ParseInt(string(s), 10, 0)
 	if err != nil {
 		panic(err)
 	}
-	return int(i)
+	return int64(i)
 }
 
 // Float converts the string representation of a float to a float value.
@@ -87,7 +87,7 @@ func (s String) Sub(v Val) Val {
 // value converted to an integer.
 // TODO : Is this a *good idea*?
 func (s String) Mul(v Val) Val {
-	return String(strings.Repeat(string(s), v.Int()))
+	return String(strings.Repeat(string(s), int(v.Int())))
 }
 
 // Div is an invalid operation.
