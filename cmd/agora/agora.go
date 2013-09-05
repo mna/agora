@@ -116,9 +116,11 @@ func (d *dasm) Execute(args []string) error {
 
 // The run command struct
 type run struct {
-	FromAsm  bool `short:"a" long:"from-asm" description:"run an assembly input"`
-	NoStdlib bool `short:"S" long:"nostdlib" description:"do not import the stdlib"`
-	Debug    bool `short:"d" long:"debug" description:"output debug information"`
+	FromAsm  bool   `short:"a" long:"from-asm" description:"run an assembly input"`
+	NoStdlib bool   `short:"S" long:"nostdlib" description:"do not import the stdlib"`
+	Debug    bool   `short:"d" long:"debug" description:"output debug information"`
+	NoResult bool   `short:"R" long:"no-result" description: "do not print the result"`
+	Output   string `short:"o" long:"output" description:"output file"`
 }
 
 func (r *run) Execute(args []string) error {
@@ -148,9 +150,19 @@ func (r *run) Execute(args []string) error {
 	for i, s := range args[1:] {
 		vals[i] = runtime.String(s)
 	}
+	// Open output stream
+	outf := os.Stdout
+	if r.Output != "" {
+		outf, err = os.Open(r.Output)
+		if err != nil {
+			return err
+		}
+		defer outf.Close()
+		ctx.Stdout = outf
+	}
 	res, err := m.Run(vals...)
-	if err == nil {
-		fmt.Printf("\n= %v (%T)\n", res.Native(), res)
+	if err == nil && !r.NoResult {
+		fmt.Fprintf(outf, "\n= %v (%T)\n", res.Native(), res)
 	}
 	return err
 }

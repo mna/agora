@@ -533,6 +533,13 @@ func (s *Scanner) Scan() (tok token.Token, lit string, pos token.Position) {
 		tok, lit = s.scanNumber(false)
 	default:
 		s.next() // always make progress
+		// Special case, if the very first line is a hashbang (#!), skip
+		// and ignore this line.
+		if s.line == 1 && ch == '#' && s.ch == '!' {
+			// Treat like a one-liner comment
+			s.ch = '/'
+			return token.COMMENT, s.scanComment(), s.getPosition()
+		}
 		switch ch {
 		case -1:
 			if s.insertSemi {
