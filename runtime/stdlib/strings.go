@@ -310,11 +310,15 @@ func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 	l := int(ob.Len().Int())
 	buf := bytes.NewBuffer(nil)
 	for i := 0; i < l; i++ {
-		if _, err := buf.WriteString(ob.Get(runtime.Int(i)).String()); err != nil {
-			panic(err)
-		}
-		if _, err := buf.WriteString(sep); err != nil {
-			panic(err)
+		val := ob.Get(runtime.Int(i))
+		// Skip if the field does not exist
+		if val != runtime.Nil {
+			if _, err := buf.WriteString(val.String()); err != nil {
+				panic(err)
+			}
+			if _, err := buf.WriteString(sep); err != nil {
+				panic(err)
+			}
 		}
 	}
 	return runtime.String(buf.String())

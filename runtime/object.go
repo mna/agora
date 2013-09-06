@@ -21,6 +21,7 @@ var (
 
 	ErrNoSuchMethod     = errors.New("method does not exist")
 	ErrFieldNotFunction = errors.New("field is not a function")
+	ErrInvalidNilKey    = errors.New("field key cannot be nil")
 )
 
 // An Object is a map of values, an associative array.
@@ -187,9 +188,22 @@ func (o *Object) Get(key Val) Val {
 	return Nil
 }
 
-// Set assigns the value v to the field identified by key.
+// Set assigns the value v to the field identified by key. If the value
+// is Nil, set instead removes the key from the object. If the key is nil,
+// an error is raised.
 func (o *Object) Set(key Val, v Val) {
-	o.m[key] = v
+	if v == Nil {
+		delete(o.m, key)
+	} else if key == Nil {
+		panic(ErrInvalidNilKey)
+	} else {
+		o.m[key] = v
+	}
+}
+
+// Delete removes the field identified by the key from the object.
+func (o *Object) Delete(key Val) {
+	delete(o.m, key)
 }
 
 // callMethod calls the method identified by nm with the provided arguments.

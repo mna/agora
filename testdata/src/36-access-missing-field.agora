@@ -1,0 +1,2 @@
+a := {b: {c: {d: "hi"}}}
+return a.b.j.k
