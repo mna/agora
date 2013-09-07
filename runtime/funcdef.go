@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
