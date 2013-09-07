@@ -174,9 +174,7 @@ func (p *Parser) defineGrammar() {
 
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
-		if p.tkn.Id != ";" {
-			sym.First = p.expression(0)
-		}
+		sym.First = p.expression(0)
 		p.advance(";")
 		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")

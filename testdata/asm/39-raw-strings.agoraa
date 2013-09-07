@@ -1,0 +1,18 @@
+// Generated from the disassembler, v0.0
+[f]
+39-raw-strings.agora
+1
+0
+0
+0
+0
+[k]
+sthis is
+a long
+string
+ss
+[i]
+PUSH K 0
+POP V 1
+PUSH V 1
+RET _ 0

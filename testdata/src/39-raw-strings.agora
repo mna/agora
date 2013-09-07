@@ -1,0 +1,4 @@
+s := `this is
+a long
+string`
+return s
