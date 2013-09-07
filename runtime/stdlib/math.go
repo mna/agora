@@ -198,13 +198,13 @@ func (m *MathMod) math_RandSeed(args ...runtime.Val) runtime.Val {
 func (m *MathMod) math_Rand(args ...runtime.Val) runtime.Val {
 	switch len(args) {
 	case 0:
-		return runtime.Int(rand.Int())
+		return runtime.Float(rand.Int())
 	case 1:
-		return runtime.Int(rand.Intn(int(args[0].Int())))
+		return runtime.Float(rand.Intn(int(args[0].Int())))
 	default:
 		low := args[0].Int()
 		high := args[1].Int()
 		n := rand.Intn(int(high - low))
-		return runtime.Int(int64(n) + low)
+		return runtime.Float(int64(n) + low)
 	}
 }

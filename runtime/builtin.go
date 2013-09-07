@@ -86,10 +86,10 @@ func (b *builtinMod) _len(args ...Val) Val {
 	ExpectAtLeastNArgs(1, args)
 	switch v := args[0].(type) {
 	case *Object:
-		return Int(len(v.m))
+		return Float(len(v.m))
 	case null:
-		return Int(0)
+		return Float(0)
 	default:
-		return Int(len(v.String()))
+		return Float(len(v.String()))
 	}
 }

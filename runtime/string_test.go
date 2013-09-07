@@ -170,7 +170,7 @@ func TestMulString(t *testing.T) {
 			if c.p {
 				defer assert(c.x)
 			}
-			vx, vy := String(c.x), Int(c.y)
+			vx, vy := String(c.x), Float(c.y)
 			res := vx.Mul(vy)
 			if sres := res.String(); c.exp != sres {
 				t.Errorf("%s * %d : expected %s, got %s", c.x, c.y, c.exp, sres)

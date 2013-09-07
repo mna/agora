@@ -11,7 +11,7 @@ import (
 type Float float64
 
 func (f Float) dump() string {
-	return fmt.Sprintf("%f (Float)", float64(f))
+	return fmt.Sprintf("%s (Float)", strconv.FormatFloat(float64(f), 'f', -1, 64))
 }
 
 // Int returns the integer part of the float value.

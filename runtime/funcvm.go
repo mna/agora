@@ -102,7 +102,7 @@ func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 	case bytecode.FLG_F:
 		fmt.Fprintf(w, " ; %s", f.proto.mod.fns[i.Index()].dump())
 	case bytecode.FLG_A:
-		fmt.Fprintf(w, " ; args[%d]", i.Index())
+		fmt.Fprint(w, " ; [args]")
 	}
 }
 
@@ -119,6 +119,9 @@ func (f *funcVM) dump() string {
 	fmt.Fprintf(buf, "\n  Variables:\n")
 	if f.this != nil {
 		fmt.Fprintf(buf, "    [this] = %s\n", f.this.dump())
+	}
+	if f.args != nil {
+		fmt.Fprintf(buf, "    [args] = %s\n", f.args.dump())
 	}
 	// Sort the vars for deterministic output
 	sortedVars := make([]string, len(f.vars))
@@ -176,7 +179,7 @@ func (vm *funcVM) createArgsVal(args []Val) Val {
 	}
 	o := NewObject()
 	for i, v := range args {
-		o.Set(Int(i), v)
+		o.Set(Float(i), v)
 	}
 	return o
 }

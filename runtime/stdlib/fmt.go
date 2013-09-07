@@ -49,7 +49,7 @@ func (f *FmtMod) fmt_Print(args ...runtime.Val) runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Int(n)
+	return runtime.Float(n)
 }
 
 func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
@@ -58,7 +58,7 @@ func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Int(n)
+	return runtime.Float(n)
 }
 
 func (f *FmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
@@ -71,5 +71,5 @@ func (f *FmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Int(n)
+	return runtime.Float(n)
 }

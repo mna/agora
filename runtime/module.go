@@ -47,7 +47,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 			case bytecode.KtBoolean:
 				af.kTable[j] = Bool(k.Val.(int64) != 0)
 			case bytecode.KtInteger:
-				af.kTable[j] = Int(k.Val.(int64))
+				af.kTable[j] = Float(k.Val.(int64))
 			case bytecode.KtFloat:
 				af.kTable[j] = Float(k.Val.(float64))
 			case bytecode.KtString:

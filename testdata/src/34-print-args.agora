@@ -3,4 +3,5 @@ f := import("fmt")
 for i := 0; i < len(args); i++ {
 	f.Println(args[i])
 }
+debug
 return len(args)

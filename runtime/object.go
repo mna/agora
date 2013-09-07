@@ -176,7 +176,7 @@ func (o *Object) Len() Val {
 			return f.Call(o)
 		}
 	}
-	return Int(len(o.m))
+	return Float(len(o.m))
 }
 
 // Get returns the value of the field identified by key. It returns Nil

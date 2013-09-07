@@ -50,7 +50,7 @@ func (c *ConvMod) conv_Type(args ...runtime.Val) runtime.Val {
 	switch args[0].(type) {
 	case runtime.String:
 		return runtime.String("string")
-	case runtime.Int, runtime.Float:
+	case runtime.Float:
 		return runtime.String("number")
 	case runtime.Bool:
 		return runtime.String("bool")

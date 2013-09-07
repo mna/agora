@@ -7,3 +7,4 @@ div := a / b // TODO : Should div return a float even for Int?
 mod := b % a
 not := !a
 unm := -a
+debug
