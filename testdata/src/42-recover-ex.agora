@@ -1,0 +1,10 @@
+a := nil
+err := recover(func() {
+	a = "storing return value"
+})
+
+if err {
+	return err
+}
+
+return a
