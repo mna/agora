@@ -2,11 +2,11 @@ This article will get you up to speed in installing and using the agora programm
 
 ## Installation
 
-Provided you already have the [Go language][go] installed - the only agora dependency - and [your `$GOPATH` environment variable setup correctly][gopath], this is a simple matter of running this command:
+Provided you already have the [Go language][go] installed and [your `$GOPATH` environment variable setup correctly][gopath], this is a simple matter of running this command:
 
-`go get github.com/PuerkitoBio/agora/...`
+`go get -t github.com/PuerkitoBio/agora/...`
 
-The three dots at the end are part of the command, literally. The agora repository is a collection of multiple packages, and this command will instruct `go get` to install all of them.
+The three dots at the end are part of the command, literally. The agora repository is a collection of multiple packages, and this command will instruct `go get` to install all of them. The `-t` flag instructs go to also install packages required for tests.
 
 To test the installation, run the following command (`$` represents the command prompt):
 
@@ -129,4 +129,3 @@ Next: [Similarities and differences with Go][next]
 [assembly]: https://github.com/PuerkitoBio/agora/wiki/Assembly-code-format
 [next]: https://github.com/PuerkitoBio/agora/wiki/Similarities-and-differences-with-Go
 [cli]: https://github.com/PuerkitoBio/agora/wiki/Command-line-tool
-
