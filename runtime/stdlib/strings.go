@@ -145,11 +145,11 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 		for j, mtch := range mtches {
 			leaf := runtime.NewObject()
 			leaf.Set(runtime.String("text"), runtime.String(mtch))
-			leaf.Set(runtime.String("start"), runtime.Float(ixmtch[i][2*j]))
-			leaf.Set(runtime.String("length"), runtime.Float(ixmtch[i][2*j+1]))
-			obch.Set(runtime.Float(j), leaf)
+			leaf.Set(runtime.String("start"), runtime.Number(ixmtch[i][2*j]))
+			leaf.Set(runtime.String("length"), runtime.Number(ixmtch[i][2*j+1]))
+			obch.Set(runtime.Number(j), leaf)
 		}
-		ob.Set(runtime.Float(i), obch)
+		ob.Set(runtime.Number(i), obch)
 	}
 	return ob
 }
@@ -215,7 +215,7 @@ func (s *StringsMod) strings_Index(args ...runtime.Val) runtime.Val {
 	start := 0
 	find := 1
 	switch v := args[1].(type) {
-	case runtime.Float:
+	case runtime.Number:
 		runtime.ExpectAtLeastNArgs(3, args)
 		start = int(v.Int())
 		find = 2
@@ -223,10 +223,10 @@ func (s *StringsMod) strings_Index(args ...runtime.Val) runtime.Val {
 	src = src[start:]
 	for _, v := range args[find:] {
 		if ix := strings.Index(src, v.String()); ix >= 0 {
-			return runtime.Float(ix)
+			return runtime.Number(ix)
 		}
 	}
-	return runtime.Float(-1)
+	return runtime.Number(-1)
 }
 
 // Args:
@@ -241,7 +241,7 @@ func (s *StringsMod) strings_LastIndex(args ...runtime.Val) runtime.Val {
 	start := 0
 	find := 1
 	switch v := args[1].(type) {
-	case runtime.Float:
+	case runtime.Number:
 		runtime.ExpectAtLeastNArgs(3, args)
 		start = int(v.Int())
 		find = 2
@@ -249,10 +249,10 @@ func (s *StringsMod) strings_LastIndex(args ...runtime.Val) runtime.Val {
 	src = src[start:]
 	for _, v := range args[find:] {
 		if ix := strings.LastIndex(src, v.String()); ix >= 0 {
-			return runtime.Float(ix)
+			return runtime.Number(ix)
 		}
 	}
-	return runtime.Float(-1)
+	return runtime.Number(-1)
 }
 
 // Slice a string to get a substring. Basically the same as slicing in Go.
@@ -290,7 +290,7 @@ func (s *StringsMod) strings_Split(args ...runtime.Val) runtime.Val {
 	splits := strings.SplitN(src, sep, cnt)
 	ob := runtime.NewObject()
 	for i, v := range splits {
-		ob.Set(runtime.Float(i), runtime.String(v))
+		ob.Set(runtime.Number(i), runtime.String(v))
 	}
 	return ob
 }
@@ -310,7 +310,7 @@ func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 	l := int(ob.Len().Int())
 	buf := bytes.NewBuffer(nil)
 	for i := 0; i < l; i++ {
-		val := ob.Get(runtime.Float(i))
+		val := ob.Get(runtime.Number(i))
 		// Skip if the field does not exist
 		if val != runtime.Nil {
 			if _, err := buf.WriteString(val.String()); err != nil {
@@ -340,7 +340,7 @@ func (s *StringsMod) strings_Replace(args ...runtime.Val) runtime.Val {
 	cnt := -1
 	if len(args) > 2 {
 		switch v := args[2].(type) {
-		case runtime.Float:
+		case runtime.Number:
 			cnt = int(v.Int())
 		default:
 			// args[2] is the new string, args[3], if present, is the count

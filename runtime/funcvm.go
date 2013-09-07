@@ -179,7 +179,7 @@ func (vm *funcVM) createArgsVal(args []Val) Val {
 	}
 	o := NewObject()
 	for i, v := range args {
-		o.Set(Float(i), v)
+		o.Set(Number(i), v)
 	}
 	return o
 }

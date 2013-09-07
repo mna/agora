@@ -22,7 +22,6 @@ func (f *FmtMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		f.ob = runtime.NewObject()
 		f.ob.Set(runtime.String("Print"), runtime.NewNativeFunc(f.ctx, "fmt.Print", f.fmt_Print))
 		f.ob.Set(runtime.String("Println"), runtime.NewNativeFunc(f.ctx, "fmt.Println", f.fmt_Println))
-		f.ob.Set(runtime.String("Printf"), runtime.NewNativeFunc(f.ctx, "fmt.Printf", f.fmt_Printf))
 	}
 	return f.ob, nil
 }
@@ -49,7 +48,7 @@ func (f *FmtMod) fmt_Print(args ...runtime.Val) runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Float(n)
+	return runtime.Number(n)
 }
 
 func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
@@ -58,18 +57,5 @@ func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Float(n)
-}
-
-func (f *FmtMod) fmt_Printf(args ...runtime.Val) runtime.Val {
-	var ft string
-	if len(args) > 0 {
-		ft = args[0].String()
-	}
-	ifs := toNative(args[1:])
-	n, err := fmt.Fprintf(f.ctx.Stdout, ft, ifs)
-	if err != nil {
-		panic(err)
-	}
-	return runtime.Float(n)
+	return runtime.Number(n)
 }

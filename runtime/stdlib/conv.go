@@ -32,7 +32,7 @@ func (c *ConvMod) SetCtx(ctx *runtime.Ctx) {
 
 func (c *ConvMod) conv_Number(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(args[0].Float())
+	return runtime.Number(args[0].Float())
 }
 
 func (c *ConvMod) conv_String(args ...runtime.Val) runtime.Val {
@@ -50,7 +50,7 @@ func (c *ConvMod) conv_Type(args ...runtime.Val) runtime.Val {
 	switch args[0].(type) {
 	case runtime.String:
 		return runtime.String("string")
-	case runtime.Float:
+	case runtime.Number:
 		return runtime.String("number")
 	case runtime.Bool:
 		return runtime.String("bool")

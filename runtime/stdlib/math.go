@@ -21,7 +21,7 @@ func (m *MathMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 	if m.ob == nil {
 		// Prepare the object
 		m.ob = runtime.NewObject()
-		m.ob.Set(runtime.String("Pi"), runtime.Float(math.Pi))
+		m.ob.Set(runtime.String("Pi"), runtime.Number(math.Pi))
 		m.ob.Set(runtime.String("Abs"), runtime.NewNativeFunc(m.ctx, "math.Abs", m.math_Abs))
 		m.ob.Set(runtime.String("Acos"), runtime.NewNativeFunc(m.ctx, "math.Acos", m.math_Acos))
 		m.ob.Set(runtime.String("Acosh"), runtime.NewNativeFunc(m.ctx, "math.Acosh", m.math_Acosh))
@@ -59,72 +59,72 @@ func (m *MathMod) SetCtx(ctx *runtime.Ctx) {
 
 func (m *MathMod) math_Abs(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Abs(args[0].Float()))
+	return runtime.Number(math.Abs(args[0].Float()))
 }
 
 func (m *MathMod) math_Acos(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Acos(args[0].Float()))
+	return runtime.Number(math.Acos(args[0].Float()))
 }
 
 func (m *MathMod) math_Acosh(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Acosh(args[0].Float()))
+	return runtime.Number(math.Acosh(args[0].Float()))
 }
 
 func (m *MathMod) math_Asin(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Asin(args[0].Float()))
+	return runtime.Number(math.Asin(args[0].Float()))
 }
 
 func (m *MathMod) math_Asinh(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Asinh(args[0].Float()))
+	return runtime.Number(math.Asinh(args[0].Float()))
 }
 
 func (m *MathMod) math_Atan(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Atan(args[0].Float()))
+	return runtime.Number(math.Atan(args[0].Float()))
 }
 
 func (m *MathMod) math_Atan2(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
-	return runtime.Float(math.Atan2(args[0].Float(), args[1].Float()))
+	return runtime.Number(math.Atan2(args[0].Float(), args[1].Float()))
 }
 
 func (m *MathMod) math_Atanh(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Atanh(args[0].Float()))
+	return runtime.Number(math.Atanh(args[0].Float()))
 }
 
 func (m *MathMod) math_Ceil(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Ceil(args[0].Float()))
+	return runtime.Number(math.Ceil(args[0].Float()))
 }
 
 func (m *MathMod) math_Cos(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Cos(args[0].Float()))
+	return runtime.Number(math.Cos(args[0].Float()))
 }
 
 func (m *MathMod) math_Cosh(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Cosh(args[0].Float()))
+	return runtime.Number(math.Cosh(args[0].Float()))
 }
 
 func (m *MathMod) math_Exp(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Exp(args[0].Float()))
+	return runtime.Number(math.Exp(args[0].Float()))
 }
 
 func (m *MathMod) math_Floor(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Floor(args[0].Float()))
+	return runtime.Number(math.Floor(args[0].Float()))
 }
 
 func (m *MathMod) math_Inf(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Inf(int(args[0].Int())))
+	return runtime.Number(math.Inf(int(args[0].Int())))
 }
 
 func (m *MathMod) math_IsInf(args ...runtime.Val) runtime.Val {
@@ -143,7 +143,7 @@ func (m *MathMod) math_Max(args ...runtime.Val) runtime.Val {
 	for i := len(args) - 2; i >= 0; i-- {
 		max = math.Max(max, args[i].Float())
 	}
-	return runtime.Float(max)
+	return runtime.Number(max)
 }
 
 func (m *MathMod) math_Min(args ...runtime.Val) runtime.Val {
@@ -152,41 +152,41 @@ func (m *MathMod) math_Min(args ...runtime.Val) runtime.Val {
 	for i := len(args) - 2; i >= 0; i-- {
 		min = math.Min(min, args[i].Float())
 	}
-	return runtime.Float(min)
+	return runtime.Number(min)
 }
 
 func (m *MathMod) math_NaN(_ ...runtime.Val) runtime.Val {
-	return runtime.Float(math.NaN())
+	return runtime.Number(math.NaN())
 }
 
 func (m *MathMod) math_Pow(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
-	return runtime.Float(math.Pow(args[0].Float(), args[1].Float()))
+	return runtime.Number(math.Pow(args[0].Float(), args[1].Float()))
 }
 
 func (m *MathMod) math_Sin(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Sin(args[0].Float()))
+	return runtime.Number(math.Sin(args[0].Float()))
 }
 
 func (m *MathMod) math_Sinh(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Sinh(args[0].Float()))
+	return runtime.Number(math.Sinh(args[0].Float()))
 }
 
 func (m *MathMod) math_Sqrt(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Sqrt(args[0].Float()))
+	return runtime.Number(math.Sqrt(args[0].Float()))
 }
 
 func (m *MathMod) math_Tan(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Tan(args[0].Float()))
+	return runtime.Number(math.Tan(args[0].Float()))
 }
 
 func (m *MathMod) math_Tanh(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Float(math.Tanh(args[0].Float()))
+	return runtime.Number(math.Tanh(args[0].Float()))
 }
 
 func (m *MathMod) math_RandSeed(args ...runtime.Val) runtime.Val {
@@ -198,13 +198,13 @@ func (m *MathMod) math_RandSeed(args ...runtime.Val) runtime.Val {
 func (m *MathMod) math_Rand(args ...runtime.Val) runtime.Val {
 	switch len(args) {
 	case 0:
-		return runtime.Float(rand.Int())
+		return runtime.Number(rand.Int())
 	case 1:
-		return runtime.Float(rand.Intn(int(args[0].Int())))
+		return runtime.Number(rand.Intn(int(args[0].Int())))
 	default:
 		low := args[0].Int()
 		high := args[1].Int()
 		n := rand.Intn(int(high - low))
-		return runtime.Float(int64(n) + low)
+		return runtime.Number(int64(n) + low)
 	}
 }

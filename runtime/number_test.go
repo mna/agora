@@ -9,7 +9,7 @@ const (
 	floatCompareBuffer = 1e-6
 )
 
-func TestFloatAsInt(t *testing.T) {
+func TestNumberAsInt(t *testing.T) {
 	cases := []struct {
 		x   float64
 		exp int64
@@ -26,7 +26,7 @@ func TestFloatAsInt(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx := Float(c.x)
+		vx := Number(c.x)
 		res := vx.Int()
 		if c.exp != res {
 			t.Errorf("%f as int : expected %d, got %d", c.x, c.exp, res)
@@ -34,7 +34,7 @@ func TestFloatAsInt(t *testing.T) {
 	}
 }
 
-func TestFloatAsFloat(t *testing.T) {
+func TestNumberAsFloat(t *testing.T) {
 	cases := []struct {
 		x   float64
 		exp float64
@@ -51,7 +51,7 @@ func TestFloatAsFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx := Float(c.x)
+		vx := Number(c.x)
 		res := vx.Float()
 		if c.exp != res {
 			t.Errorf("%f as float : expected %f, got %f", c.x, c.exp, res)
@@ -59,7 +59,7 @@ func TestFloatAsFloat(t *testing.T) {
 	}
 }
 
-func TestFloatAsString(t *testing.T) {
+func TestNumberAsString(t *testing.T) {
 	cases := []struct {
 		x   float64
 		exp string
@@ -76,7 +76,7 @@ func TestFloatAsString(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx := Float(c.x)
+		vx := Number(c.x)
 		res := vx.String()
 		if c.exp != res {
 			t.Errorf("%f as string : expected %s, got %s", c.x, c.exp, res)
@@ -84,7 +84,7 @@ func TestFloatAsString(t *testing.T) {
 	}
 }
 
-func TestFloatAsBool(t *testing.T) {
+func TestNumberAsBool(t *testing.T) {
 	cases := []struct {
 		x   float64
 		exp bool
@@ -101,7 +101,7 @@ func TestFloatAsBool(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx := Float(c.x)
+		vx := Number(c.x)
 		res := vx.Bool()
 		if c.exp != res {
 			t.Errorf("%f as bool : expected %v, got %v", c.x, c.exp, res)
@@ -109,7 +109,7 @@ func TestFloatAsBool(t *testing.T) {
 	}
 }
 
-func TestAddFloat(t *testing.T) {
+func TestAddNumber(t *testing.T) {
 	cases := []struct {
 		x   float64
 		y   float64
@@ -125,7 +125,7 @@ func TestAddFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx, vy := Float(c.x), Float(c.y)
+		vx, vy := Number(c.x), Number(c.y)
 		res := vx.Add(vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f + %f : expected %f, got %f", c.x, c.y, c.exp, res.Float())
@@ -133,7 +133,7 @@ func TestAddFloat(t *testing.T) {
 	}
 }
 
-func TestSubFloat(t *testing.T) {
+func TestSubNumber(t *testing.T) {
 	cases := []struct {
 		x   float64
 		y   float64
@@ -149,7 +149,7 @@ func TestSubFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx, vy := Float(c.x), Float(c.y)
+		vx, vy := Number(c.x), Number(c.y)
 		res := vx.Sub(vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f - %f : expected %f, got %f", c.x, c.y, c.exp, fres)
@@ -157,7 +157,7 @@ func TestSubFloat(t *testing.T) {
 	}
 }
 
-func TestMulFloat(t *testing.T) {
+func TestMulNumber(t *testing.T) {
 	cases := []struct {
 		x   float64
 		y   float64
@@ -173,7 +173,7 @@ func TestMulFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx, vy := Float(c.x), Float(c.y)
+		vx, vy := Number(c.x), Number(c.y)
 		res := vx.Mul(vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f * %f : expected %f, got %f", c.x, c.y, c.exp, fres)
@@ -181,7 +181,7 @@ func TestMulFloat(t *testing.T) {
 	}
 }
 
-func TestDivFloat(t *testing.T) {
+func TestDivNumber(t *testing.T) {
 	cases := []struct {
 		x   float64
 		y   float64
@@ -195,7 +195,7 @@ func TestDivFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx, vy := Float(c.x), Float(c.y)
+		vx, vy := Number(c.x), Number(c.y)
 		res := vx.Div(vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f / %f : expected %f, got %f", c.x, c.y, c.exp, fres)
@@ -203,7 +203,7 @@ func TestDivFloat(t *testing.T) {
 	}
 }
 
-func TestModFloat(t *testing.T) {
+func TestModNumber(t *testing.T) {
 	cases := []struct {
 		x   float64
 		y   float64
@@ -217,7 +217,7 @@ func TestModFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx, vy := Float(c.x), Float(c.y)
+		vx, vy := Number(c.x), Number(c.y)
 		res := vx.Mod(vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f %% %f : expected %f, got %f", c.x, c.y, c.exp, fres)
@@ -225,7 +225,7 @@ func TestModFloat(t *testing.T) {
 	}
 }
 
-func TestUnmFloat(t *testing.T) {
+func TestUnmNumber(t *testing.T) {
 	cases := []struct {
 		x   float64
 		exp float64
@@ -238,7 +238,7 @@ func TestUnmFloat(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vx := Float(c.x)
+		vx := Number(c.x)
 		res := vx.Unm()
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("-%f : expected %f, got %f", c.x, c.exp, fres)
