@@ -150,7 +150,7 @@ It is highly possible that in future versions, the `Int` type will disappear in 
 ```Go
 type Bool bool
 type Float float64
-type Int int
+type Int int64
 type String string
 ```
 
@@ -199,7 +199,7 @@ A native module should define a static, permanent ID, much like Go's import path
 
 The `Run()` method is a little more involved. 
 
-First, since the runtime panics when it encounters an error, the `Run()` method must be ready to recover from panics and return the error as second return value. This is such a common pattern that a helper function is made available, `runtime.PanicToError(*error)`. It is usually called in a `defer` statement, with a pointer to the (named) error return value as argument, so that if a panic is recovered, it is set in the error untiable that will be returned by the function.
+First, since the runtime panics when it encounters an error, the `Run()` method must be ready to recover from panics and return the error as second return value. This is such a common pattern that a helper function is made available, `runtime.PanicToError(*error)`. It is usually called in a `defer` statement, with a pointer to the (named) error return value as argument, so that if a panic is recovered, it is set in the error variable that will be returned by the function.
 
 Second, it should cache its return value so that multiple imports of this module get the same value.
 
@@ -271,4 +271,4 @@ Next: [Bytecode format][bytecode]
 
 [godoc]: http://godoc.org/github.com/PuerkitoBio/agora
 [bytecode]: https://github.com/PuerkitoBio/agora/wiki/Bytecode-format
-''''''
+

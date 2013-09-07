@@ -16,8 +16,8 @@ The features envisioned for v0.2 are:
 * Support closures.
 * Support coroutines.
 * Using coroutines, support a flexible, extensible `for ... range` notation.
-* Better/more tests
-* Fix bugs
+* Better/more tests.
+* Fix bugs.
 
 This will probably be enough for this version.
 
@@ -30,16 +30,17 @@ The backlog will no doubt have time to fill up until then, but as it stands toda
 * Optimize the object when used as an array (dense integer keys).
 * Support comma-separated list of assignments (for `:=` and `=`).
 * Introduce the `switch` statement.
-* Better/more tests
-* Fix bugs
+* Support interacting with Go channels.
+* Better/more tests.
+* Fix bugs.
 
 ## Beyond
 
-Once the language features have landed, focus should turn to refactoring the compiler, returning better error messages (both in the compiler and the runtime), and stabilizing/enhancing the stdlib. Testing on Windows should also start somewhere around here, I don't have a Windows machine and I don't want to spend time debugging for an OS-specific problem while the project is evolving fast. As far as I can tell, at the moment at least, there is no OS-specific code in agora so it shouldn't be too hard to get it to work. The only thing that comes to mind is the directory separator.
+Once the language features have landed, focus should turn to refactoring the compiler, returning better error messages (both in the compiler and the runtime), and stabilizing/enhancing the stdlib. Testing on Windows, BSD and other Go-supported platforms should also start somewhere around here, I don't have a Windows nor BSD machine and I don't want to spend time debugging for an OS-specific problem while the project is evolving fast. As far as I can tell, at the moment at least, there is no OS-specific code in agora so it shouldn't be too hard to get it to work. The only thing that comes to mind is the directory separator for Windows.
 
 ## Development
 
-Development will take place in the `next` branch. I will keep `master` stable and updated only with official releases (there *may* be v0.1.n releases before v0.2 lands, though, and if this happens, it will be on `master`).
+Development will take place in the `next` branch. I will keep `master` stable and updated only with official releases (there *may* be v0.1.n releases in case of absolute disaster before v0.2 lands, and if this happens, it will be on `master`).
 
-Next: [Design and architecture](https://github.com/PuerkitoBio/agora/wiki/Design-and-architecture)
+Next: [Virtual machine](https://github.com/PuerkitoBio/agora/wiki/Virtual-machine)
 

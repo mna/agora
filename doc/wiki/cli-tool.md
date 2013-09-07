@@ -98,4 +98,5 @@ Next: [Roadmap][next]
 
 [next]: https://github.com/PuerkitoBio/agora/wiki/Roadmap
 [shebang]: http://en.wikipedia.org/wiki/Shebang_(Unix)
+[assembly]: https://github.com/PuerkitoBio/agora/wiki/Assembly-code-format
 
