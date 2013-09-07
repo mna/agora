@@ -1,0 +1,5 @@
+obj := {4: "string-4"}
+obj[4] = "int-4"
+obj["4"] = "override-string-4"
+debug
+return obj

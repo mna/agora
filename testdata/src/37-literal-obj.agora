@@ -1,0 +1,9 @@
+i := 5
+s := `string`
+// The keys are actually all strings, not the value of vars
+o1 := {i: "i-value", s: "s-value", 4: "4-value!", _: "_-value!!"}
+o1[4] = "int-4-value" // BUG : Loads as another string-4 key
+o1[i] = "int-5-value-via-i-var"
+o1[s] = "int-s-value-via-s-var"
+debug
+return o1

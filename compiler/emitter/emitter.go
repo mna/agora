@@ -46,10 +46,15 @@ type forData struct {
 	conts  []int
 }
 
+type kId struct {
+	v string
+	t bytecode.KType
+}
+
 // An Emitter is responsible for generating the instructions for an agora program.
 type Emitter struct {
 	err     error
-	kMap    map[*bytecode.Fn]map[string]int
+	kMap    map[*bytecode.Fn]map[kId]int
 	stackSz map[*bytecode.Fn]int64
 	forNest map[*bytecode.Fn][]*forData
 }
@@ -61,7 +66,7 @@ type Emitter struct {
 func (e *Emitter) Emit(id string, syms []*parser.Symbol, scps *parser.Scope) (*bytecode.File, error) {
 	// Reset the internal fields
 	e.err = nil
-	e.kMap = make(map[*bytecode.Fn]map[string]int)
+	e.kMap = make(map[*bytecode.Fn]map[kId]int)
 	e.stackSz = make(map[*bytecode.Fn]int64)
 	e.forNest = make(map[*bytecode.Fn][]*forData)
 
@@ -483,13 +488,13 @@ func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool) uint6
 	}
 	m, ok := e.kMap[fn]
 	if !ok {
-		m = make(map[string]int)
+		m = make(map[kId]int)
 		e.kMap[fn] = m
 	}
-	i, ok := m[s]
+	i, ok := m[kId{s, kt}]
 	if !ok {
 		i = len(m)
-		m[s] = i
+		m[kId{s, kt}] = i
 		fn.Ks = append(fn.Ks, &bytecode.K{Type: kt, Val: val})
 	}
 	return uint64(i)
