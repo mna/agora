@@ -10,7 +10,7 @@ import (
 
 type StringsMod struct {
 	ctx *runtime.Ctx
-	ob  *runtime.Object
+	ob  runtime.Object
 }
 
 func (s *StringsMod) ID() string {
@@ -302,7 +302,7 @@ func (s *StringsMod) strings_Split(args ...runtime.Val) runtime.Val {
 // The concatenated string of all the array-like indices of the source object.
 func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	ob := args[0].(*runtime.Object)
+	ob := args[0].(runtime.Object)
 	sep := ""
 	if len(args) > 1 {
 		sep = args[1].String()

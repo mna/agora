@@ -49,7 +49,7 @@ type Ctx struct {
 	// Modules management
 	loadingMods map[string]bool // Modules currently being loaded
 	loadedMods  map[string]Module
-	builtin     *Object
+	builtin     Object
 }
 
 // NewCtx returns a new execution context, using the provided module resolver
@@ -70,7 +70,7 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	if v, err := b.Run(); err != nil {
 		panic("error loading angora builtin module: " + err.Error())
 	} else {
-		c.builtin = v.(*Object)
+		c.builtin = v.(Object)
 	}
 	return c
 }

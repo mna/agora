@@ -9,7 +9,7 @@ import (
 
 type MathMod struct {
 	ctx *runtime.Ctx
-	ob  *runtime.Object
+	ob  runtime.Object
 }
 
 func (m *MathMod) ID() string {

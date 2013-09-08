@@ -11,7 +11,7 @@ In any case, the steps are the following, provided you already have a GitHub acc
 
 * File an issue (if it doesn't already exist)
 * Fork the repository
-* Create a working branch
+* Create a working branch from the *next* branch
 * Add test(s) to prove the bug, and write the fix. Make sure to use `gofmt` on your Go code
 * Run all the tests to make sure the fix did not break something else
 * Submit the pull request

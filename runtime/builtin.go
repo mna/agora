@@ -6,7 +6,7 @@ import (
 
 type builtinMod struct {
 	ctx *Ctx
-	ob  *Object
+	ob  Object
 }
 
 func (b *builtinMod) ID() string {
@@ -85,8 +85,8 @@ func (b *builtinMod) _recover(args ...Val) (ret Val) {
 func (b *builtinMod) _len(args ...Val) Val {
 	ExpectAtLeastNArgs(1, args)
 	switch v := args[0].(type) {
-	case *Object:
-		return Number(len(v.m))
+	case Object:
+		return v.Len()
 	case null:
 		return Number(0)
 	default:

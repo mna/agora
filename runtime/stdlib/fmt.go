@@ -1,6 +1,7 @@
 package stdlib
 
 import (
+	"bufio"
 	"fmt"
 
 	"github.com/PuerkitoBio/agora/runtime"
@@ -8,7 +9,7 @@ import (
 
 type FmtMod struct {
 	ctx *runtime.Ctx
-	ob  *runtime.Object
+	ob  runtime.Object
 }
 
 func (f *FmtMod) ID() string {
@@ -22,6 +23,8 @@ func (f *FmtMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		f.ob = runtime.NewObject()
 		f.ob.Set(runtime.String("Print"), runtime.NewNativeFunc(f.ctx, "fmt.Print", f.fmt_Print))
 		f.ob.Set(runtime.String("Println"), runtime.NewNativeFunc(f.ctx, "fmt.Println", f.fmt_Println))
+		f.ob.Set(runtime.String("Scanln"), runtime.NewNativeFunc(f.ctx, "fmt.Scanln", f.fmt_Scanln))
+		f.ob.Set(runtime.String("Scanint"), runtime.NewNativeFunc(f.ctx, "fmt.Scanint", f.fmt_Scanint))
 	}
 	return f.ob, nil
 }
@@ -58,4 +61,28 @@ func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
 		panic(err)
 	}
 	return runtime.Number(n)
+}
+
+func (f *FmtMod) fmt_Scanln(args ...runtime.Val) runtime.Val {
+	var (
+		b, l []byte
+		e    error
+		pre  bool
+	)
+	r := bufio.NewReader(f.ctx.Stdin)
+	for l, pre, e = r.ReadLine(); pre && e == nil; l, pre, e = r.ReadLine() {
+		b = append(b, l...)
+	}
+	if e != nil {
+		panic(e)
+	}
+	return runtime.String(b)
+}
+
+func (f *FmtMod) fmt_Scanint(args ...runtime.Val) runtime.Val {
+	var i int
+	if _, e := fmt.Fscanf(f.ctx.Stdin, "%d", &i); e != nil {
+		panic(e)
+	}
+	return runtime.Number(i)
 }

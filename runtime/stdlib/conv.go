@@ -6,7 +6,7 @@ import (
 
 type ConvMod struct {
 	ctx *runtime.Ctx
-	ob  *runtime.Object
+	ob  runtime.Object
 }
 
 func (c *ConvMod) ID() string {
@@ -56,7 +56,7 @@ func (c *ConvMod) conv_Type(args ...runtime.Val) runtime.Val {
 		return runtime.String("bool")
 	case runtime.Func:
 		return runtime.String("func")
-	case *runtime.Object:
+	case runtime.Object:
 		return runtime.String("object")
 	default:
 		return runtime.String("nil")

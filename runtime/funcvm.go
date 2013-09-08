@@ -307,7 +307,7 @@ func (f *funcVM) run(args ...Val) Val {
 
 		case bytecode.OP_SFLD:
 			vr, k, vl := f.pop(), f.pop(), f.pop()
-			if ob, ok := vr.(*Object); ok {
+			if ob, ok := vr.(Object); ok {
 				ob.Set(k, vl)
 			} else {
 				panic(ErrValNotAnObject)
@@ -315,7 +315,7 @@ func (f *funcVM) run(args ...Val) Val {
 
 		case bytecode.OP_GFLD:
 			vr, k := f.pop(), f.pop()
-			if ob, ok := vr.(*Object); ok {
+			if ob, ok := vr.(Object); ok {
 				f.push(ob.Get(k))
 			} else {
 				panic(ErrValNotAnObject)
@@ -328,7 +328,7 @@ func (f *funcVM) run(args ...Val) Val {
 			for j := ix; j > 0; j-- {
 				args[j-1] = f.pop()
 			}
-			if ob, ok := vr.(*Object); ok {
+			if ob, ok := vr.(Object); ok {
 				f.push(ob.callMethod(k, args...))
 			} else {
 				panic(ErrValNotAnObject)
