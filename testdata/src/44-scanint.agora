@@ -1,0 +1,4 @@
+f := import("fmt")
+
+i := f.Scanint()
+return i

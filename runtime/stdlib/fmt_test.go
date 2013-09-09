@@ -68,3 +68,15 @@ func TestFmtPrint(t *testing.T) {
 		}
 	}
 }
+
+func TestFmtScanint(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	buf := bytes.NewBuffer([]byte("12\n"))
+	ctx.Stdin = buf
+	fm := new(FmtMod)
+	fm.SetCtx(ctx)
+	ret := fm.fmt_Scanint()
+	if ret.Int() != 12 {
+		t.Errorf("expected 12, got %d", ret.Int())
+	}
+}
