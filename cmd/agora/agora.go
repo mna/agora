@@ -139,6 +139,8 @@ func (r *run) Execute(args []string) error {
 		ctx.RegisterNativeModule(new(stdlib.FmtMod))
 		ctx.RegisterNativeModule(new(stdlib.ConvMod))
 		ctx.RegisterNativeModule(new(stdlib.StringsMod))
+		ctx.RegisterNativeModule(new(stdlib.MathMod))
+		ctx.RegisterNativeModule(new(stdlib.OsMod))
 	}
 	ctx.Debug = r.Debug
 	m, err := ctx.Load(args[0])

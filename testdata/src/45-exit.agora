@@ -1,0 +1,6 @@
+f := import("fmt")
+os := import("os")
+
+os.Exit(1)
+f.Print("after exit")
+return true

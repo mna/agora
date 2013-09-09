@@ -8,6 +8,21 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+func TestPi(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	mm := new(MathMod)
+	mm.SetCtx(ctx)
+	ob, err := mm.Run()
+	if err != nil {
+		panic(err)
+	}
+	ret := ob.(runtime.Object).Get(runtime.String("Pi"))
+	exp := math.Pi
+	if ret.Float() != exp {
+		t.Errorf("expected %f, got %f", exp, ret.Float())
+	}
+}
+
 func TestMax(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	mm := new(MathMod)
