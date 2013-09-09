@@ -66,3 +66,94 @@ lines`),
 		}
 	}
 }
+
+func TestPanic(t *testing.T) {
+	ctx := NewCtx(nil, nil)
+
+	cases := []struct {
+		src Val
+		err bool
+	}{
+		0: {
+			src: Nil,
+			err: false,
+		},
+		1: {
+			src: Bool(false),
+			err: false,
+		},
+		2: {
+			src: String(""),
+			err: false,
+		},
+		3: {
+			src: Number(0),
+			err: false,
+		},
+		4: {
+			src: Number(0.0),
+			err: false,
+		},
+		5: {
+			src: &object{
+				map[Val]Val{
+					String("__toBool"): NewNativeFunc(ctx, "", func(args ...Val) Val {
+						return Bool(false)
+					}),
+				},
+			},
+			err: false,
+		},
+		6: {
+			src: Number(0.1),
+			err: true,
+		},
+		7: {
+			src: Bool(true),
+			err: true,
+		},
+		8: {
+			src: String("error"),
+			err: true,
+		},
+		9: {
+			src: NewNativeFunc(ctx, "", func(args ...Val) Val { return Nil }),
+			err: true,
+		},
+		10: {
+			src: Number(-1),
+			err: true,
+		},
+		11: {
+			src: &object{},
+			err: true,
+		},
+		12: {
+			src: &object{
+				map[Val]Val{
+					String("__toBool"): NewNativeFunc(ctx, "", func(args ...Val) Val {
+						return Bool(true)
+					}),
+				},
+			},
+			err: true,
+		},
+	}
+
+	bi := new(builtinMod)
+	bi.SetCtx(ctx)
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if e := recover(); (e != nil) != c.err {
+					if c.err {
+						t.Errorf("[%d] - expected a panic, got none", i)
+					} else {
+						t.Errorf("[%d] - expected no panic, got %v", i, e)
+					}
+				}
+			}()
+			bi._panic(c.src)
+		}()
+	}
+}
