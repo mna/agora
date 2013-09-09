@@ -36,8 +36,7 @@ type dumper interface {
 
 // Val is the representation of a value, any value, in the language.
 // The supported value types are the following:
-// * Integer (Int) - will likely disappear in future versions
-// * Float
+// * Number (float64)
 // * String
 // * Boolean (Bool)
 // * Nil (null)
