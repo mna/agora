@@ -68,7 +68,7 @@ func (b *builtinMod) _recover(args ...Val) (ret Val) {
 			case error:
 				ret = String(v.Error())
 			default:
-				ret = String(fmt.Sprintf("%s", v))
+				ret = String(fmt.Sprintf("%v", v))
 			}
 		}
 	}()

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"io"
 	"testing"
 )
 
@@ -155,5 +156,62 @@ func TestPanic(t *testing.T) {
 			}()
 			bi._panic(c.src)
 		}()
+	}
+}
+
+func TestRecover(t *testing.T) {
+	ctx := NewCtx(nil, nil)
+
+	cases := []struct {
+		panicWith interface{}
+		exp       Val
+	}{
+		0: {
+			panicWith: nil,
+			exp:       Nil,
+		},
+		1: {
+			panicWith: Number(1),
+			exp:       Number(1),
+		},
+		2: {
+			panicWith: io.EOF,
+			exp:       String("EOF"),
+		},
+		3: {
+			panicWith: Bool(true),
+			exp:       Bool(true),
+		},
+		4: {
+			panicWith: String("test"),
+			exp:       String("test"),
+		},
+		5: {
+			panicWith: "not an error interface",
+			exp:       String("not an error interface"),
+		},
+		6: {
+			panicWith: 666,
+			exp:       String("666"),
+		},
+		7: {
+			panicWith: false,
+			exp:       String("false"),
+		},
+	}
+
+	bi := new(builtinMod)
+	bi.SetCtx(ctx)
+	for i, c := range cases {
+		f := NewNativeFunc(ctx, "", func(args ...Val) Val {
+			if c.panicWith != nil {
+				panic(c.panicWith)
+			}
+			return Nil
+		})
+		ret := bi._recover(f)
+		if c.exp != ret {
+			t.Errorf("[%d] - expected %v, got %v", i, c.exp, ret)
+		}
 	}
 }
