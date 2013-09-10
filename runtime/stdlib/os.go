@@ -76,13 +76,11 @@ func (of *file) seek(args ...runtime.Val) runtime.Val {
 func (of *file) write(args ...runtime.Val) runtime.Val {
 	n := 0
 	for _, v := range args {
-		if v != runtime.Nil {
-			m, e := of.f.WriteString(v.String())
-			if e != nil {
-				panic(e)
-			}
-			n += m
+		m, e := of.f.WriteString(v.String())
+		if e != nil {
+			panic(e)
 		}
+		n += m
 	}
 	return runtime.Number(n)
 }
@@ -115,6 +113,7 @@ func (o *OsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		o.ob.Set(runtime.String("ReadFile"), runtime.NewNativeFunc(o.ctx, "os.ReadFile", o.os_ReadFile))
 		o.ob.Set(runtime.String("WriteFile"), runtime.NewNativeFunc(o.ctx, "os.WriteFile", o.os_WriteFile))
 		o.ob.Set(runtime.String("Open"), runtime.NewNativeFunc(o.ctx, "os.Open", o.os_Open))
+		o.ob.Set(runtime.String("TryOpen"), runtime.NewNativeFunc(o.ctx, "os.TryOpen", o.os_TryOpen))
 	}
 	return o.ob, nil
 }
@@ -172,15 +171,23 @@ func (o *OsMod) os_WriteFile(args ...runtime.Val) runtime.Val {
 	defer f.Close()
 	n := 0
 	for _, v := range args[1:] {
-		if v != runtime.Nil {
-			m, e := f.WriteString(v.String())
-			if e != nil {
-				panic(e)
-			}
-			n += m
+		m, e := f.WriteString(v.String())
+		if e != nil {
+			panic(e)
 		}
+		n += m
 	}
 	return runtime.Number(n)
+}
+
+func (o *OsMod) os_TryOpen(args ...runtime.Val) (ret runtime.Val) {
+	defer func() {
+		if e := recover(); e != nil {
+			ret = runtime.Nil
+		}
+	}()
+	ret = o.os_Open(args...)
+	return ret
 }
 
 func (o *OsMod) os_Open(args ...runtime.Val) runtime.Val {
@@ -188,19 +195,33 @@ func (o *OsMod) os_Open(args ...runtime.Val) runtime.Val {
 	nm := args[0].String()
 	flg := "r" // defaults to read-only
 	if len(args) > 1 {
-		// Second arg is the flag (r - w - a)
+		// Second arg is the flag (same as C's fopen)
+		// r  - open for reading
+		// w  - open for writing (file need not exist)
+		// a  - open for appending (file need not exist)
+		// r+ - open for reading and writing, start at beginning
+		// w+ - open for reading and writing (overwrite file)
+		// a+ - open for reading and writing (append if file exists)
 		flg = args[1].String()
 	}
-	flgi := os.O_RDONLY
+	var flgi int
 	switch flg {
+	case "r":
+		flgi = os.O_RDONLY
 	case "w":
-		flgi = os.O_WRONLY
-	case "rw":
-		flgi = os.O_RDWR
+		flgi = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	case "a":
-		flgi = os.O_APPEND
+		flgi = os.O_APPEND | os.O_CREATE
+	case "r+":
+		flgi = os.O_RDWR
+	case "w+":
+		flgi = os.O_RDWR | os.O_CREATE | os.O_TRUNC
+	case "a+":
+		flgi = os.O_RDWR | os.O_APPEND | os.O_CREATE
+	default:
+		panic("invalid file flag mode: " + flg)
 	}
-	f, e := os.OpenFile(nm, flgi, 0)
+	f, e := os.OpenFile(nm, flgi, 0666)
 	if e != nil {
 		panic(e)
 	}
