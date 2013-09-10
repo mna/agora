@@ -76,6 +76,7 @@ func (f *FmtMod) fmt_Scanln(args ...runtime.Val) runtime.Val {
 	if e != nil {
 		panic(e)
 	}
+	b = append(b, l...)
 	return runtime.String(b)
 }
 
