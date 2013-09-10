@@ -103,6 +103,7 @@ func (o *OsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 	if o.ob == nil {
 		// Prepare the object
 		o.ob = runtime.NewObject()
+		o.ob.Set(runtime.String("TempDir"), runtime.String(os.TempDir()))
 		o.ob.Set(runtime.String("PathSeparator"), runtime.String(os.PathSeparator))
 		o.ob.Set(runtime.String("PathListSeparator"), runtime.String(os.PathListSeparator))
 		o.ob.Set(runtime.String("DevNull"), runtime.String(os.DevNull))
@@ -114,6 +115,11 @@ func (o *OsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		o.ob.Set(runtime.String("WriteFile"), runtime.NewNativeFunc(o.ctx, "os.WriteFile", o.os_WriteFile))
 		o.ob.Set(runtime.String("Open"), runtime.NewNativeFunc(o.ctx, "os.Open", o.os_Open))
 		o.ob.Set(runtime.String("TryOpen"), runtime.NewNativeFunc(o.ctx, "os.TryOpen", o.os_TryOpen))
+		o.ob.Set(runtime.String("Mkdir"), runtime.NewNativeFunc(o.ctx, "os.Mkdir", o.os_Mkdir))
+		o.ob.Set(runtime.String("Remove"), runtime.NewNativeFunc(o.ctx, "os.Remove", o.os_Remove))
+		o.ob.Set(runtime.String("RemoveAll"), runtime.NewNativeFunc(o.ctx, "os.RemoveAll", o.os_RemoveAll))
+		o.ob.Set(runtime.String("Rename"), runtime.NewNativeFunc(o.ctx, "os.Rename", o.os_Rename))
+		o.ob.Set(runtime.String("ReadDir"), runtime.NewNativeFunc(o.ctx, "os.ReadDir", o.os_ReadDir))
 	}
 	return o.ob, nil
 }
@@ -151,6 +157,73 @@ func (o *OsMod) os_Exec(args ...runtime.Val) runtime.Val {
 		panic(e)
 	}
 	return runtime.String(b)
+}
+
+func (o *OsMod) os_Mkdir(args ...runtime.Val) runtime.Val {
+	// No-op if no arg
+	if len(args) == 0 {
+		return runtime.Nil
+	}
+	perm := int64(0666)
+	// Last args *may* be the permissions to use if it is a number
+	if l, ok := args[len(args)-1].(runtime.Number); ok {
+		perm = l.Int()
+		args = args[:len(args)-1]
+	}
+	// Use the mkdir-all version, to create all missing dirs as required
+	for _, v := range args {
+		if e := os.MkdirAll(v.String(), os.FileMode(perm)); e != nil {
+			panic(e)
+		}
+	}
+	return runtime.Nil
+}
+
+func createFileInfo(fi os.FileInfo) runtime.Val {
+	o := runtime.NewObject()
+	o.Set(runtime.String("Name"), runtime.String(fi.Name()))
+	o.Set(runtime.String("Size"), runtime.Number(fi.Size()))
+	o.Set(runtime.String("IsDir"), runtime.Bool(fi.IsDir()))
+	return o
+}
+
+func (o *OsMod) os_ReadDir(args ...runtime.Val) runtime.Val {
+	runtime.ExpectAtLeastNArgs(1, args)
+	fis, e := ioutil.ReadDir(args[0].String())
+	if e != nil {
+		panic(e)
+	}
+	ob := runtime.NewObject()
+	for i, fi := range fis {
+		ob.Set(runtime.Number(i), createFileInfo(fi))
+	}
+	return ob
+}
+
+func (o *OsMod) os_Remove(args ...runtime.Val) runtime.Val {
+	for _, v := range args {
+		if e := os.Remove(v.String()); e != nil {
+			panic(e)
+		}
+	}
+	return runtime.Nil
+}
+
+func (o *OsMod) os_RemoveAll(args ...runtime.Val) runtime.Val {
+	for _, v := range args {
+		if e := os.RemoveAll(v.String()); e != nil {
+			panic(e)
+		}
+	}
+	return runtime.Nil
+}
+
+func (o *OsMod) os_Rename(args ...runtime.Val) runtime.Val {
+	runtime.ExpectAtLeastNArgs(2, args)
+	if e := os.Rename(args[0].String(), args[1].String()); e != nil {
+		panic(e)
+	}
+	return runtime.Nil
 }
 
 func (o *OsMod) os_ReadFile(args ...runtime.Val) runtime.Val {
