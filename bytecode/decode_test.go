@@ -10,6 +10,9 @@ import (
 )
 
 var (
+	defMaj = _MAJOR_VERSION
+	defMin = _MINOR_VERSION
+
 	deccases = []struct {
 		maj int
 		min int
@@ -19,24 +22,34 @@ var (
 	}{
 		0: {
 			// Simplest case, decodes the file header only
-			src: SigVer(_MAJOR_VERSION, _MINOR_VERSION),
-			exp: &File{},
+			maj: defMaj,
+			min: defMin,
+			src: SigVer(defMaj, defMin),
+			exp: &File{
+				MajorVersion: defMaj,
+				MinorVersion: defMin,
+			},
 		},
 		1: {
 			// Decodes the file header and function header
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
-			exp: &File{Name: "test", Fns: []*Fn{
-				&Fn{
-					Header: H{
-						Name:      "test",
-						StackSz:   2,
-						ExpArgs:   3,
-						ExpVars:   4,
-						LineStart: 5,
-						LineEnd:   6,
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
+			exp: &File{
+				MajorVersion: defMaj,
+				MinorVersion: defMin,
+				Name:         "test", Fns: []*Fn{
+					&Fn{
+						Header: H{
+							Name:      "test",
+							StackSz:   2,
+							ExpArgs:   3,
+							ExpVars:   4,
+							LineStart: 5,
+							LineEnd:   6,
+						},
 					},
-				},
-			}},
+				}},
 		},
 		2: {
 			// Invalid version
@@ -47,120 +60,146 @@ var (
 		},
 		3: {
 			// Top-level function gets the file name
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
-			exp: &File{Name: "test", Fns: []*Fn{&Fn{Header: H{Name: "test"}}}},
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
+			exp: &File{
+				MajorVersion: defMaj,
+				MinorVersion: defMin,
+				Name:         "test", Fns: []*Fn{&Fn{Header: H{Name: "test"}}}},
 		},
 		4: {
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64),
-			exp: &File{Name: "test", Fns: []*Fn{
-				&Fn{
-					Header: H{
-						Name:      "test",
-						StackSz:   2,
-						ExpArgs:   3,
-						ExpVars:   4,
-						LineStart: 5,
-						LineEnd:   6,
-					},
-					Ks: []*K{
-						&K{
-							Type: KtInteger,
-							Val:  int64(7),
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64),
+			exp: &File{
+				MajorVersion: defMaj,
+				MinorVersion: defMin,
+				Name:         "test", Fns: []*Fn{
+					&Fn{
+						Header: H{
+							Name:      "test",
+							StackSz:   2,
+							ExpArgs:   3,
+							ExpVars:   4,
+							LineStart: 5,
+							LineEnd:   6,
+						},
+						Ks: []*K{
+							&K{
+								Type: KtInteger,
+								Val:  int64(7),
+							},
 						},
 					},
-				},
-			}},
+				}},
 		},
 		5: {
 			// Invalid K Type
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64),
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64),
 			err: ErrInvalidKType,
 		},
 		6: {
 			// Impossible to reproduce same 6 as encode - cannot get invalid K value, it is
 			// necessarily read as a type corresponding to its K type.
+			maj: defMaj,
+			min: defMin,
 			err: ErrInvalidData,
 		},
 		7: {
 			// Function with K and Is
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4),
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4),
 				't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4),
 				Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7),
 				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP)),
-			exp: &File{Name: "test", Fns: []*Fn{
-				&Fn{
-					Header: H{
-						Name:      "test",
-						StackSz:   2,
-						ExpArgs:   3,
-						ExpVars:   4,
-						LineStart: 5,
-						LineEnd:   6,
-					},
-					Ks: []*K{
-						&K{
-							Type: KtInteger,
-							Val:  int64(7),
+			exp: &File{
+				MajorVersion: defMaj,
+				MinorVersion: defMin,
+				Name:         "test", Fns: []*Fn{
+					&Fn{
+						Header: H{
+							Name:      "test",
+							StackSz:   2,
+							ExpArgs:   3,
+							ExpVars:   4,
+							LineStart: 5,
+							LineEnd:   6,
+						},
+						Ks: []*K{
+							&K{
+								Type: KtInteger,
+								Val:  int64(7),
+							},
+						},
+						Is: []Instr{
+							NewInstr(OP_ADD, FLG_K, 12),
+							NewInstr(OP_DUMP, FLG_Sn, 0),
 						},
 					},
-					Is: []Instr{
-						NewInstr(OP_ADD, FLG_K, 12),
-						NewInstr(OP_DUMP, FLG_Sn, 0),
-					},
-				},
-			}},
+				}},
 		},
 		8: {
 			// Invalid opcode
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
 			err: ErrUnknownOpcode,
 		},
 		9: {
 			// Multiple functions
-			src: AppendAny(SigVer(_MAJOR_VERSION, _MINOR_VERSION), Int64ToByteSlice(4), 't', 'e', 's', 't',
+			maj: defMaj,
+			min: defMin,
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
 				Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7),
 				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP), Int64ToByteSlice(2), 'f', '2', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', Int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
-			exp: &File{Name: "test", Fns: []*Fn{
-				&Fn{
-					Header: H{
-						Name:      "test",
-						StackSz:   2,
-						ExpArgs:   3,
-						ExpVars:   4,
-						LineStart: 5,
-						LineEnd:   6,
-					},
-					Ks: []*K{
-						&K{
-							Type: KtInteger,
-							Val:  int64(7),
+			exp: &File{
+				MajorVersion: defMaj,
+				MinorVersion: defMin,
+				Name:         "test", Fns: []*Fn{
+					&Fn{
+						Header: H{
+							Name:      "test",
+							StackSz:   2,
+							ExpArgs:   3,
+							ExpVars:   4,
+							LineStart: 5,
+							LineEnd:   6,
+						},
+						Ks: []*K{
+							&K{
+								Type: KtInteger,
+								Val:  int64(7),
+							},
+						},
+						Is: []Instr{
+							NewInstr(OP_ADD, FLG_K, 12),
+							NewInstr(OP_DUMP, FLG_Sn, 0),
 						},
 					},
-					Is: []Instr{
-						NewInstr(OP_ADD, FLG_K, 12),
-						NewInstr(OP_DUMP, FLG_Sn, 0),
-					},
-				},
-				&Fn{
-					Header: H{
-						Name:      "f2",
-						StackSz:   2,
-						ExpArgs:   3,
-						ExpVars:   4,
-						LineStart: 5,
-						LineEnd:   6,
-					},
-					Ks: []*K{
-						&K{
-							Type: KtString,
-							Val:  "const",
+					&Fn{
+						Header: H{
+							Name:      "f2",
+							StackSz:   2,
+							ExpArgs:   3,
+							ExpVars:   4,
+							LineStart: 5,
+							LineEnd:   6,
+						},
+						Ks: []*K{
+							&K{
+								Type: KtString,
+								Val:  "const",
+							},
+						},
+						Is: []Instr{
+							NewInstr(OP_RET, FLG__, 0),
 						},
 					},
-					Is: []Instr{
-						NewInstr(OP_RET, FLG__, 0),
-					},
-				},
-			}},
+				}},
 		},
 	}
 
