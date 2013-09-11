@@ -3,6 +3,7 @@ package stdlib
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 import (
@@ -112,6 +113,11 @@ func TestOsFields(t *testing.T) {
 		if ret.String() != exp {
 			t.Errorf("expected dev/null %s, got %s", exp, ret)
 		}
+		ret = ob.Get(runtime.String("TempDir"))
+		exp = os.TempDir()
+		if ret.String() != exp {
+			t.Errorf("expected temp dir %s, got %s", exp, ret)
+		}
 	}
 }
 
@@ -207,5 +213,39 @@ func TestOsWriteFile(t *testing.T) {
 		if got != c.exp {
 			t.Errorf("[%d] - expected '%s', got '%s'", i, c.exp, got)
 		}
+	}
+}
+
+func TestOsMkRemRenReadDir(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	om := new(OsMod)
+	om.SetCtx(ctx)
+	// First create directories
+	d1, d2 := "./testdata/d1", "./testdata/d2/d3"
+	om.os_Mkdir(runtime.String(d1), runtime.String(d2))
+	// Check that they exist
+	if _, e := os.Stat(d1); os.IsNotExist(e) {
+		t.Errorf("expected d1 to be created, got %s", e)
+	} else if e != nil {
+		panic(e)
+	}
+	if _, e := os.Stat(d2); os.IsNotExist(e) {
+		t.Errorf("expected d2 to be created, got %s", e)
+	} else if e != nil {
+		panic(e)
+	}
+	// Create a file
+	fn := filepath.Join(d2, "test.txt")
+	om.os_WriteFile(runtime.String(fn), runtime.String("hi"))
+	// Read the dir
+	ret := om.os_ReadDir(runtime.String(d2))
+	ob := ret.(runtime.Object)
+	if ob.Len().Int() != 1 {
+		t.Errorf("expected read dir to return 1 file, got %d", ob.Len().Int())
+	}
+	v := ob.Get(runtime.Number(0))
+	ob = v.(runtime.Object)
+	if s := ob.Get(runtime.String("Name")); s.String() != "test.txt" {
+		t.Errorf("expected read file to be 'test.txt', got %s", s)
 	}
 }

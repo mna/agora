@@ -164,15 +164,15 @@ func (o *OsMod) os_Mkdir(args ...runtime.Val) runtime.Val {
 	if len(args) == 0 {
 		return runtime.Nil
 	}
-	perm := int64(0666)
+	perm := os.FileMode(0777)
 	// Last args *may* be the permissions to use if it is a number
 	if l, ok := args[len(args)-1].(runtime.Number); ok {
-		perm = l.Int()
+		perm = os.FileMode(l.Int())
 		args = args[:len(args)-1]
 	}
 	// Use the mkdir-all version, to create all missing dirs as required
 	for _, v := range args {
-		if e := os.MkdirAll(v.String(), os.FileMode(perm)); e != nil {
+		if e := os.MkdirAll(v.String(), perm); e != nil {
 			panic(e)
 		}
 	}

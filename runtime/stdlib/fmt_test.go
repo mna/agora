@@ -69,6 +69,20 @@ func TestFmtPrint(t *testing.T) {
 	}
 }
 
+func TestFmtScanln(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	buf := bytes.NewBuffer([]byte(`This is
+two lines
+`))
+	ctx.Stdin = buf
+	fm := new(FmtMod)
+	fm.SetCtx(ctx)
+	ret := fm.fmt_Scanln()
+	if ret.String() != "This is" {
+		t.Errorf("expected line 1 to be 'This is', got '%s'", ret)
+	}
+}
+
 func TestFmtScanint(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	buf := bytes.NewBuffer([]byte("12\n"))
