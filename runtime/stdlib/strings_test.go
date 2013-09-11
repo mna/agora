@@ -88,3 +88,65 @@ func TestStringsConcat(t *testing.T) {
 		t.Errorf("expected %s, got %s", exp, ret)
 	}
 }
+
+func TestStringsContains(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	ret := sm.strings_Contains(runtime.String("contains something"), runtime.String("what"), runtime.Nil, runtime.Number(3), runtime.String("some"))
+	if !ret.Bool() {
+		t.Errorf("expected true, got false")
+	}
+	ret = sm.strings_Contains(runtime.String("contains something"), runtime.String("no"), runtime.Nil, runtime.Number(3), runtime.String("hw"))
+	if ret.Bool() {
+		t.Errorf("expected false, got true")
+	}
+}
+
+func TestStringsIndex(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	ret := sm.strings_Index(runtime.String("agora"), runtime.String("arg"), runtime.Nil, runtime.Number(3), runtime.String("go"))
+	exp := 1
+	if ret.Int() != int64(exp) {
+		t.Errorf("expected %d, got %d", exp, ret.Int())
+	}
+	ret = sm.strings_Index(runtime.String("agora"), runtime.Number(2), runtime.String("arg"), runtime.Nil, runtime.Number(3), runtime.String("go"))
+	exp = -1
+	if ret.Int() != int64(exp) {
+		t.Errorf("expected %d, got %d", exp, ret.Int())
+	}
+}
+
+func TestStringsLastIndex(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	ret := sm.strings_LastIndex(runtime.String("agoragore"), runtime.String("arg"), runtime.Nil, runtime.Number(3), runtime.String("go"))
+	exp := 5
+	if ret.Int() != int64(exp) {
+		t.Errorf("expected %d, got %d", exp, ret.Int())
+	}
+	ret = sm.strings_Index(runtime.String("agoragore"), runtime.Number(6), runtime.String("arg"), runtime.Nil, runtime.Number(3), runtime.String("go"))
+	exp = -1
+	if ret.Int() != int64(exp) {
+		t.Errorf("expected %d, got %d", exp, ret.Int())
+	}
+}
+
+func TestStringsSlice(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	ret := sm.strings_Slice(runtime.String("agora"), runtime.Number(2))
+	exp := "ora"
+	if ret.String() != exp {
+		t.Errorf("expected %s, got %s", exp, ret)
+	}
+	ret = sm.strings_Slice(runtime.String("agora"), runtime.Number(2), runtime.Number(4))
+	exp = "or"
+	if ret.String() != exp {
+		t.Errorf("expected %s, got %s", exp, ret)
+	}
+}
