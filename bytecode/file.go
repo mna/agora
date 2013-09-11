@@ -9,7 +9,7 @@ const (
 var (
 	// Vars only to allow for testing, but are really constants
 	_MAJOR_VERSION = 0
-	_MINOR_VERSION = 0
+	_MINOR_VERSION = 1
 )
 
 // Version returns the major and minor version of the bytecode format.
