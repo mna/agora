@@ -4,9 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-)
-
-import (
 	"testing"
 
 	"github.com/PuerkitoBio/agora/runtime"
@@ -247,5 +244,16 @@ func TestOsMkRemRenReadDir(t *testing.T) {
 	ob = v.(runtime.Object)
 	if s := ob.Get(runtime.String("Name")); s.String() != "test.txt" {
 		t.Errorf("expected read file to be 'test.txt', got %s", s)
+	}
+	// Remove the first dir
+	om.os_Remove(runtime.String(d1))
+	if _, e := os.Stat(d1); !os.IsNotExist(e) {
+		t.Errorf("expected d1 to be deleted, got %s", e)
+	}
+	// Remove all for the second dir and file
+	d2 = filepath.Join(d2, "..")
+	om.os_RemoveAll(runtime.String(d2))
+	if _, e := os.Stat(d2); !os.IsNotExist(e) {
+		t.Errorf("expected d2 to be deleted, got %s", e)
 	}
 }
