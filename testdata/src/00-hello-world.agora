@@ -1,6 +1,6 @@
 // Output: Hello, Agora !
+fmt := import("fmt")
 func greet(name) {
-	fmt := import("fmt")
 	fmt.Println("Hello,", name, "!")
 }
 greet("Agora")

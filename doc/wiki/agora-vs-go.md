@@ -32,7 +32,7 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * There is a ternary `condition ? iftrue : iffalse` operator.
 
-* A function may receive an arbitrary number of arguments, maybe exceeding the number of expected arguments declared in its signature. All formal arguments passed to a function are always available using the reserved `args` identifier, which is an array-like object, with keys ranging from 0 to the number of arguments received minus one. Also, since the top-level function cannot declare expected arguments, this is the only way to retrieve arguments passed to the module.
+* A function may receive an arbitrary number of arguments, maybe exceeding the number of expected (formal) arguments declared in its signature. All actual arguments passed to a function are always available using the reserved `args` identifier, which is an array-like object, with keys ranging from 0 to the number of arguments received minus one. Also, since the top-level function cannot declare expected arguments, this is the only way to retrieve arguments passed to the module.
 
 * Unlike Go, `import` is a built-in function, not a keyword that must appear at the top of the package. So it can be called wherever makes most sense, since this can be a costly operation (loading from a file, compiling, executing). As mentioned previously, it returns the value returned by the module and must be stored in a variable (there is no implicit "variable" derived from the import path).
 
@@ -44,7 +44,7 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * The `recover` built-in function takes a function as parameter, and executes it in protected mode. By default, a runtime error is a panic, and stops all agora code execution to return the error to the Go host program (the second value returned from `module.Run()`). To *catch* errors in agora code, the `recover` function must be used, this is what is called the protected mode (similar to Lua error handling). `recover` runs the provided function, and if an error occurs, it catches it and returns it. Otherwise it returns `nil`.
 
-* Field access can *also* be done using an array-like syntax, `object["key"] = value`. Any type can be used as the key, and when assigning to a field using the `.` operator, the key is implicitly a string (denoted by the identifier of the field), so `object.key` is equivalent to `object["key"]`.
+* Field access can *also* be done using an array-like syntax, `object["key"] = value`. Any type except `nil` can be used as the key, and when assigning to a field using the `.` operator, the key is implicitly a string (denoted by the identifier of the field), so `object.key` is equivalent to `object["key"]`.
 
 * There are no bitwise operators.
 

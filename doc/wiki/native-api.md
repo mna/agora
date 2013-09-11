@@ -139,18 +139,16 @@ The supported value types are the following, all defined in the `runtime` packag
 
 * Func (more on this later)
 * Bool
-* Float
-* Int
+* Number
 * Object
 * String
 * null
 
-It is highly possible that in future versions, the `Int` type will disappear in favor of a unique `Number` type. This should be transparent for the agora code. In the meantime, all the primitive types are augmented versions of the corresponding Go type:
+All the primitive types are augmented versions of the corresponding Go type:
 
 ```Go
 type Bool bool
-type Float float64
-type Int int64
+type Number float64
 type String string
 ```
 
@@ -158,12 +156,12 @@ So creating a corresponding `runtime.Val` is simply a matter of converting the G
 
 ```Go
 agoraBool := runtime.Bool(true)
-agoraFloat := runtime.Float(3.1415)
-agoraInt := runtime.Int(42)
+agoraNumf := runtime.Number(3.1415)
+agoraNumi := runtime.Number(42)
 agoraString := runtime.String("hi, there!")
 ```
 
-The `null` value is an empty struct, and a single instance, `runtime.Nil` is created to represent all `nil` values in agora.
+The `null` value is an empty struct and a single instance, `runtime.Nil`, is created to represent all `nil` values in agora.
 
 The function and the object types are special in that they are *reference* values, as opposed to the other types being passed by value (copied).
 
@@ -178,7 +176,7 @@ type Func interface {
 
 So it adds the `Call` method to the common `Val` behaviour. There are two implementations of this interface, `runtime.AgoraFunc` and `runtime.NativeFunc`. Only the native function can be created via the native Go API, the agora functions are created internally by the runtime when executing an agora module.
 
-The `Object` is a struct that adds two methods, `Get(key Val) Val` and `Set(key Val, v Val)`. It is created by the `runtime.NewObject()` function.
+The `Object` is an interface that adds four methods, `Get(key Val) Val`, `Set(key Val, v Val)`, `Len() Val` and the package private `callMethod(Val, ...Val) Val`. It is created by the `runtime.NewObject()` function. Using anonymous struct embedding, it is possible to create custom `Object`s (see for example the `runtime/stdlib.file` struct in /runtime/stdlib/os.go).
 
 ## Building a native module
 
@@ -212,7 +210,7 @@ type MyMod struct {
     // The execution context
     ctx *runtime.Ctx
     // The returned value
-    ob  *runtime.Object
+    ob  runtime.Object
 }
 func (m *MyMod) ID() string {
     return "github.com/PuerkitoBio/mymod"

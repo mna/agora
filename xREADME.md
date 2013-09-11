@@ -14,8 +14,8 @@ More examples are available in the wiki and the source code, but to give a taste
 
 ```
 // Output: Hello, Agora !
+fmt := import("fmt")
 func greet(name) {
-	fmt := import("fmt")
 	fmt.Println("Hello,", name, "!")
 }
 greet("Agora")

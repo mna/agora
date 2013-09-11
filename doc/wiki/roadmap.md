@@ -10,7 +10,6 @@ The next version will yet again focus on the language features and the runtime. 
 
 The features envisioned for v0.2 are:
 
-* Decision regarding the `runtime.Int` type to represent an agora number. It will most likely go away, and only `runtime.Float` will remain, although a `runtime.Val` may still support conversion to `int`.
 * Change the generated instructions so that `&&` and `||` are short-circuiting.
 * Support the immediately-invoked function expression syntax (IIFE, i.e. `func(){}()`).
 * Support closures.
@@ -25,7 +24,7 @@ This will probably be enough for this version.
 
 The backlog will no doubt have time to fill up until then, but as it stands today, the next.next version will mostly be about the language and the runtime too. Expected features:
 
-* Support prototype/metatable inheritance, à-la Javascript or Lua.
+* Support embedded/prototype/metatable inheritance, à-la Javascript or Lua.
 * Support a literal "array" notation (i.e. `a := [10, true, "hi"]`).
 * Optimize the object when used as an array (dense integer keys).
 * Support comma-separated list of assignments (for `:=` and `=`).

@@ -15,7 +15,7 @@ Agora supports two forms of comments:
 
 ### Semicolons
 
-Statements are terminated with a semicolon, but the may be omitted in the source code. The scanner stage of the compiler automatically inserts the semicolons if the last token on the line is:
+Statements are terminated with a semicolon, but the `;` may be omitted in the source code. The scanner stage of the compiler automatically inserts the semicolons if the last token on the line is:
 
 * an identifier
 * a literal value
@@ -62,7 +62,7 @@ The following symbols represent operators and delimiters in the language:
 
 ### Number literals
 
-Number literals can be represented as integers or floats. At the moment there is an inconsistency between what is accepted by the compiler and what can be used. Only base-10 notation should be used for now, i.e. `42`, and floating-points should use the integer-decimal point-fraction notationm i.e. `3.1415`.
+Number literals can be represented as integers or floats. At the moment there is an inconsistency between what is accepted by the compiler and what can be used. Only base-10 notation should be used for now, i.e. `42`, and floating-points should use the integer - decimal point - fraction notation i.e. `3.1415`.
 
 ### String literals
 
@@ -220,7 +220,7 @@ for i := 0; i < 10; i++ {
 
 ### The return statement
 
-A return statement exits the current function. The return statement of the top-level function of the module terminates the module's execution, returning its return value to the caller. The return statement of the top-level function of the initial module returns the value to the Go host.
+A return statement exits the current function. The return statement of the top-level function of the module terminates the module's execution, luturning its return value to the caller. The return statement of the top-level function of the initial module returns the value to the Go host.
 
 A function is not required to have a return statement, a default `return nil` statement is automatically added by the compiler if the last statement of the function is not a `return`.
 
@@ -240,13 +240,9 @@ for {
 
 ### The continue statement
 
-A `continue` statement skips the rest of the `for` body and jumps to the execution of the `post` statement of the 3-part `for`, or to the execution of the `condition` in a `while`-equivalent `for` loop, or to the first statement of the `for` body in an infinite loop.
+A `continue` statement skips the rest of the `for` body and jumps to the execution of the `post` statement of the 3-part `for`, or to the execution of the `condition` in a `while`-equivalent `for` loop, or to the first statement of the `for` body in an infinite loop.the Go host.
 
-It is an invalid statement outside a `for` loop.
-
-## Built-in functions
-
-Agora has four (4) predeclared built-in functions. They are first-class function values like any other agora function, but their reserved identifier cannot be overridden.
+A function is not required to have a return statement, a default `rhas four (4) predeclared built-in functions. They are first-class function values like any other agora function, but their reserved identifier cannot be overridden.
 
 * **import** : takes a single string value as argument, identifying a module to load and run, and returns the return value of the imported module.
 * **panic** : takes a single value as argument, and if it is "truthy", raises a runtime error (a "panic") with this value. If the value is "falsy", it is a no-op and returns `nil`.
