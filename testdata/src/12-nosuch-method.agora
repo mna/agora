@@ -1,3 +1,6 @@
+/*---
+output: not found:b\n
+---*/
 fmt := import("fm" + "t")
 a := {}
 a.__noSuchMethod = func(nm) {

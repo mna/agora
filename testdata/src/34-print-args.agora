@@ -1,3 +1,7 @@
+/*---
+args: aa bb cc dd
+output: aa\nbb\ncc\ndd\n
+---*/
 f := import("fmt")
 
 for i := 0; i < len(args); i++ {

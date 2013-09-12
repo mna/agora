@@ -1,3 +1,7 @@
+/*---
+output: Inside add: init-added\nAfter add: init\n
+result: init
+---*/
 f := import("fmt")
 func concat(x) {
 	x += "-added"

@@ -1,3 +1,6 @@
+/*---
+output: Hello, Agora !\n
+---*/
 // Output: Hello, Agora !
 fmt := import("fmt")
 func greet(name) {

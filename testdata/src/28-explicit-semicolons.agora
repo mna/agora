@@ -1,3 +1,6 @@
+/*---
+result: 17
+---*/
 c := import("conv");
 
 a := c.Number("10") + 24;

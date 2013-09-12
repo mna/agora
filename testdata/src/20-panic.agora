@@ -1,3 +1,6 @@
+/*---
+result: +Inf
+---*/
 a := 6
 b := 0
 return a / b

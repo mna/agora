@@ -1,4 +1,4 @@
 a := 5
 b := a++
 c := a--
-
+return a + b + c

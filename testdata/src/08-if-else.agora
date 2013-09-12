@@ -1,3 +1,6 @@
+/*---
+output: true\n
+---*/
 fmt := import("fmt")
 a := "ok"
 if a { 

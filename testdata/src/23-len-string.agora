@@ -1,3 +1,6 @@
+/*---
+result: 36
+---*/
 a := "This is a string" // 16 chars
 b := " and another string!" // 20 chars
 return len(a + b)

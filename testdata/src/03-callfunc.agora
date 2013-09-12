@@ -1,3 +1,6 @@
+/*---
+result: 202
+---*/
 func Add(x, y) { // Essentially means var Add = func ...
   return x + y
 }

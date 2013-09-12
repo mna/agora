@@ -1,3 +1,6 @@
+/*---
+output: a\nb\nc\n
+---*/
 // Test the index of the Func pushed onto the stack when anonymous
 fmt := import("fmt")
 a := func() {

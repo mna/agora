@@ -1,3 +1,6 @@
+/*---
+output: 0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n
+---*/
 fmt := import("fmt")
 for i := 0; i < 10; i++ { 
   fmt.Println(i)

@@ -1,3 +1,6 @@
+/*---
+result: -1
+---*/
 if false {
 	a := 1
 } else {

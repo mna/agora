@@ -97,12 +97,6 @@ func (c *Ctx) Load(id string) (Module, error) {
 	if id == "" {
 		return nil, ErrModuleNotFound
 	}
-	// TODO : This doesn't work anymore, since Load doesn't Run the module
-	if c.loadingMods[id] {
-		return nil, ErrCyclicDepFound
-	}
-	c.loadingMods[id] = true
-	defer delete(c.loadingMods, id)
 	// If already loaded, return from cache
 	if m, ok := c.loadedMods[id]; ok {
 		return m, nil
@@ -170,9 +164,9 @@ func (c *Ctx) pushFn(f Func, fvm *funcVM) {
 }
 
 // Pop the top function from the frame stack.
-func (ø *Ctx) popFn() {
-	ø.frmsp--
-	ø.frames[ø.frmsp] = nil // free this reference for gc
+func (c *Ctx) popFn() {
+	c.frmsp--
+	c.frames[c.frmsp] = nil // free this reference for gc
 }
 
 // Get the variable identified by name, looking up the frame stack and ultimately the

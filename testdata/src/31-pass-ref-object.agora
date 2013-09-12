@@ -1,3 +1,7 @@
+/*---
+output: Inside assign: map[a:hi b:24]\nAfter assign: map[a:hi b:24]\n
+result: map[a:hi b:24]
+---*/
 f := import("fmt")
 func assign(x) {
 	x["b"] = 24

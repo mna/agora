@@ -1,2 +1,5 @@
+/*---
+error: value is not an object
+---*/
 a := {b: {c: {d: "hi"}}}
 return a.b.j.k

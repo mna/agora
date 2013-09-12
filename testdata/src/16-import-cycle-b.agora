@@ -1,2 +1,5 @@
+/*---
+error: cyclic module dependency found
+---*/
 a := import("16-import-cycle-a")
 return 2

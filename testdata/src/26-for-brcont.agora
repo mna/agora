@@ -1,3 +1,6 @@
+/*---
+output: i= 1 j= 2\ni= 1 j= 4\ni= 1 j= 8\ni= 1 j= 16\ni= 2 j= 4\ni= 2 j= 8\ni= 2 j= 16\ni= 3 j= 6\ni= 3 j= 12\ni= 4 j= 8\ni= 4 j= 16\ni= 6 j= 12\ni= 7 j= 14\ni= 8 j= 16\ni= 9 j= 18\n
+---*/
 f := import("fmt")
 
 for i := 0; i < 10; i++ {

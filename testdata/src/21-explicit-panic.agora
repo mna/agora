@@ -1,1 +1,4 @@
+/*---
+error: my panic
+---*/
 panic("my panic")

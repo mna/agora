@@ -1,3 +1,6 @@
+/*---
+result: storing return value
+---*/
 a := nil
 err := recover(func() {
 	a = "storing return value"

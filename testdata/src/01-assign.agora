@@ -1,2 +1,5 @@
+/*---
+result: 5
+---*/
 aB := 5
 return aB

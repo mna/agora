@@ -1,3 +1,6 @@
+/*---
+result: this is\na long\nstring
+---*/
 s := `this is
 a long
 string`

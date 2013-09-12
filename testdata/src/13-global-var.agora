@@ -1,3 +1,6 @@
+/*---
+result: 8
+---*/
 a := 5
 func b(delta) {
   a += delta

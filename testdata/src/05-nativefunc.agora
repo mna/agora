@@ -1,2 +1,5 @@
+/*---
+output: Hello  world\n
+---*/
 f := import("fmt")
 f.Println("Hello ", "world")

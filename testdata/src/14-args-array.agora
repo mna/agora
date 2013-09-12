@@ -1,5 +1,8 @@
+/*---
+output: 17 foo false\n
+---*/
 fmt := import ("fmt")
 func f() {
-  fmt.Println(args[0], args[1], args[2]) // Compiler translates this to PUSH AA ix, no need for Ks
+  fmt.Println(args[0], args[1], args[2]) 
 }
 f(17, "foo", false)

@@ -1,3 +1,6 @@
+/*---
+result: 3
+---*/
 a := {b: 5, c: "name", d: true, e: nil}
 debug
-return len(a) // 4 fields
+return len(a) // 3 fields, since e is nil

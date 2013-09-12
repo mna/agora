@@ -1,3 +1,7 @@
+/*---
+output: hi\n
+result: hi, you
+---*/
 fmt := import("fmt")
 a := {}
 a.b = func(greet) {

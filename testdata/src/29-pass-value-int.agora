@@ -1,3 +1,7 @@
+/*---
+output: Inside add: 20\nAfter add: 1\n
+result: 1
+---*/
 f := import("fmt")
 func add(x) {
 	x += 19
