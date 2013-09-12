@@ -150,3 +150,54 @@ func TestStringsSlice(t *testing.T) {
 		t.Errorf("expected %s, got %s", exp, ret)
 	}
 }
+
+func TestStringsSplit(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	ret := sm.strings_Split(runtime.String("aa:bb::dd"), runtime.String(":"))
+	ob := ret.(runtime.Object)
+	exp := []string{"aa", "bb", "", "dd"}
+	if l := ob.Len().Int(); l != int64(len(exp)) {
+		t.Errorf("expected split length of %d, got %d", len(exp), l)
+	}
+	for i, v := range exp {
+		got := ob.Get(runtime.Number(i))
+		if got.String() != v {
+			t.Errorf("expected split index %d to be %s, got %s", i, v, got)
+		}
+	}
+	ret = sm.strings_Split(runtime.String("aa:bb::dd:ee:"), runtime.String(":"), runtime.Number(2))
+	ob = ret.(runtime.Object)
+	exp = []string{"aa", "bb::dd:ee:"}
+	if l := ob.Len().Int(); l != int64(len(exp)) {
+		t.Errorf("expected split length of %d, got %d", len(exp), l)
+	}
+	for i, v := range exp {
+		got := ob.Get(runtime.Number(i))
+		if got.String() != v {
+			t.Errorf("expected split index %d to be %s, got %s", i, v, got)
+		}
+	}
+}
+
+func TestStringsJoin(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	parts := []string{"this", "is", "", "it!"}
+	ob := runtime.NewObject()
+	for i, v := range parts {
+		ob.Set(runtime.Number(i), runtime.String(v))
+	}
+	ret := sm.strings_Join(ob)
+	exp := "thisisit!"
+	if ret.String() != exp {
+		t.Errorf("expected %s, got %s", exp, ret)
+	}
+	ret = sm.strings_Join(ob, runtime.String("--"))
+	exp = "this--is----it!"
+	if ret.String() != exp {
+		t.Errorf("expected %s, got %s", exp, ret)
+	}
+}
