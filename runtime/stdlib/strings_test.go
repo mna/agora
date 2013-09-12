@@ -6,6 +6,35 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+func TestStringsMatches(t *testing.T) {
+	cases := []struct {
+		args []runtime.Val
+		exp  [][]string
+	}{
+		0: {
+			args: []runtime.Val{
+				runtime.String("this is a string"),
+				runtime.String(`^.+$`),
+			},
+			exp: [][]string{
+				0: []string{
+					0: "this is a string",
+				},
+			},
+		},
+	}
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	for i, c := range cases {
+		ret := sm.strings_Matches(c.args...)
+		ob := ret.(runtime.Object)
+		if int64(len(c.exp)) != ob.Len().Int() {
+			t.Errorf("[%d] - expected %d matches, got %d", i, len(c.exp), ob.Len().Int())
+		}
+	}
+}
+
 func TestStringsToUpper(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	sm := new(StringsMod)
@@ -199,5 +228,90 @@ func TestStringsJoin(t *testing.T) {
 	exp = "this--is----it!"
 	if ret.String() != exp {
 		t.Errorf("expected %s, got %s", exp, ret)
+	}
+}
+
+func TestStringsReplace(t *testing.T) {
+	cases := []struct {
+		args []runtime.Val
+		exp  string
+	}{
+		0: {
+			args: []runtime.Val{
+				runtime.String("this is the source"),
+				runtime.String("th"),
+			},
+			exp: "is is e source",
+		},
+		1: {
+			args: []runtime.Val{
+				runtime.String("this is the source"),
+				runtime.String("th"),
+				runtime.Number(1),
+			},
+			exp: "is is the source",
+		},
+		2: {
+			args: []runtime.Val{
+				runtime.String("this is the source"),
+				runtime.String("t"),
+				runtime.String("T"),
+			},
+			exp: "This is The source",
+		},
+		3: {
+			args: []runtime.Val{
+				runtime.String("this is the source"),
+				runtime.String("t"),
+				runtime.String("T"),
+				runtime.Number(1),
+			},
+			exp: "This is the source",
+		},
+	}
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	for i, c := range cases {
+		ret := sm.strings_Replace(c.args...)
+		if ret.String() != c.exp {
+			t.Errorf("[%d] - expected %s, got %s", i, c.exp, ret)
+		}
+	}
+}
+
+func TestStringsTrim(t *testing.T) {
+	cases := []struct {
+		args []runtime.Val
+		exp  string
+	}{
+		0: {
+			args: []runtime.Val{
+				runtime.String(" "),
+			},
+			exp: "",
+		},
+		1: {
+			args: []runtime.Val{
+				runtime.String("\n  \t   hi \r"),
+			},
+			exp: "hi",
+		},
+		2: {
+			args: []runtime.Val{
+				runtime.String("xoxolovexox"),
+				runtime.String("xo"),
+			},
+			exp: "love",
+		},
+	}
+	ctx := runtime.NewCtx(nil, nil)
+	sm := new(StringsMod)
+	sm.SetCtx(ctx)
+	for i, c := range cases {
+		ret := sm.strings_Trim(c.args...)
+		if ret.String() != c.exp {
+			t.Errorf("[%d] - expected %s, got %s", i, c.exp, ret)
+		}
 	}
 }
