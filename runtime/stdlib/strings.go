@@ -124,7 +124,7 @@ func (s *StringsMod) strings_HasSuffix(args ...runtime.Val) runtime.Val {
 // n - The nth match group (when n=0, the full text of the match)
 // Each match group contains:
 // start - the index of the start of the match
-// length - the length of the match
+// end - the end of the match
 // text - the string of the match
 func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
@@ -144,9 +144,9 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 		obch := runtime.NewObject()
 		for j, mtch := range mtches {
 			leaf := runtime.NewObject()
-			leaf.Set(runtime.String("text"), runtime.String(mtch))
-			leaf.Set(runtime.String("start"), runtime.Number(ixmtch[i][2*j]))
-			leaf.Set(runtime.String("length"), runtime.Number(ixmtch[i][2*j+1]))
+			leaf.Set(runtime.String("Text"), runtime.String(mtch))
+			leaf.Set(runtime.String("Start"), runtime.Number(ixmtch[i][2*j]))
+			leaf.Set(runtime.String("End"), runtime.Number(ixmtch[i][2*j+1]))
 			obch.Set(runtime.Number(j), leaf)
 		}
 		ob.Set(runtime.Number(i), obch)

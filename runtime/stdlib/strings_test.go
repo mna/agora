@@ -22,6 +22,39 @@ func TestStringsMatches(t *testing.T) {
 				},
 			},
 		},
+		1: {
+			args: []runtime.Val{
+				runtime.String("this is a string"),
+				runtime.String(".*?(is)"),
+			},
+			exp: [][]string{
+				0: []string{
+					0: "this",
+					1: "is",
+				},
+				1: []string{
+					0: " is",
+					1: "is",
+				},
+			},
+		},
+		2: {
+			args: []runtime.Val{
+				runtime.String("what whatever who where"),
+				runtime.String(`(w.)\w+`),
+				runtime.Number(2),
+			},
+			exp: [][]string{
+				0: []string{
+					0: "what",
+					1: "wh",
+				},
+				1: []string{
+					0: "whatever",
+					1: "wh",
+				},
+			},
+		},
 	}
 	ctx := runtime.NewCtx(nil, nil)
 	sm := new(StringsMod)
@@ -31,6 +64,29 @@ func TestStringsMatches(t *testing.T) {
 		ob := ret.(runtime.Object)
 		if int64(len(c.exp)) != ob.Len().Int() {
 			t.Errorf("[%d] - expected %d matches, got %d", i, len(c.exp), ob.Len().Int())
+		} else {
+			for j := int64(0); j < ob.Len().Int(); j++ {
+				// For each match, there's 0..n number of matches (0 is the full match)
+				mtch := ob.Get(runtime.Number(j))
+				mo := mtch.(runtime.Object)
+				if int64(len(c.exp[j])) != mo.Len().Int() {
+					t.Errorf("[%d] - expected %d groups in match %d, got %d", i, len(c.exp[j]), j, mo.Len().Int())
+				} else {
+					for k := int64(0); k < mo.Len().Int(); k++ {
+						grp := mo.Get(runtime.Number(k))
+						gro := grp.(runtime.Object)
+						st := gro.Get(runtime.String("Start"))
+						e := gro.Get(runtime.String("End"))
+						if e.Int() != st.Int()+int64(len(c.exp[j][k])) {
+							t.Errorf("[%d] - expected end %d for group %d of match %d, got %d", i, st.Int()+int64(len(c.exp[j][k])), k, j, e.Int())
+						}
+						s := gro.Get(runtime.String("Text"))
+						if s.String() != c.exp[j][k] {
+							t.Errorf("[%d] - expected text '%s' for group %d of match %d, got '%s'", i, c.exp[j][k], k, j, s)
+						}
+					}
+				}
+			}
 		}
 	}
 }
