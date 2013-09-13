@@ -188,6 +188,7 @@ func (p *Parser) defineGrammar() {
 	p.builtin("panic")
 	p.builtin("recover")
 	p.builtin("len")
+	p.builtin("keys")
 
 	// func can be both an expression prefix:
 	//   fnAdd := func(x, y) {return x+y}

@@ -29,6 +29,7 @@ type Object interface {
 	Get(Val) Val
 	Set(Val, Val)
 	Len() Val
+	Keys() Val
 	callMethod(Val, ...Val) Val
 }
 
@@ -185,6 +186,25 @@ func (o *object) Len() Val {
 		}
 	}
 	return Number(len(o.m))
+}
+
+// Get the keys of the object in an array-like object value,
+// indexed from 0 the the number of keys - 1. It is the responsibility
+// of the object's implementation to return coherent values for Len()
+// and Keys(). The list of keys is unordered.
+func (o *object) Keys() Val {
+	if m, ok := o.m[String("__keys")]; ok {
+		if f, ok := m.(Func); ok {
+			return f.Call(o)
+		}
+	}
+	ob := NewObject()
+	i := 0
+	for k, _ := range o.m {
+		ob.Set(Number(i), k)
+		i++
+	}
+	return ob
 }
 
 // Get returns the value of the field identified by key. It returns Nil

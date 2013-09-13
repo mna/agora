@@ -21,6 +21,7 @@ func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
 		b.ob.Set(String("panic"), NewNativeFunc(b.ctx, "panic", b._panic))
 		b.ob.Set(String("recover"), NewNativeFunc(b.ctx, "recover", b._recover))
 		b.ob.Set(String("len"), NewNativeFunc(b.ctx, "len", b._len))
+		b.ob.Set(String("keys"), NewNativeFunc(b.ctx, "keys", b._keys))
 	}
 	return b.ob, nil
 }
@@ -92,4 +93,10 @@ func (b *builtinMod) _len(args ...Val) Val {
 	default:
 		return Number(len(v.String()))
 	}
+}
+
+func (b *builtinMod) _keys(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	ob := args[0].(Object)
+	return ob.Keys()
 }

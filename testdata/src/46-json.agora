@@ -1,0 +1,11 @@
+ob := {}
+
+ob.Stringify = func(src) {
+	ks := keys(src)
+}
+
+ob.Parse = func(src) {
+
+}
+
+return ob
