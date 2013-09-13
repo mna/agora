@@ -256,9 +256,9 @@ func (b *build) Execute(args []string) error {
 type version struct{}
 
 func (v *version) Execute(args []string) error {
-	// TODO : Use a git hook to update a revision file
 	maj, min := bytecode.Version()
-	fmt.Printf("agora version %d.%d\n", maj, min)
+	fmt.Printf("agora version %d.%d (git revision %s)\n", maj, min, bytecode.AGORA_BUILD)
+	fmt.Printf("built with %s\n", bytecode.GO_BUILD)
 	return nil
 }
 
