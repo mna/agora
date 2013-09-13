@@ -53,27 +53,13 @@ func (t *TimeMod) newTime(tm time.Time) runtime.Val {
 	ob.Set(runtime.String("__toString"), runtime.NewNativeFunc(t.ctx, "time._time.__toString", func(args ...runtime.Val) runtime.Val {
 		return runtime.String(ob.t.Format(time.RFC3339))
 	}))
-	ob.Set(runtime.String("Year"), runtime.NewNativeFunc(t.ctx, "time._time.Year", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Year())
-	}))
-	ob.Set(runtime.String("Month"), runtime.NewNativeFunc(t.ctx, "time._time.Month", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Month())
-	}))
-	ob.Set(runtime.String("Day"), runtime.NewNativeFunc(t.ctx, "time._time.Day", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Day())
-	}))
-	ob.Set(runtime.String("Hour"), runtime.NewNativeFunc(t.ctx, "time._time.Hour", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Hour())
-	}))
-	ob.Set(runtime.String("Minute"), runtime.NewNativeFunc(t.ctx, "time._time.Minute", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Minute())
-	}))
-	ob.Set(runtime.String("Second"), runtime.NewNativeFunc(t.ctx, "time._time.Second", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Second())
-	}))
-	ob.Set(runtime.String("Nanosecond"), runtime.NewNativeFunc(t.ctx, "time._time.Nanosecond", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(tm.Nanosecond())
-	}))
+	ob.Set(runtime.String("Year"), runtime.Number(tm.Year()))
+	ob.Set(runtime.String("Month"), runtime.Number(tm.Month()))
+	ob.Set(runtime.String("Day"), runtime.Number(tm.Day()))
+	ob.Set(runtime.String("Hour"), runtime.Number(tm.Hour()))
+	ob.Set(runtime.String("Minute"), runtime.Number(tm.Minute()))
+	ob.Set(runtime.String("Second"), runtime.Number(tm.Second()))
+	ob.Set(runtime.String("Nanosecond"), runtime.Number(tm.Nanosecond()))
 	return ob
 }
 
