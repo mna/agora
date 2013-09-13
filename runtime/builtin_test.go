@@ -5,6 +5,89 @@ import (
 	"testing"
 )
 
+func TestKeys(t *testing.T) {
+	bi := new(builtinMod)
+	ctx := NewCtx(nil, nil)
+	bi.SetCtx(ctx)
+
+	cases := []struct {
+		src Val
+		exp []Val
+	}{
+		0: {
+			src: func() Object {
+				o := NewObject()
+				return o
+			}(),
+			exp: []Val{},
+		},
+		1: {
+			src: func() Object {
+				o := NewObject()
+				o.Set(String("a"), Number(0))
+				return o
+			}(),
+			exp: []Val{String("a")},
+		},
+		2: {
+			src: func() Object {
+				o := NewObject()
+				o.Set(String("a"), Number(0))
+				o.Set(String("b"), Number(0))
+				o.Set(Number(1), Number(0))
+				return o
+			}(),
+			exp: []Val{
+				String("a"),
+				String("b"),
+				Number(1),
+			},
+		},
+		3: {
+			src: func() Object {
+				o := NewObject()
+				o.Set(String("a"), Number(0))
+				o.Set(String("b"), Number(0))
+				o.Set(Number(1), Number(0))
+				o.Set(String("__keys"), NewNativeFunc(ctx, "", func(args ...Val) Val {
+					k := NewObject()
+					k.Set(Number(0), String("b"))
+					k.Set(Number(1), Number(1))
+					return k
+				}))
+				return o
+			}(),
+			exp: []Val{
+				String("b"),
+				Number(1),
+			},
+		},
+	}
+
+	for i, c := range cases {
+		ret := bi._keys(c.src)
+		ob := ret.(Object)
+		l := ob.Len().Int()
+		if l != int64(len(c.exp)) {
+			t.Errorf("[%d] - expected %d keys, got %d", i, len(c.exp), l)
+		} else {
+			for _, key := range c.exp {
+				// Cannot assume an ordering
+				found := false
+				for k := int64(0); k < ob.Len().Int(); k++ {
+					if ob.Get(Number(k)) == key {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("[%d] - expected key %v to exist, got nil", i, key)
+				}
+			}
+		}
+	}
+}
+
 func TestLen(t *testing.T) {
 	cases := []struct {
 		src Val

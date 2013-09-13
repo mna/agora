@@ -94,9 +94,9 @@ Options:
 
 The `version` sub-command prints the current agora version.
 
-Next: [Roadmap][next]
+Next: [Native Go API][next]
 
-[next]: https://github.com/PuerkitoBio/agora/wiki/Roadmap
+[next]: https://github.com/PuerkitoBio/agora/wiki/Native-Go-API
 [shebang]: http://en.wikipedia.org/wiki/Shebang_(Unix)
 [assembly]: https://github.com/PuerkitoBio/agora/wiki/Assembly-code-format
 

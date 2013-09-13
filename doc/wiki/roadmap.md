@@ -41,5 +41,5 @@ Once the language features have landed, focus should turn to refactoring the com
 
 Development will take place in the `next` branch. I will keep `master` stable and updated only with official releases (there *may* be v0.1.n releases in case of absolute disaster before v0.2 lands, and if this happens, it will be on `master`).
 
-Next: [Virtual machine](https://github.com/PuerkitoBio/agora/wiki/Virtual-machine)
+Next: [Back to wiki index](https://github.com/PuerkitoBio/agora/wiki)
 

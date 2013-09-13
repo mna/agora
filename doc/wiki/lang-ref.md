@@ -46,6 +46,7 @@ Additionally, the following identifiers are reserved and may not be used as vari
 * panic
 * recover
 * len
+* keys
 * this
 * args
 
@@ -220,7 +221,7 @@ for i := 0; i < 10; i++ {
 
 ### The return statement
 
-A return statement exits the current function. The return statement of the top-level function of the module terminates the module's execution, luturning its return value to the caller. The return statement of the top-level function of the initial module returns the value to the Go host.
+A return statement exits the current function. The return statement of the top-level function of the module terminates the module's execution, returning its return value to the caller. The return statement of the top-level function of the initial module returns the value to the Go host.
 
 A function is not required to have a return statement, a default `return nil` statement is automatically added by the compiler if the last statement of the function is not a `return`.
 
@@ -240,14 +241,19 @@ for {
 
 ### The continue statement
 
-A `continue` statement skips the rest of the `for` body and jumps to the execution of the `post` statement of the 3-part `for`, or to the execution of the `condition` in a `while`-equivalent `for` loop, or to the first statement of the `for` body in an infinite loop.the Go host.
+A `continue` statement skips the rest of the `for` body and jumps to the execution of the `post` statement of the 3-part `for`, or to the execution of the `condition` in a `while`-equivalent `for` loop, or to the first statement of the `for` body in an infinite loop.
 
-A function is not required to have a return statement, a default `rhas four (4) predeclared built-in functions. They are first-class function values like any other agora function, but their reserved identifier cannot be overridden.
+It is an invalid statement outside a `for` loop.
+
+## Built-in functions
+
+Agora has five (5) predeclared built-in functions. They are first-class function values like any other agora function, but their reserved identifier cannot be overridden.
 
 * **import** : takes a single string value as argument, identifying a module to load and run, and returns the return value of the imported module.
 * **panic** : takes a single value as argument, and if it is "truthy", raises a runtime error (a "panic") with this value. If the value is "falsy", it is a no-op and returns `nil`.
 * **recover** : takes at least a single value as argument, which must be a function. If more values are provided, they are passed as arguments to the function. It executes the function and catches any error (panic) that the function may raise (it runs the function in *protected mode*). If an error is caught, it returns it, otherwise it returns `nil`.
 * **len** : takes a single value as argument. If it is `nil`, returns `0`. If it is an object, returns the number of fields defined on the object (this behaviour may be overridden if the object has a `__len` meta-method). Otherwise it returns the length of the string value.
+* **keys** : takes a single value as argument, which must be an object (it panics otherwise). Returns an array-like object holding all the keys of the object passed as argument. If the object has a `__keys` meta-method, it is called and its return value is returned. The order of the keys are undefined, even for an array-like object.
 
 Because `recover` returns the eventual error, it cannot return the return value of the function that is executed. So if required, the function passed to `recover` should be a function value that stores its return value in an outer-scoped variable (eventually a closure, when the feature is added), like so:
 

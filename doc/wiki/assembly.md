@@ -40,5 +40,5 @@ Multiple `[f]` sections can then follow, each with its own K and I section. When
 
 The same goes for instructions that refer to a constant or symbol (for example, `PUSH K 2` or `POP V 3` - push value of constant at index 2; pop into variable identified by the constant at index 3). The index is the position of the constant or symbol in the K section of the assembly code.
 
-Next: [Command-line tool](https://github.com/PuerkitoBio/agora/wiki/Command-line-tool)
+Next: [Virtual machine](https://github.com/PuerkitoBio/agora/wiki/Virtual-machine)
 
