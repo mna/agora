@@ -63,7 +63,7 @@ func TestStringsMatches(t *testing.T) {
 		ret := sm.strings_Matches(c.args...)
 		ob := ret.(runtime.Object)
 		if int64(len(c.exp)) != ob.Len().Int() {
-			t.Errorf("[%f] - expected %d matches, got %d", i, len(c.exp), ob.Len().Int())
+			t.Errorf("[%d] - expected %d matches, got %d", i, len(c.exp), ob.Len().Int())
 		} else {
 			for j := int64(0); j < ob.Len().Int(); j++ {
 				// For each match, there's 0..n number of matches (0 is the full match)

@@ -116,7 +116,7 @@ func TestStringAsBool(t *testing.T) {
 		vx := String(c.x)
 		res := vx.Bool()
 		if c.exp != res {
-			t.Errorf("%s as bool : expected %s, got %v", c.x, c.exp, res)
+			t.Errorf("%s as bool : expected %v, got %v", c.x, c.exp, res)
 		}
 	}
 }
