@@ -7,6 +7,37 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+func TestTimeConv(t *testing.T) {
+	ctx := runtime.NewCtx(nil, nil)
+	tm := new(TimeMod)
+	tm.SetCtx(ctx)
+	nw := time.Now().UTC()
+	n := tm.time_Date(runtime.Number(nw.Year()),
+		runtime.Number(nw.Month()),
+		runtime.Number(nw.Day()),
+		runtime.Number(nw.Hour()),
+		runtime.Number(nw.Minute()),
+		runtime.Number(nw.Second()),
+		runtime.Number(nw.Nanosecond()))
+	ob := n.(runtime.Object)
+	cnv := ob.Get(runtime.String("__toString"))
+	f := cnv.(runtime.Func)
+	ret := f.Call(nil)
+	exp := nw.Format(time.RFC3339)
+	if ret.String() != exp {
+		t.Errorf("expected string to return '%s', got '%s'", exp, ret)
+	}
+	cnv = ob.Get(runtime.String("__toInt"))
+	f = cnv.(runtime.Func)
+	ret = f.Call(nil)
+	{
+		exp := nw.Unix()
+		if ret.Int() != int64(exp) {
+			t.Errorf("expected int to return %d, got %d", exp, ret.Int())
+		}
+	}
+}
+
 func TestTimeSleep(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	tm := new(TimeMod)
