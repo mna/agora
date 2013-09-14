@@ -300,7 +300,7 @@ func TestMathIsInf(t *testing.T) {
 	ret := mm.math_IsInf(runtime.Number(val), runtime.Number(val2))
 	exp := math.IsInf(val, val2)
 	if ret.Bool() != exp {
-		t.Errorf("expected %s, got %s", exp, ret.Bool())
+		t.Errorf("expected %v, got %v", exp, ret.Bool())
 	}
 }
 
@@ -313,7 +313,7 @@ func TestMathIsNaN(t *testing.T) {
 	ret := mm.math_IsNaN(runtime.Number(val))
 	exp := math.IsNaN(val)
 	if ret.Bool() != exp {
-		t.Errorf("expected %s, got %s", exp, ret.Bool())
+		t.Errorf("expected %v, got %v", exp, ret.Bool())
 	}
 }
 

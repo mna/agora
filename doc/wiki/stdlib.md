@@ -104,10 +104,27 @@ The `conv` module exposes the following methods:
 
 ## strings
 
-* **ToLower(vals...)** : converts and concatenates all vals to lowercase, and returns the resulting string.
-* **ToUpper(vals...)** : converts and concatenates all vals to uppercase, and returns the resulting string.
+* **ByteAt(s, i)** : returns the byte at position i in string s, as a string value. It returns an empty string if i is out of bounds.
+* **Concat(vals...)** : concatenates all vals in order and returns the resulting string.
+* **Contains(val, vals...)** : returns true if val contains any of the vals.
 * **HasPrefix(val, vals...)** : checks if val starts with any of the vals, returning true if this is the case.
 * **HasSuffix(val, vals...)** : checks if val ends with any of the vals, returning true if this is the case.
+* **Index(s[, start], vals...)** : returns the index of the first of vals found within s. If start is specified, looks for vals starting at index start in s.
+* **Join(ob[, sep])** : takes an array-like object and joins each part using the separator sep, or empty string by default. Returns the resulting string.
+* **LastIndex(val[, start], vals...)** : same as Index but returns the last index of vals instead of the first encounter.
+* **Matches(s, pat[, n])** : returns the matches of regular expression pat applied to the source string s. If n is provided, a maximum of n matches are returned. The return value is an array-like object holding all matches or nil if there is none (see the *match* object definition below).
+* **Replace(s, old[, new][, n])** : replaces occurrences of old in s with new, or empty string if new is not provided. If n is provided, replaces a maximum of n occurrences. If the third argument is a number, it is considered to be n and new defaults to empty string.
+* **Slice(s, start[, end])** : returns a slice of string s start at start and ending at end (or the end of s if end is not provided). Is equivalent to Go's s[start:end] notation. 
+* **Split(s, sep[, n])** : returns an array-like object holding the parts of string s split at separator sep. If n is provided, a maximum of n parts are returned, the last part holding the rest of s if required.
+* **ToLower(vals...)** : converts and concatenates all vals to lowercase, and returns the resulting string.
+* **ToUpper(vals...)** : converts and concatenates all vals to uppercase, and returns the resulting string.
+* **Trim(s[, cut])** : returns a string with all characters from cut removed from the start and the end of s. If cut is not provided, removes whitespace (space, \n, \t, \r, \v).
+
+A *match* object is an array-like object holding the match groups, with group 0 being the full match. Each match group has the following fields:
+
+* **Start** : the index of the start of the match.
+* **End** : the index of the end of the match.
+* **Text** : the text of the match.
 
 Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
 

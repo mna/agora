@@ -224,7 +224,7 @@ func equal(c int, f1, f2 *bytecode.File) bool {
 			k1, k2 := fn1.Ks[j], fn2.Ks[j]
 			if k1.Type != k2.Type {
 				if testing.Verbose() {
-					fmt.Printf("[%d] - error: f1.func[%d].Ks[%d] has type %s, f2.func[%d].Ks[%d] has type %s\n", c, i, j, k1.Type, i, j, k2.Type)
+					fmt.Printf("[%d] - error: f1.func[%d].Ks[%d] has type %c, f2.func[%d].Ks[%d] has type %c\n", c, i, j, k1.Type, i, j, k2.Type)
 				}
 				return false
 			}

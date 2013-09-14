@@ -119,7 +119,7 @@ type run struct {
 	FromAsm  bool   `short:"a" long:"from-asm" description:"run an assembly input"`
 	NoStdlib bool   `short:"S" long:"no-stdlib" description:"do not import the stdlib"`
 	Debug    bool   `short:"d" long:"debug" description:"output debug information"`
-	NoResult bool   `short:"R" long:"no-result" description: "do not print the result"`
+	NoResult bool   `short:"R" long:"no-result" description:"do not print the result"`
 	Output   string `short:"o" long:"output" description:"output file"`
 }
 

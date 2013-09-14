@@ -165,10 +165,10 @@ func (s *StringsMod) strings_ByteAt(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	at := int(args[1].Int())
-	if at >= len(src) {
+	if at < 0 || at >= len(src) {
 		return runtime.String("")
 	}
-	return runtime.String(src[at : at+1])
+	return runtime.String(src[at])
 }
 
 // Args:
