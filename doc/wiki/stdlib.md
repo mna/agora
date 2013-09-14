@@ -104,6 +104,10 @@ The `conv` module exposes the following methods:
 
 ## strings
 
+* **ToLower(vals...)** : converts and concatenates all vals to lowercase, and returns the resulting string.
+* **ToUpper(vals...)** : converts and concatenates all vals to uppercase, and returns the resulting string.
+* **HasPrefix(val, vals...)** : checks if val starts with any of the vals, returning true if this is the case.
+* **HasSuffix(val, vals...)** : checks if val ends with any of the vals, returning true if this is the case.
 
 Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
 
