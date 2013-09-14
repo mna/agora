@@ -20,7 +20,7 @@ var (
 type Bool bool
 
 func (b Bool) dump() string {
-	return fmt.Sprintf("%v (Bool)", bool(b))
+	return fmt.Sprintf("%s (Bool)", bool(b))
 }
 
 // Int returns 1 if true, 0 if false.

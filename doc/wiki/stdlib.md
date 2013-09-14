@@ -88,9 +88,9 @@ The `conv` module exposes the following methods:
 
 `ReadFile` returns an array-like object that holds objects with the following fields:
 
-* Name : the name of the file or directory.
-* Size : the size in bytes of the file.
-* IsDir : a boolean indicating if the item is a directory.
+* **Name** : the name of the file or directory.
+* **Size** : the size in bytes of the file.
+* **IsDir** : a boolean indicating if the item is a directory.
 
 
 `Open` and `TryOpen` return an object with the following fields:
@@ -125,6 +125,24 @@ A *match* object is an array-like object holding the match groups, with group 0 
 * **Start** : the index of the start of the match.
 * **End** : the index of the end of the match.
 * **Text** : the text of the match.
+
+## time
+
+* **Date(year[, month[, day[, hour[, min[, sec[, ns]]]]]])** : returns a time object (see definition below) corresponding to the requested time. Month and day default to 1 if not provided, while hour, minute, second and nanosecond default to 0.
+* **Now()** : returns a time object (see definition below) corresponding to the current time.
+* **Sleep(ms)** : pauses execution of the agora program for the specified number of milliseconds. It returns nil.
+
+The time object provides the following fields and operations:
+
+* **Year** : holds the year part of the time.
+* **Month** : holds the month part of the time.
+* **Day** : holds the day part of the time.
+* **Hour** : holds the hour part of the time.
+* **Minute** : holds the minute part of the time.
+* **Second** : holds the second part of the time.
+* **Nanosecond** : holds the nanosecond part of the time.
+* **__toInt** : overrides the integer conversion, returns the Unix time, which is the number of seconds since January 1, 1970 UTC.
+* **__toString** : overrides the string conversion, formats the time in RFC3339 format.
 
 Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
 
