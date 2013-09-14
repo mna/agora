@@ -66,5 +66,44 @@ The `conv` module exposes the following methods:
 * **RandSeed(val)** : initializes the random generator with the val seed.
 * **Rand([val1[, val2]])** : returns a random value >= 0. If val1 is provided, it is used as the higher bound. If both val1 and val2 are provided, val1 is the inclusive lower bound, val2 is the higher bound.
 
+## os
+
+* **TempDir** : string field that holds the temporary directory.
+* **PathSeparator** : string field that holds the path separator.
+* **PathListSeparator** : string field that holds the path list separator.
+* **DevNull** : string field that holds the name of the OS's null device.
+* **Exit([val])** : terminates the current process with the val exit code, or 0 if no val is specified.
+* **Getenv(val)** : returns the environment variable identified by val.
+* **Getwd()** : returns the current working directory.
+* **Exec(val[, vals])** : executes the process identified by val, with vals as arguments. Returns the combined stdout and stderr output as a string.
+* **Mkdir(vals...)** : creates all directories as specified by vals, creating missing subdirectories as required. If the last argument is a number, it is used as the permission flag, otherwise all directories are created with the 0777 permission.
+* **ReadDir(val)** : reads all files and subdirectories in val, and returns an array-like object holding all those files and subdirectories.
+* **Remove(vals...)** : removes all directories specified by vals.
+* **RemoveAll(vals...)** : removes all directories and their content specified by vals.
+* **Rename(val1, val2)** : renames the file or directory identified by val1 to val2.
+* **ReadFile(val)** : reads the content of the file identified by val and returns it as a string.
+* **WriteFile(val, vals...)** : creates a new file or replace an existing file identified by val, and writes all vals to this file. Returns the number of bytes writte.
+* **Open(val1[, val2])** : opens the file identified by val1, by default in read-only mode. If a second argument is provided, it is the open mode, one of `r`, `w`, `a`, `r+`, `w+` or `a+`.
+* **TryOpen(val1[, val2])** : same as `Open`, but returns `nil` instead of a runtime error if there is an error opening the file.
+
+`ReadFile` returns an array-like object that holds objects with the following fields:
+
+* Name : the name of the file or directory.
+* Size : the size in bytes of the file.
+* IsDir : a boolean indicating if the item is a directory.
+
+
+`Open` and `TryOpen` return an object with the following fields:
+
+* **Name** : a string field that holds the base name of the file.
+* **Close()** : a method to close the file resource.
+* **ReadLine()** : a method that reads a single line from the file and returns it. It returns `nil` if there are no more lines to read.
+* **Seek(val1, val2)** : sets the current position to read or write to the file to the offset specified by val1. If val2 is specified, it is the relative position - 0 for start of the file, 1 for current position, and 2 for end of the file.
+* **Write(vals...)** : writes the vals to the file and returns the number of bytes returned.
+* **WriteLine(vals...)** : like `Write`, but appends a newline after vals are written to the file.
+
+## strings
+
+
 Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
 
