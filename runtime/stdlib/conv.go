@@ -4,6 +4,8 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+// The conv module, as documented in
+// https://github.com/PuerkitoBio/agora/wiki/Standard-library
 type ConvMod struct {
 	ctx *runtime.Ctx
 	ob  runtime.Object

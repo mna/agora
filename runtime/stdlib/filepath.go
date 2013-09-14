@@ -6,6 +6,8 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+// The filepath module, as documented in
+// https://github.com/PuerkitoBio/agora/wiki/Standard-library
 type FilepathMod struct {
 	ctx *runtime.Ctx
 	ob  runtime.Object

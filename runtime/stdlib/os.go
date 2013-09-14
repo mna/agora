@@ -9,6 +9,8 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+// The os module, as documented in
+// https://github.com/PuerkitoBio/agora/wiki/Standard-library
 type OsMod struct {
 	ctx *runtime.Ctx
 	ob  runtime.Object

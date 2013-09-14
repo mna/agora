@@ -7,6 +7,8 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+// The math module, as documented in
+// https://github.com/PuerkitoBio/agora/wiki/Standard-library
 type MathMod struct {
 	ctx *runtime.Ctx
 	ob  runtime.Object

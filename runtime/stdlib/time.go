@@ -6,6 +6,8 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+// The time module, as documented in
+// https://github.com/PuerkitoBio/agora/wiki/Standard-library
 type TimeMod struct {
 	ctx *runtime.Ctx
 	ob  runtime.Object

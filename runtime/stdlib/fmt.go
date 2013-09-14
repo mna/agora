@@ -7,6 +7,8 @@ import (
 	"github.com/PuerkitoBio/agora/runtime"
 )
 
+// The fmt module, as documented in
+// https://github.com/PuerkitoBio/agora/wiki/Standard-library
 type FmtMod struct {
 	ctx *runtime.Ctx
 	ob  runtime.Object
