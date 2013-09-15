@@ -1,6 +1,7 @@
 ob := {}
 
 ob.Stringify = func(src) {
+	// Required here until closures are implemented...
   conv := import("conv")
   strings := import("strings")
 
@@ -47,6 +48,93 @@ ob.Stringify = func(src) {
 }
 
 ob.Parse = func(src) {
+	// Required here until closures are implemented...
+  conv := import("conv")
+  strings := import("strings")
+
+	i := 0
+	ch := strings.ByteAt(src, i)
+	
+	func advance(expect) {
+		if expect != "" && ch != expect {
+			panic("expected " + expect + ", got " + ch)
+		}
+		i++
+		ch = strings.ByteAt(src, i)
+	}
+	
+	func skipWhitespace() {
+		for ch == " " {
+			advance(" ")
+		}
+	}
+
+	func parseValue(reqQuotes) {
+		quoted := ch == `"`
+		if reqQuotes || quoted {
+			advance(`"`)
+		}
+		val := ""
+		// TODO : Detect escaped quotes
+		for (quoted && ch != `"`) || (!quoted && (ch == "," || ch == "}" || ch == " " || ch == "]")) {
+			val += ch
+			advance("")
+			if ch == "" {
+				break
+			}
+		}
+		if quoted {
+			advance(`"`)
+		}
+		return val
+	}
+	
+	func parseObject() {
+		ob := {}
+		advance("{")
+		skipWhitespace()
+		for ch != "}" {
+			key := parseValue(true)
+			skipWhitespace()
+			advance(":")
+			skipWhitespace()
+			val := parseValue()
+			ob[key] = val
+			skipWhitespace()
+		}
+		advance("}")
+		return ob
+	}
+
+	func parseArray() {
+		a := {}
+		i := 0
+		advance("[")
+		skipWhitespace()
+		for ch != "]" {
+			if i > 0 {
+				advance(",")
+				skipWhitespace()
+			}
+			val := parseValue()
+			a[i] = val
+			i++
+			skipWhitespace()
+		}
+		advance("]")
+		return a
+	}
+	
+	o := nil
+	skipWhitespace()
+	if ch == "{" {
+		o = parseObject()
+	} else if ch == "[" {
+		o = parseArray()
+	} else {
+		o = parseValue(true)
+	}
+	return o
 }
 
 return ob

@@ -53,7 +53,7 @@ The full list of opcodes is available in /bytecode/opcodes.go, while the list of
 * **POP** : pops a value from the stack, stores it in the variable identified by the string at index `ix` in the K table. If the variable does not already exist, it is created as a local variable.
 * **ADD | SUB | MUL | DIV | MOD | AND | OR** : pops two values from the stack, performs the operation, and pushes the result on the stack.
 * **NOT | UNM** : pops one value from the stack, performs the operation, and pushes the result on the stack.
-* **EQ | LT | LTE | GT | GTE** : pops two values from the stack, compares them, and pushes the boolean result for the operation (the comparison returns 1 if greater, 0 if equal and -1 if lower).
+* **EQ | NEQ | LT | LTE | GT | GTE** : pops two values from the stack, compares them, and pushes the boolean result for the operation (the comparison returns 1 if greater, 0 if equal and -1 if lower).
 * **TEST** : pops one value from the stack, tests its boolean representation, if it is `false`, jumps forward `ix` instructions.
 * **JMP** : if the flag is `Jf`, jumps forward `ix` instructions, if it is `Jb`, jumps backward `ix + 1` instructions (because the `pc` is already pointing on the next instruction).
 * **NEW** : creates a new object and pushes it on the stack. If `ix` is greater than 0, pops `2*ix` values from the stack, initializing fields on the object in `ix` pair of values representing the key and the value.

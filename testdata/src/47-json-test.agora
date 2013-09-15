@@ -1,7 +1,11 @@
 fmt := import("fmt")
+conv := import("conv")
 json := import("./46-json")
 time := import("time")
 
+/*
+fmt.Println("STRINGIFY TESTS:")
+fmt.Println("----------------")
 fmt.Println("test:", json.Stringify("test"))
 fmt.Println("12:", json.Stringify(12))
 fmt.Println("true:", json.Stringify(true))
@@ -19,3 +23,23 @@ err := recover(func() {
 	json.Stringify(func() {})
 })
 fmt.Println("func err:", err)
+
+fmt.Println()
+
+fmt.Println("PARSE TESTS:")
+fmt.Println("------------")
+*/
+cases := {}
+cases[0] = `"test"`
+cases[1] =`"12"`
+cases[2] = `"true"`
+
+l := len(cases)
+fmt.Println(l)
+for i := 0; i < l; i++ {
+	fmt.Println(i)
+	k := cases[i]
+	fmt.Println(i)
+	ret := json.Parse(cases[i])
+	fmt.Println(i, k, ":", ret, "(" + conv.Type(ret) + ")")
+}
