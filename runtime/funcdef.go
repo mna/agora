@@ -36,8 +36,8 @@ type AgoraFunc struct {
 	mod     *agoraModule
 	stackSz int64
 	expArgs int64
-	expVars int64
 	kTable  []Val
+	lTable  []string
 	code    []bytecode.Instr
 }
 
@@ -47,7 +47,7 @@ func newAgoraFunc(mod *agoraModule, c *Ctx) *AgoraFunc {
 		mod,
 		0,
 		0,
-		0,
+		nil,
 		nil,
 		nil,
 	}
