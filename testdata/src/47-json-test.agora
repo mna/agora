@@ -1,0 +1,20 @@
+fmt := import("fmt")
+json := import("./46-json")
+
+fmt.Println("test:", json.Stringify("test"))
+fmt.Println("12:", json.Stringify(12))
+fmt.Println("true:", json.Stringify(true))
+fmt.Println("false:", json.Stringify(false))
+fmt.Println("3.1415:", json.Stringify(3.1415))
+fmt.Println("nil:", json.Stringify(nil))
+fmt.Println("{a: 12}:", json.Stringify({a: 12}))
+fmt.Println("{a: 12, b: true, c: string, d: false, e: 1.12}:", json.Stringify({a: 12, b: true, c: "string", d: false, e: 1.12}))
+fmt.Println("{a: func, b: obj}:", json.Stringify({a: func(){}, b: {c: 12, d: "ok"}, e: "right"}))
+
+/*
+// TODO : recover bug?
+err := recover(json.Stringify(func() {}))
+fmt.Println("func err:", err)
+*/
+
+return 0

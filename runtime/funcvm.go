@@ -256,6 +256,11 @@ func (f *funcVM) run(args ...Val) Val {
 			cmp := x.Cmp(y)
 			f.push(Bool(cmp == 0))
 
+		case bytecode.OP_NEQ:
+			y, x := f.pop(), f.pop()
+			cmp := x.Cmp(y)
+			f.push(Bool(cmp != 0))
+
 		case bytecode.OP_LT:
 			y, x := f.pop(), f.pop()
 			cmp := x.Cmp(y)

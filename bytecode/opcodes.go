@@ -20,6 +20,7 @@ const (
 	OP_NOT                // boolean negation of one value from the stack, push the result
 	OP_UNM                // unary minus of one value from the stack, push the result
 	OP_EQ                 // check equality of two values from the stack, push the result
+	OP_NEQ                // check non-equality of two values from the stack, push the result
 	OP_LT                 // lower than on two values from the stack, push the result
 	OP_LTE                // lower than or equal on two values from the stack, push the result
 	OP_GT                 // greater than on two values from the stack, push the result
@@ -53,6 +54,7 @@ var (
 		OP_NOT:  "NOT",
 		OP_UNM:  "UNM",
 		OP_EQ:   "EQ",
+		OP_NEQ:  "NEQ",
 		OP_LT:   "LT",
 		OP_LTE:  "LTE",
 		OP_GT:   "GT",
@@ -82,6 +84,7 @@ var (
 		"NOT":  OP_NOT,
 		"UNM":  OP_UNM,
 		"EQ":   OP_EQ,
+		"NEQ":  OP_NEQ,
 		"LT":   OP_LT,
 		"LTE":  OP_LTE,
 		"GT":   OP_GT,

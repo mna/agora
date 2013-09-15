@@ -23,6 +23,7 @@ var (
 		">":  bytecode.OP_GT,
 		">=": bytecode.OP_GTE,
 		"==": bytecode.OP_EQ,
+		"!=": bytecode.OP_NEQ,
 		"&&": bytecode.OP_AND,
 		"||": bytecode.OP_OR,
 	}
@@ -177,7 +178,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			break
 		}
 		fallthrough
-	case "+", "*", "/", "%", "<", ">", "<=", ">=", "==":
+	case "+", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)

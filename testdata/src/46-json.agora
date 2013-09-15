@@ -1,11 +1,46 @@
 ob := {}
-
 ob.Stringify = func(src) {
-	ks := keys(src)
+  conv := import("conv")
+  strings := import("strings")
+
+  func ignored(key, val) {
+  	return conv.Type(key) == "func" || conv.Type(val) == "func"
+  }
+
+  func stringify(val, quote) {
+  	type := conv.Type(val)
+  	if type == "string" || ((type == "number" || type == "bool") && quote) {
+  		// TODO : Escape quotes in the string...
+  		return `"` + val + `"`
+  	} else if type == "number" || type == "bool" {
+  		return conv.String(val)
+  	} else if type == "func" {
+  		panic("cannot marshal a func to JSON")
+  	} else if type != "object" {
+  		return ""
+  	}
+  
+  	// Finally, the object
+  	ks := keys(val)
+  	l := len(ks)
+  	obj := "{"
+  	for i := 0; i < l; i++ {
+  		key := ks[i]
+  		v := val[ks[i]]
+  		if !ignored(key, v) {
+				if obj != "{" {
+					obj += ", "
+				}
+  			obj = strings.Concat(obj, stringify(key, true), ":", stringify(v, false))
+  		}
+  	}
+		obj += "}"
+  	return obj
+  }
+
+	return stringify(src, true)
 }
-
 ob.Parse = func(src) {
-
 }
 
 return ob

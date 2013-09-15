@@ -275,6 +275,7 @@ func (p *Parser) defineGrammar() {
 func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
 	return func(sym *Symbol) *Symbol {
 		var a []*Symbol
+		sym.Name = ""
 		if !prefix && p.tkn.Ar == ArName { // Only for statement notation
 			p.scp.define(p.tkn)
 			sym.Name = p.tkn.Val.(string)
