@@ -1,4 +1,5 @@
 ob := {}
+
 ob.Stringify = func(src) {
   conv := import("conv")
   strings := import("strings")
@@ -10,8 +11,9 @@ ob.Stringify = func(src) {
   func stringify(val, quote) {
   	type := conv.Type(val)
   	if type == "string" || ((type == "number" || type == "bool") && quote) {
-  		// TODO : Escape quotes in the string...
-  		return `"` + val + `"`
+  		// TODO : more robust escape of quotes in the string...
+			str := strings.Replace(val, `"`, `\"`)
+  		return `"` + str + `"`
   	} else if type == "number" || type == "bool" {
   		return conv.String(val)
   	} else if type == "func" {
@@ -40,6 +42,7 @@ ob.Stringify = func(src) {
 
 	return stringify(src, true)
 }
+
 ob.Parse = func(src) {
 }
 

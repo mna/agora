@@ -10,11 +10,11 @@ fmt.Println("nil:", json.Stringify(nil))
 fmt.Println("{a: 12}:", json.Stringify({a: 12}))
 fmt.Println("{a: 12, b: true, c: string, d: false, e: 1.12}:", json.Stringify({a: 12, b: true, c: "string", d: false, e: 1.12}))
 fmt.Println("{a: func, b: obj}:", json.Stringify({a: func(){}, b: {c: 12, d: "ok"}, e: "right"}))
+fmt.Println(`with " quotes ":`, json.Stringify(`with " quotes "`))
 
-/*
-// TODO : recover bug?
-err := recover(json.Stringify(func() {}))
+err := recover(func() {
+	json.Stringify(func() {})
+})
 fmt.Println("func err:", err)
-*/
 
 return 0
