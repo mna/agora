@@ -1,0 +1,17 @@
+/*---
+result: -1
+---*/
+// Should return -1, see http://play.golang.org/p/igaQ7F66yu
+i := 0
+
+func f2() {
+	i--
+}
+
+func f1() {
+	i := 1
+	f2()
+}
+
+f1()
+return i

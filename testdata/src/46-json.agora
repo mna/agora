@@ -52,8 +52,7 @@ ob.Parse = func(src) {
   conv := import("conv")
   strings := import("strings")
 	fmt := import("fmt")
-
-	fmt.Println("Parse called with:", src)
+	parseObjFunc := nil // Required for parseValue to call parseObject before it is defined
 
 	i := 0
 	ch := strings.ByteAt(src, i)
@@ -74,9 +73,12 @@ ob.Parse = func(src) {
 
 	func parseValue(reqQuotes) {
 		quoted := ch == `"`
-		fmt.Println("quoted:", quoted, "reqQuotes:", reqQuotes)
 		if reqQuotes || quoted {
 			advance(`"`)
+		}
+		if !quoted && ch == "{" {
+			// The value is an object, parse object
+			return parseObjFunc()
 		}
 		val := ""
 		onlyNum := true
@@ -108,23 +110,27 @@ ob.Parse = func(src) {
 		} else if val == "true" || val == "false" {
 			retVal = conv.Bool(val)
 		}
-		fmt.Println("parseValue: ", retVal)
 		return retVal
 	}
 	
 	func parseObject() {
 		ob := {}
+		j := 0
 		advance("{")
 		skipWhitespace()
 		for ch != "}" {
-			fmt.Println("From object key")
+			if j > 0 {
+				fmt.Println(ch)
+				advance(",")
+				skipWhitespace()
+			}
 			key := parseValue(true)
 			skipWhitespace()
 			advance(":")
 			skipWhitespace()
-			fmt.Println("From object val")
 			val := parseValue()
 			ob[key] = val
+			j++
 			skipWhitespace()
 		}
 		advance("}")
@@ -133,44 +139,37 @@ ob.Parse = func(src) {
 
 	func parseArray() {
 		a := {}
-		i := 0
+		j := 0
 		advance("[")
 		skipWhitespace()
 		for ch != "]" {
-			if i > 0 {
+			if j > 0 {
 				advance(",")
 				skipWhitespace()
 			}
-			fmt.Println("From array")
 			val := parseValue()
-			a[i] = val
-			i++
+			a[j] = val
+			j++
 			skipWhitespace()
 		}
 		advance("]")
 		return a
 	}
 	
+	parseObjFunc = parseObject
 	o := nil
 	skipWhitespace()
 	if ch == "{" {
-		fmt.Println("in parse object")
 		o = parseObject()
-		debug
 	} else if ch == "[" {
 		o = parseArray()
 	} else {
-		debug
-		fmt.Println("From else")
 		o = parseValue(true)
 	}
-	fmt.Println("outside if")
 	skipWhitespace()
-/*
 	if ch != "" {
 		panic("expected end of string, got " + ch)
 	}
-*/
 	return o
 }
 

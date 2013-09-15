@@ -33,7 +33,6 @@ fmt.Println("PARSE TESTS:")
 fmt.Println("------------")
 
 prs := {}
-/*
 prs[0] = `"test"`
 prs[1] =`"12"`
 prs[2] = `"true"`
@@ -42,9 +41,9 @@ prs[4] = `"3.14e23"`
 prs[5] = `"-22"`
 prs[6] = `"-22+4.e23.3"`
 prs[7] = `"..ee++--"`
-prs[9] = `{"a": 1, "b": true, "c": "some value", "d": {"a": 35.345, "b": -35.77}}`
-*/
-prs[0] = `{"a": 1}`
+prs[8] = `{"a": 1}`
+prs[9] = `{"a": 1 , "b": true}`
+prs[10] = `{"a": 1, "b": true, "c": "some value", "d": {"a": 35.345, "b": -35.77}}`
 l = len(prs)
 for i = 0; i < l; i++ {
 	ret := json.Parse(prs[i])

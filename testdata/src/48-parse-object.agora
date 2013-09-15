@@ -1,3 +1,6 @@
+/*---
+result: map[a:1]
+---*/
 json := import("./46-json.agora")
 
 return json.Parse(`{"a": 1}`)

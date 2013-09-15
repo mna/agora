@@ -98,6 +98,7 @@ func (p *Parser) defineGrammar() {
 	p.stmt("for", func(sym *Symbol) interface{} {
 		// Check for the infinite loop form (i.e. `for {}`). If this is the case,
 		// sym.First is nil, while sym.Second holds the body.
+		sym.First = nil
 		if p.tkn.Id != "{" {
 			f := p.expression(0)
 			if p.tkn.Id == "{" {
@@ -124,6 +125,7 @@ func (p *Parser) defineGrammar() {
 	p.stmt("if", func(sym *Symbol) interface{} {
 		sym.First = p.expression(0)
 		sym.Second = p.block()
+		sym.Third = nil
 		if p.tkn.Id == "else" {
 			p.scp.reserve(p.tkn)
 			p.advance("else")
@@ -159,6 +161,7 @@ func (p *Parser) defineGrammar() {
 
 	// debug statement
 	p.stmt("debug", func(sym *Symbol) interface{} {
+		sym.First = nil
 		if p.tkn.Id != ";" {
 			// Evaluate the number of stack traces to print
 			if p.tkn.Id != "(literal)" {
@@ -219,6 +222,7 @@ func (p *Parser) defineGrammar() {
 			sym.Ar = ArBinary
 			sym.First = left
 			sym.Second = a
+			sym.Third = nil
 			if (left.Ar != ArUnary || left.Id != "func") &&
 				left.Ar != ArName && left.Id != "(" &&
 				left.Id != "&&" && left.Id != "||" && left.Id != "?" {
