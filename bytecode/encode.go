@@ -47,7 +47,6 @@ func (enc *Encoder) Encode(f *File) (err error) {
 		}
 		enc.write(fn.Header.StackSz)
 		enc.write(fn.Header.ExpArgs)
-		enc.write(fn.Header.ExpVars)
 		enc.write(fn.Header.LineStart)
 		enc.write(fn.Header.LineEnd)
 
@@ -58,7 +57,13 @@ func (enc *Encoder) Encode(f *File) (err error) {
 			enc.write(k)
 		}
 
-		// 6- The I section
+		// 6- The L section
+		enc.write(int64(len(fn.Ls)))
+		for _, l := range fn.Ls {
+			enc.write(l)
+		}
+
+		// 7- The I section
 		enc.write(int64(len(fn.Is)))
 		for _, ins := range fn.Is {
 			enc.assertOpcode(ins)

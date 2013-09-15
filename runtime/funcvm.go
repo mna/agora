@@ -33,7 +33,7 @@ func newFuncVM(proto *AgoraFunc) *funcVM {
 	return &funcVM{
 		proto,
 		0,
-		make(map[string]Val, proto.expVars),
+		make(map[string]Val, len(proto.lTable)),
 		make([]Val, 0, proto.stackSz),
 		0,
 		nil,
@@ -184,9 +184,18 @@ func (vm *funcVM) createArgsVal(args []Val) Val {
 	return o
 }
 
+// Create the local variables all initialized to nil
+func (vm *funcVM) createLocals() {
+	for _, s := range vm.proto.lTable {
+		vm.vars[s] = Nil
+	}
+}
+
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
 func (f *funcVM) run(args ...Val) Val {
+	// Create local variables
+	f.createLocals()
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
 	for j, l := int64(0), int64(len(args)); j < f.proto.expArgs; j++ {
 		if j < l {

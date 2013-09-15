@@ -38,7 +38,6 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 		af.name = fn.Header.Name
 		af.stackSz = fn.Header.StackSz
 		af.expArgs = fn.Header.ExpArgs
-		af.expVars = fn.Header.ExpVars
 		// TODO : Ignore LineStart and LineEnd at the moment, unused.
 		m.fns[i] = af
 		af.kTable = make([]Val, len(fn.Ks))
@@ -55,6 +54,10 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 			default:
 				panic("invalid constant value type")
 			}
+		}
+		af.lTable = make([]string, len(fn.Ls))
+		for j, l := range fn.Ls {
+			af.lTable[j] = af.kTable[l].String()
 		}
 		af.code = make([]bytecode.Instr, len(fn.Is))
 		for j, ins := range fn.Is {

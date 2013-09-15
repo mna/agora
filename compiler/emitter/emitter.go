@@ -52,6 +52,14 @@ type kId struct {
 	t bytecode.KType
 }
 
+type asgType int
+
+const (
+	atTrue asgType = iota
+	atFalse
+	atDefine
+)
+
 // An Emitter is responsible for generating the instructions for an agora program.
 type Emitter struct {
 	err     error
@@ -75,7 +83,7 @@ func (e *Emitter) Emit(id string, syms []*parser.Symbol, scps *parser.Scope) (*b
 	f := bytecode.NewFile(id)
 	fn := new(bytecode.Fn)
 	fn.Header.Name = f.Name // Expected args is always 0 for top-level func
-	// TODO : Line start and end, ExpVars
+	// TODO : Line start and end
 	f.Fns = append(f.Fns, fn)
 	e.emitBlock(f, fn, syms)
 	return f, e.err
@@ -90,12 +98,12 @@ func (e *Emitter) emitFn(f *bytecode.File, sym *parser.Symbol) {
 	fn.Header.Name = sym.Name
 	args := sym.First.([]*parser.Symbol)
 	fn.Header.ExpArgs = int64(len(args))
-	// TODO : ExpVars, Line Start, Line End
+	// TODO : Line Start, Line End
 	f.Fns = append(f.Fns, fn)
 	// Define the expected args in the K table - *MUST* be defined in spots 0..ExpArgs - 1
 	for _, arg := range args {
 		e.assert(arg.Ar == parser.ArName, errors.New("expected argument to have name arity"))
-		e.registerK(fn, arg.Val, true)
+		e.registerK(fn, arg.Val, true, true)
 	}
 	stmts := sym.Second.([]*parser.Symbol)
 	e.emitBlock(f, fn, stmts)
@@ -108,7 +116,7 @@ func (e *Emitter) emitFn(f *bytecode.File, sym *parser.Symbol) {
 func (e *Emitter) emitAny(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, any interface{}) {
 	switch v := any.(type) {
 	case *parser.Symbol:
-		e.emitSymbol(f, fn, v, false)
+		e.emitSymbol(f, fn, v, atFalse)
 	case []*parser.Symbol:
 		e.emitBlock(f, fn, v)
 	default:
@@ -118,24 +126,23 @@ func (e *Emitter) emitAny(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol,
 
 func (e *Emitter) emitBlock(f *bytecode.File, fn *bytecode.Fn, syms []*parser.Symbol) {
 	for _, sym := range syms {
-		e.emitSymbol(f, fn, sym, false)
+		e.emitSymbol(f, fn, sym, atFalse)
 	}
 }
 
-func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, asg bool) {
+func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, asg asgType) {
 	if e.err != nil {
 		return
 	}
 	switch sym.Id {
 	case "nil":
-		e.assert(!asg, errors.New("invalid assignment to nil"))
+		e.assert(asg == atFalse, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
 	case "(name)", "import", "panic", "recover", "len", "keys": // TODO : Cleaner way to handle all builtins?
-		// TODO : For expected vars, the correct scope is required
-		// Register the symbol
+		// Register the symbol, may or may not be a local
 		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have name or literal arity"))
-		kix := e.registerK(fn, sym.Val, true)
-		if asg {
+		kix := e.registerK(fn, sym.Val, true, asg == atDefine)
+		if asg != atFalse {
 			e.addInstr(fn, bytecode.OP_POP, bytecode.FLG_V, kix)
 		} else if sym.Ar == parser.ArLiteral {
 			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
@@ -144,44 +151,44 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		}
 	case "(literal)", "true", "false":
 		// Register the symbol
-		e.assert(!asg, errors.New("invalid assignment to a literal"))
+		e.assert(asg == atFalse, errors.New("invalid assignment to a literal"))
 		e.assert(sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have literal arity"))
-		kix := e.registerK(fn, sym.Val, false)
+		kix := e.registerK(fn, sym.Val, false, false)
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
 	case "this":
-		e.assert(!asg, errors.New("invalid assignment to the `this` keyword"))
+		e.assert(asg == atFalse, errors.New("invalid assignment to the `this` keyword"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_T, 0)
 	case "args":
-		e.assert(!asg, errors.New("invalid assignment to the `args` keyword"))
+		e.assert(asg == atFalse, errors.New("invalid assignment to the `args` keyword"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_A, 0)
 	case ".", "[":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
-		if asg {
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		if asg != atFalse {
 			e.addInstr(fn, bytecode.OP_SFLD, bytecode.FLG__, 0)
 		} else {
 			e.addInstr(fn, bytecode.OP_GFLD, bytecode.FLG__, 0)
 		}
 	case ":=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `:=` to have binary arity"))
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atDefine)
 	case "!":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `!` to have unary arity"))
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
 	case "-":
 		if sym.Ar == parser.ArUnary {
-			e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+			e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 			e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
 			break
 		}
 		fallthrough
 	case "+", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
 	case "&&", "||":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
@@ -190,35 +197,35 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
 	case "=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `+` to have binary arity"))
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		left := sym.First.(*parser.Symbol)
 		if left.Id == "." {
 			// Emit left, which will generate a SFLD
-			e.emitSymbol(f, fn, left, true)
+			e.emitSymbol(f, fn, left, atTrue)
 		} else {
 			// Emit a standard POP instruction
-			e.emitSymbol(f, fn, left, true)
+			e.emitSymbol(f, fn, left, atTrue)
 		}
 	case "+=", "-=", "*=", "/=", "%=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		e.addInstr(fn, binAsgSym2op[sym.Id], bytecode.FLG__, 0)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atTrue)
 	case "++", "--":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `"+sym.Id+"` to have statement arity"))
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Implicit `1` constant
-		ix := e.registerK(fn, "1", false)
+		ix := e.registerK(fn, "1", false, false)
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, ix)
 		e.addInstr(fn, unrSym2op[sym.Id], bytecode.FLG__, 0)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), true)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atTrue)
 	case "func":
 		funcIx := len(f.Fns) // New Fn will be added at this index
 		if sym.Name != "" {
 			// Function defined as a statement, register the name as a K,
 			// and push the function's value into this variable.
-			kix := e.registerK(fn, sym.Name, true)
+			kix := e.registerK(fn, sym.Name, true, true)
 			e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_F, uint64(funcIx))
 			e.addInstr(fn, bytecode.OP_POP, bytecode.FLG_V, kix)
 		}
@@ -240,14 +247,14 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			op = bytecode.OP_CFLD
 		}
 		for _, parm := range parms {
-			e.emitSymbol(f, fn, parm, false)
+			e.emitSymbol(f, fn, parm, atFalse)
 		}
 		// If ternary, push field (Second)
 		if sym.Ar == parser.ArTernary {
-			e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
+			e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		}
 		// Push function name (or parent object of the field if ternary)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Call
 		e.addInstr(fn, op, bytecode.FLG_An, uint64(len(parms)))
 	case "{":
@@ -264,23 +271,23 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Similar to if, but yields a value
 		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))
 		// First is the condition, always a *Symbol
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Next comes the TEST
 		tstIx := e.addTempInstr(fn)
 		// Then the true expression, always a *Symbol
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), false)
-		// The a jump over the false expression
+		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
+		// Then a jump over the false expression
 		jmpIx := e.addTempInstr(fn)
 		// Update the test instruction, here starts the false part
 		e.updateTestInstr(fn, tstIx)
 		// Emit the false expression, always a *Symbol
-		e.emitSymbol(f, fn, sym.Third.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.Third.(*parser.Symbol), atFalse)
 		// Update the jump instruction, to after the false part
 		e.updateJumpfInstr(fn, jmpIx)
 	case "if":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
 		// First is the condition, always a *Symbol
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Next comes the TEST, but we don't know yet how many instructions to jump
 		// insert a placeholder (invalid op) so that it fails explicitly should it ever make it to
 		// the VM.
@@ -359,7 +366,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid continue statement outside any `for` loop"))
 		e.addForData(fn, false, e.addTempInstr(fn))
 	case "return":
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), false)
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
 	default:
 		e.err = errors.New("unexpected symbol id: " + sym.Id)
@@ -367,7 +374,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	// After treating the symbol, if it had a Key value, push the Key name
 	if sym.Key != nil {
 		// Can be on name, literal, func call, any operator, hard to assert...
-		kix := e.registerK(fn, sym.Key, true)
+		kix := e.registerK(fn, sym.Key, true, false)
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
 	}
 }
@@ -443,7 +450,7 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 	case bytecode.OP_POP, bytecode.OP_RET, bytecode.OP_UNM, bytecode.OP_NOT, bytecode.OP_TEST,
 		bytecode.OP_LT, bytecode.OP_LTE, bytecode.OP_GT, bytecode.OP_GTE, bytecode.OP_EQ,
 		bytecode.OP_AND, bytecode.OP_OR, bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,
-		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD:
+		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD, bytecode.OP_NEQ:
 		e.stackSz[fn] -= 1
 	case bytecode.OP_SFLD:
 		e.stackSz[fn] -= 3
@@ -458,7 +465,7 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 	fn.Is = append(fn.Is, bytecode.NewInstr(op, flg, ix))
 }
 
-func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool) uint64 {
+func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool, local bool) uint64 {
 	var kt bytecode.KType
 	s, ok := val.(string)
 	if ok {
@@ -487,16 +494,24 @@ func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool) uint6
 			val = int64(0)
 		}
 	}
+	// Create the map slot for this function if this is its first symbol
 	m, ok := e.kMap[fn]
 	if !ok {
 		m = make(map[kId]int)
 		e.kMap[fn] = m
 	}
+	// Check if this symbol already exists for this fn with this same type, otherwise add it to its Ks
 	i, ok := m[kId{s, kt}]
 	if !ok {
 		i = len(m)
 		m[kId{s, kt}] = i
 		fn.Ks = append(fn.Ks, &bytecode.K{Type: kt, Val: val})
+	}
+	// If this is a local definition, add the K index to this function's L table.
+	// It can't have duplicates by definition, because it would have been caught as an
+	// error in the parser stage.
+	if local {
+		fn.Ls = append(fn.Ls, int64(i))
 	}
 	return uint64(i)
 }

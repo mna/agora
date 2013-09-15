@@ -115,7 +115,6 @@ func (dec *Decoder) readFunc() (*Fn, bool) {
 	fn.Header.Name = nm
 	fn.Header.StackSz = dec.readInt64()
 	fn.Header.ExpArgs = dec.readInt64()
-	fn.Header.ExpVars = dec.readInt64()
 	fn.Header.LineStart = dec.readInt64()
 	fn.Header.LineEnd = dec.readInt64()
 
@@ -125,6 +124,15 @@ func (dec *Decoder) readFunc() (*Fn, bool) {
 		fn.Ks = make([]*K, ks)
 		for i := int64(0); i < ks; i++ {
 			fn.Ks[i] = dec.readK()
+		}
+	}
+
+	// L section
+	ls := dec.readInt64()
+	if ls > 0 {
+		fn.Ls = make([]int64, ls)
+		for i := int64(0); i < ls; i++ {
+			fn.Ls[i] = dec.readInt64()
 		}
 	}
 
