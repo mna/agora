@@ -51,7 +51,7 @@ ob.Parse = func(src) {
 	// Required here until closures are implemented...
   conv := import("conv")
   strings := import("strings")
-	fmt := import("fmt")
+
 	parseObjFunc := nil // Required for parseValue to call parseObject before it is defined
 
 	i := 0
@@ -120,7 +120,6 @@ ob.Parse = func(src) {
 		skipWhitespace()
 		for ch != "}" {
 			if j > 0 {
-				fmt.Println(ch)
 				advance(",")
 				skipWhitespace()
 			}
