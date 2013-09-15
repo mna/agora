@@ -1,22 +1,17 @@
-// Generated from the disassembler, v0.0
+// Generated from the disassembler, v0.1
 [f]
-
-01-assign.agoraa
+01-assign.agora
 1
 0
-
 0
 0
-   // This is the end line
-0 // and it is zero
-
 [k]
-
-sAa   
+i5
 saB
+[l]
+1
 [i]
 PUSH K 0
 POP V 1
 PUSH V 1
-
 RET _ 0

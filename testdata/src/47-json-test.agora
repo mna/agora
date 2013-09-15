@@ -3,43 +3,50 @@ conv := import("conv")
 json := import("./46-json")
 time := import("time")
 
-/*
 fmt.Println("STRINGIFY TESTS:")
 fmt.Println("----------------")
-fmt.Println("test:", json.Stringify("test"))
-fmt.Println("12:", json.Stringify(12))
-fmt.Println("true:", json.Stringify(true))
-fmt.Println("false:", json.Stringify(false))
-fmt.Println("3.1415:", json.Stringify(3.1415))
-fmt.Println("nil:", json.Stringify(nil))
-fmt.Println("{a: 12}:", json.Stringify({a: 12}))
-fmt.Println("{a: 12, b: true, c: string, d: false, e: 1.12}:", json.Stringify({a: 12, b: true, c: "string", d: false, e: 1.12}))
-fmt.Println("{a: func, b: obj}:", json.Stringify({a: func(){}, b: {c: 12, d: "ok"}, e: "right"}))
-fmt.Println(`with " quotes ":`, json.Stringify(`with " quotes "`))
-fmt.Println("time.Now:", json.Stringify(time.Now()))
-fmt.Println("{a: time.Now}:", json.Stringify({a: time.Now()}))
+str := {}
+str[0] = "test"
+str[1] = 12
+str[2] = true
+str[3] = false
+str[4] = 3.1415
+str[5] = {a: 12}
+str[6] = {a: 12, b: true, c: "string", d: false, e: 1.12}
+str[7] = {a: func(){}, b: {c: 12, d: "ok"}, e: "right"}
+str[8] = `with " quotes "`
+str[9] = time.Now()
+str[10] = {a: time.Now()}
 
+l := len(str)
+for i := 0; i < l; i++ {
+	fmt.Println("Case", i, ":", json.Stringify(str[i]))
+}
+// Error case
 err := recover(func() {
 	json.Stringify(func() {})
 })
-fmt.Println("func err:", err)
+fmt.Println("Case err:", err)
 
 fmt.Println()
-
 fmt.Println("PARSE TESTS:")
 fmt.Println("------------")
-*/
-cases := {}
-cases[0] = `"test"`
-cases[1] =`"12"`
-cases[2] = `"true"`
 
-l := len(cases)
-fmt.Println(l)
-for i := 0; i < l; i++ {
-	fmt.Println(i)
-	k := cases[i]
-	fmt.Println(i)
-	ret := json.Parse(cases[i])
-	fmt.Println(i, k, ":", ret, "(" + conv.Type(ret) + ")")
+prs := {}
+/*
+prs[0] = `"test"`
+prs[1] =`"12"`
+prs[2] = `"true"`
+prs[3] = `"3.1415"`
+prs[4] = `"3.14e23"`
+prs[5] = `"-22"`
+prs[6] = `"-22+4.e23.3"`
+prs[7] = `"..ee++--"`
+prs[9] = `{"a": 1, "b": true, "c": "some value", "d": {"a": 35.345, "b": -35.77}}`
+*/
+prs[0] = `{"a": 1}`
+l = len(prs)
+for i = 0; i < l; i++ {
+	ret := json.Parse(prs[i])
+	fmt.Println("Case", prs[i], ":", ret, "(" + conv.Type(ret) + ")")
 }

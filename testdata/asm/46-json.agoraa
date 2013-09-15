@@ -1,0 +1,901 @@
+// Generated from the disassembler, v0.1
+[f]
+46-json.agora
+3
+0
+0
+0
+[k]
+sob
+sStringify
+sParse
+[l]
+0
+[i]
+NEW _ 0
+POP V 0
+PUSH F 1
+PUSH K 1
+PUSH V 0
+SFLD _ 0
+PUSH F 4
+PUSH K 2
+PUSH V 0
+SFLD _ 0
+PUSH V 0
+RET _ 0
+[f]
+<anon>
+2
+1
+0
+0
+[k]
+ssrc
+sconv
+simport
+sstrings
+signored
+sstringify
+b1
+[l]
+0
+1
+3
+4
+5
+[i]
+PUSH K 1
+PUSH V 2
+CALL An 1
+POP V 1
+PUSH K 3
+PUSH V 2
+CALL An 1
+POP V 3
+PUSH F 2
+POP V 4
+PUSH F 3
+POP V 5
+PUSH V 0
+PUSH K 6
+PUSH V 5
+CALL An 2
+RET _ 0
+[f]
+ignored
+3
+2
+0
+0
+[k]
+skey
+sval
+sType
+sconv
+sfunc
+[l]
+0
+1
+[i]
+PUSH V 0
+PUSH K 2
+PUSH V 3
+CFLD An 1
+PUSH K 4
+EQ _ 0
+PUSH V 1
+PUSH K 2
+PUSH V 3
+CFLD An 1
+PUSH K 4
+EQ _ 0
+OR _ 0
+RET _ 0
+[f]
+stringify
+5
+2
+0
+0
+[k]
+sval
+squote
+sType
+sconv
+stype
+sstring
+snumber
+sbool
+s"
+s\"
+sReplace
+sstrings
+sstr
+sString
+sfunc
+scannot marshal a func to JSON
+spanic
+sobject
+s
+s__toString
+b1
+sstringify
+skeys
+sks
+slen
+sl
+s{
+sobj
+i0
+si
+skey
+sv
+signored
+s, 
+s:
+b0
+sConcat
+i1
+s}
+[l]
+0
+1
+4
+12
+23
+25
+27
+29
+30
+31
+[i]
+PUSH V 0
+PUSH K 2
+PUSH V 3
+CFLD An 1
+POP V 4
+PUSH V 4
+PUSH K 5
+EQ _ 0
+PUSH V 4
+PUSH K 6
+EQ _ 0
+PUSH V 4
+PUSH K 7
+EQ _ 0
+OR _ 0
+PUSH V 1
+AND _ 0
+OR _ 0
+TEST Jf 14
+PUSH V 0
+PUSH K 8
+PUSH K 9
+PUSH K 10
+PUSH V 11
+CFLD An 3
+POP V 12
+PUSH K 8
+PUSH V 12
+ADD _ 0
+PUSH K 8
+ADD _ 0
+RET _ 0
+JMP Jf 41
+PUSH V 4
+PUSH K 6
+EQ _ 0
+PUSH V 4
+PUSH K 7
+EQ _ 0
+OR _ 0
+TEST Jf 6
+PUSH V 0
+PUSH K 13
+PUSH V 3
+CFLD An 1
+RET _ 0
+JMP Jf 27
+PUSH V 4
+PUSH K 14
+EQ _ 0
+TEST Jf 4
+PUSH K 15
+PUSH V 16
+CALL An 1
+JMP Jf 19
+PUSH V 4
+PUSH K 17
+NEQ _ 0
+TEST Jf 3
+PUSH K 18
+RET _ 0
+JMP Jf 12
+PUSH K 19
+PUSH V 0
+GFLD _ 0
+TEST Jf 8
+PUSH V 0
+PUSH K 13
+PUSH V 3
+CFLD An 1
+PUSH K 20
+PUSH V 21
+CALL An 2
+RET _ 0
+PUSH V 0
+PUSH V 22
+CALL An 1
+POP V 23
+PUSH V 23
+PUSH V 24
+CALL An 1
+POP V 25
+PUSH K 26
+POP V 27
+PUSH K 28
+POP V 29
+PUSH V 29
+PUSH V 25
+LT _ 0
+TEST Jf 127
+PUSH V 29
+PUSH V 23
+GFLD _ 0
+POP V 30
+PUSH V 29
+PUSH V 23
+GFLD _ 0
+PUSH V 0
+GFLD _ 0
+POP V 31
+PUSH V 30
+PUSH V 31
+PUSH V 32
+CALL An 2
+NOT _ 0
+TEST Jf 65
+PUSH V 27
+PUSH K 26
+NEQ _ 0
+TEST Jf 5
+PUSH V 27
+PUSH K 33
+ADD _ 0
+POP V 27
+JMP Jf 41
+PUSH V 4
+PUSH K 6
+EQ _ 0
+PUSH V 4
+PUSH K 7
+EQ _ 0
+OR _ 0
+TEST Jf 6
+PUSH V 0
+PUSH K 13
+PUSH V 3
+CFLD An 1
+RET _ 0
+JMP Jf 27
+PUSH V 4
+PUSH K 14
+EQ _ 0
+TEST Jf 4
+PUSH K 15
+PUSH V 16
+CALL An 1
+JMP Jf 19
+PUSH V 4
+PUSH K 17
+NEQ _ 0
+TEST Jf 3
+PUSH K 18
+RET _ 0
+JMP Jf 12
+PUSH K 19
+PUSH V 0
+GFLD _ 0
+TEST Jf 8
+PUSH V 0
+PUSH K 13
+PUSH V 3
+CFLD An 1
+PUSH K 20
+PUSH V 21
+CALL An 2
+RET _ 0
+PUSH V 27
+PUSH V 30
+PUSH K 20
+PUSH V 21
+CALL An 2
+PUSH K 34
+PUSH V 31
+PUSH K 35
+PUSH V 21
+CALL An 2
+PUSH K 36
+PUSH V 11
+CFLD An 4
+POP V 27
+JMP Jf 41
+PUSH V 4
+PUSH K 6
+EQ _ 0
+PUSH V 4
+PUSH K 7
+EQ _ 0
+OR _ 0
+TEST Jf 6
+PUSH V 0
+PUSH K 13
+PUSH V 3
+CFLD An 1
+RET _ 0
+JMP Jf 27
+PUSH V 4
+PUSH K 14
+EQ _ 0
+TEST Jf 4
+PUSH K 15
+PUSH V 16
+CALL An 1
+JMP Jf 19
+PUSH V 4
+PUSH K 17
+NEQ _ 0
+TEST Jf 3
+PUSH K 18
+RET _ 0
+JMP Jf 12
+PUSH K 19
+PUSH V 0
+GFLD _ 0
+TEST Jf 8
+PUSH V 0
+PUSH K 13
+PUSH V 3
+CFLD An 1
+PUSH K 20
+PUSH V 21
+CALL An 2
+RET _ 0
+PUSH V 29
+PUSH K 37
+ADD _ 0
+POP V 29
+JMP Jb 130
+PUSH V 27
+PUSH K 38
+ADD _ 0
+POP V 27
+PUSH V 27
+RET _ 0
+[f]
+<anon>
+2
+1
+0
+0
+[k]
+ssrc
+sconv
+simport
+sstrings
+sfmt
+sParse called with:
+sPrintln
+i0
+si
+sByteAt
+sch
+sadvance
+sskipWhitespace
+sparseValue
+sparseObject
+sparseArray
+so
+s{
+sin parse object
+s[
+sFrom else
+b1
+s
+sexpected end of string, got 
+spanic
+[l]
+0
+1
+3
+4
+8
+10
+11
+12
+13
+14
+15
+16
+[i]
+PUSH K 1
+PUSH V 2
+CALL An 1
+POP V 1
+PUSH K 3
+PUSH V 2
+CALL An 1
+POP V 3
+PUSH K 4
+PUSH V 2
+CALL An 1
+POP V 4
+PUSH K 5
+PUSH V 0
+PUSH K 6
+PUSH V 4
+CFLD An 2
+PUSH K 7
+POP V 8
+PUSH V 0
+PUSH V 8
+PUSH K 9
+PUSH V 3
+CFLD An 2
+POP V 10
+PUSH F 5
+POP V 11
+PUSH F 6
+POP V 12
+PUSH F 7
+POP V 13
+PUSH F 9
+POP V 14
+PUSH F 10
+POP V 15
+PUSH N 0
+POP V 16
+PUSH V 12
+CALL An 0
+PUSH V 10
+PUSH K 17
+EQ _ 0
+TEST Jf 8
+PUSH K 18
+PUSH K 6
+PUSH V 4
+CFLD An 1
+PUSH V 14
+CALL An 0
+POP V 16
+JMP Jf 16
+PUSH V 10
+PUSH K 19
+EQ _ 0
+TEST Jf 4
+PUSH V 15
+CALL An 0
+POP V 16
+JMP Jf 8
+PUSH K 20
+PUSH K 6
+PUSH V 4
+CFLD An 1
+PUSH K 21
+PUSH V 13
+CALL An 1
+POP V 16
+PUSH V 12
+CALL An 0
+PUSH V 10
+PUSH K 22
+NEQ _ 0
+TEST Jf 6
+PUSH K 23
+PUSH V 10
+ADD _ 0
+PUSH V 24
+CALL An 1
+JMP Jf 16
+PUSH V 10
+PUSH K 19
+EQ _ 0
+TEST Jf 4
+PUSH V 15
+CALL An 0
+POP V 16
+JMP Jf 8
+PUSH K 20
+PUSH K 6
+PUSH V 4
+CFLD An 1
+PUSH K 21
+PUSH V 13
+CALL An 1
+POP V 16
+PUSH V 16
+RET _ 0
+[f]
+advance
+5
+1
+0
+0
+[k]
+sexpect
+s
+sch
+sexpected 
+s, got 
+spanic
+si
+i1
+ssrc
+sByteAt
+sstrings
+[l]
+0
+[i]
+PUSH V 0
+PUSH K 1
+NEQ _ 0
+PUSH V 2
+PUSH V 0
+NEQ _ 0
+AND _ 0
+TEST Jf 9
+PUSH K 3
+PUSH V 0
+ADD _ 0
+PUSH K 4
+ADD _ 0
+PUSH V 2
+ADD _ 0
+PUSH V 5
+CALL An 1
+PUSH V 6
+PUSH K 7
+ADD _ 0
+POP V 6
+PUSH V 8
+PUSH V 6
+PUSH K 9
+PUSH V 10
+CFLD An 2
+POP V 2
+PUSH N 0
+RET _ 0
+[f]
+skipWhitespace
+3
+0
+0
+0
+[k]
+sch
+s 
+sadvance
+[l]
+[i]
+PUSH V 0
+PUSH K 1
+EQ _ 0
+TEST Jf 4
+PUSH K 1
+PUSH V 2
+CALL An 1
+JMP Jb 7
+PUSH N 0
+RET _ 0
+[f]
+parseValue
+9
+1
+0
+0
+[k]
+sreqQuotes
+sch
+s"
+squoted
+squoted:
+sreqQuotes:
+sPrintln
+sfmt
+sadvance
+s
+sval
+b1
+sonlyNum
+s,
+s}
+s 
+s]
+s-+0123456789.eE
+sTrim
+sstrings
+b0
+sretVal
+srecover
+strue
+sfalse
+sBool
+sconv
+sparseValue: 
+[l]
+0
+3
+10
+12
+21
+[i]
+PUSH V 1
+PUSH K 2
+EQ _ 0
+POP V 3
+PUSH K 4
+PUSH V 3
+PUSH K 5
+PUSH V 0
+PUSH K 6
+PUSH V 7
+CFLD An 4
+PUSH V 0
+PUSH V 3
+OR _ 0
+TEST Jf 3
+PUSH K 2
+PUSH V 8
+CALL An 1
+PUSH K 9
+POP V 10
+PUSH K 11
+POP V 12
+PUSH V 3
+PUSH V 1
+PUSH K 2
+NEQ _ 0
+AND _ 0
+PUSH V 3
+NOT _ 0
+PUSH V 1
+PUSH K 13
+NEQ _ 0
+PUSH V 1
+PUSH K 14
+NEQ _ 0
+PUSH V 1
+PUSH K 15
+NEQ _ 0
+PUSH V 1
+PUSH K 16
+NEQ _ 0
+AND _ 0
+AND _ 0
+AND _ 0
+AND _ 0
+OR _ 0
+TEST Jf 25
+PUSH V 10
+PUSH V 1
+ADD _ 0
+POP V 10
+PUSH V 12
+TEST Jf 10
+PUSH V 1
+PUSH K 17
+PUSH K 18
+PUSH V 19
+CFLD An 2
+PUSH K 9
+NEQ _ 0
+TEST Jf 2
+PUSH K 20
+POP V 12
+PUSH K 9
+PUSH V 8
+CALL An 1
+PUSH V 1
+PUSH K 9
+EQ _ 0
+TEST Jf 1
+JMP Jf 1
+JMP Jb 49
+PUSH V 3
+TEST Jf 3
+PUSH K 2
+PUSH V 8
+CALL An 1
+PUSH V 10
+POP V 21
+PUSH V 12
+TEST Jf 4
+PUSH F 8
+PUSH V 22
+CALL An 1
+JMP Jf 13
+PUSH V 10
+PUSH K 23
+EQ _ 0
+PUSH V 10
+PUSH K 24
+EQ _ 0
+OR _ 0
+TEST Jf 5
+PUSH V 10
+PUSH K 25
+PUSH V 26
+CFLD An 1
+POP V 21
+PUSH K 27
+PUSH V 21
+PUSH K 6
+PUSH V 7
+CFLD An 2
+PUSH V 21
+RET _ 0
+[f]
+<anon>
+3
+0
+0
+0
+[k]
+sval
+sNumber
+sconv
+sretVal
+[l]
+[i]
+PUSH V 0
+PUSH K 1
+PUSH V 2
+CFLD An 1
+POP V 3
+PUSH N 0
+RET _ 0
+[f]
+parseObject
+4
+0
+0
+0
+[k]
+sob
+s{
+sadvance
+sskipWhitespace
+sch
+s}
+sFrom object key
+sPrintln
+sfmt
+b1
+sparseValue
+skey
+s:
+sFrom object val
+sval
+[l]
+0
+11
+14
+[i]
+NEW _ 0
+POP V 0
+PUSH K 1
+PUSH V 2
+CALL An 1
+PUSH V 3
+CALL An 0
+PUSH V 4
+PUSH K 5
+NEQ _ 0
+TEST Jf 29
+PUSH K 6
+PUSH K 7
+PUSH V 8
+CFLD An 1
+PUSH K 9
+PUSH V 10
+CALL An 1
+POP V 11
+PUSH V 3
+CALL An 0
+PUSH K 12
+PUSH V 2
+CALL An 1
+PUSH V 3
+CALL An 0
+PUSH K 13
+PUSH K 7
+PUSH V 8
+CFLD An 1
+PUSH V 10
+CALL An 0
+POP V 14
+PUSH V 14
+PUSH V 11
+PUSH V 0
+SFLD _ 0
+PUSH V 3
+CALL An 0
+JMP Jb 32
+PUSH K 5
+PUSH V 2
+CALL An 1
+PUSH V 0
+RET _ 0
+[f]
+parseArray
+5
+0
+0
+0
+[k]
+sa
+i0
+si
+s[
+sadvance
+sskipWhitespace
+sch
+s]
+s,
+sFrom array
+sPrintln
+sfmt
+sparseValue
+sval
+i1
+[l]
+0
+2
+13
+[i]
+NEW _ 0
+POP V 0
+PUSH K 1
+POP V 2
+PUSH K 3
+PUSH V 4
+CALL An 1
+PUSH V 5
+CALL An 0
+PUSH V 6
+PUSH K 7
+NEQ _ 0
+TEST Jf 27
+PUSH V 2
+PUSH K 1
+GT _ 0
+TEST Jf 5
+PUSH K 8
+PUSH V 4
+CALL An 1
+PUSH V 5
+CALL An 0
+PUSH K 9
+PUSH K 10
+PUSH V 11
+CFLD An 1
+PUSH V 12
+CALL An 0
+POP V 13
+PUSH V 13
+PUSH V 2
+PUSH V 0
+SFLD _ 0
+PUSH V 2
+PUSH K 14
+ADD _ 0
+POP V 2
+PUSH V 5
+CALL An 0
+JMP Jb 30
+PUSH K 7
+PUSH V 4
+CALL An 1
+PUSH V 0
+RET _ 0

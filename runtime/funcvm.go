@@ -213,9 +213,6 @@ func (f *funcVM) run(args ...Val) Val {
 		i := f.proto.code[f.pc]
 		// Decode the instruction
 		op, flg, ix := i.Opcode(), i.Flag(), i.Index()
-		if f.proto.ctx.Debug {
-			fmt.Printf("[%d] - %s\n", f.pc, i)
-		}
 		// Increment the PC, if a jump requires a different PC delta, it will set it explicitly
 		f.pc++
 		switch op {

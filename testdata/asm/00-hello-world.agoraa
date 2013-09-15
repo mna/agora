@@ -1,0 +1,50 @@
+// Generated from the disassembler, v0.1
+[f]
+00-hello-world.agora
+2
+0
+0
+0
+[k]
+sfmt
+simport
+sgreet
+sAgora
+[l]
+0
+2
+[i]
+PUSH K 0
+PUSH V 1
+CALL An 1
+POP V 0
+PUSH F 1
+POP V 2
+PUSH K 3
+PUSH V 2
+CALL An 1
+PUSH N 0
+RET _ 0
+[f]
+greet
+5
+1
+0
+0
+[k]
+sname
+sHello,
+s!
+sPrintln
+sfmt
+[l]
+0
+[i]
+PUSH K 1
+PUSH V 0
+PUSH K 2
+PUSH K 3
+PUSH V 4
+CFLD An 3
+PUSH N 0
+RET _ 0

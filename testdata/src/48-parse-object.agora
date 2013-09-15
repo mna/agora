@@ -1,0 +1,3 @@
+json := import("./46-json.agora")
+
+return json.Parse(`{"a": 1}`)

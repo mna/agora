@@ -51,6 +51,9 @@ ob.Parse = func(src) {
 	// Required here until closures are implemented...
   conv := import("conv")
   strings := import("strings")
+	fmt := import("fmt")
+
+	fmt.Println("Parse called with:", src)
 
 	i := 0
 	ch := strings.ByteAt(src, i)
@@ -71,13 +74,22 @@ ob.Parse = func(src) {
 
 	func parseValue(reqQuotes) {
 		quoted := ch == `"`
+		fmt.Println("quoted:", quoted, "reqQuotes:", reqQuotes)
 		if reqQuotes || quoted {
 			advance(`"`)
 		}
 		val := ""
+		onlyNum := true
 		// TODO : Detect escaped quotes
-		for (quoted && ch != `"`) || (!quoted && (ch == "," || ch == "}" || ch == " " || ch == "]")) {
+		for (quoted && ch != `"`) || (!quoted && ch != "," && ch != "}" && ch != " " && ch != "]") {
 			val += ch
+			if onlyNum {
+				// Very basic check, will the try to convert value to number and get
+				// an error if it doesn't work.
+				if strings.Trim(ch, "-+0123456789.eE") != "" {
+					onlyNum = false
+				}
+			}
 			advance("")
 			if ch == "" {
 				break
@@ -86,7 +98,18 @@ ob.Parse = func(src) {
 		if quoted {
 			advance(`"`)
 		}
-		return val
+		// Type conversion
+		retVal := val
+		if onlyNum {
+			// If there is an error converting, retVal will remain unchanged
+			recover(func() {
+				retVal = conv.Number(val)
+			})
+		} else if val == "true" || val == "false" {
+			retVal = conv.Bool(val)
+		}
+		fmt.Println("parseValue: ", retVal)
+		return retVal
 	}
 	
 	func parseObject() {
@@ -94,10 +117,12 @@ ob.Parse = func(src) {
 		advance("{")
 		skipWhitespace()
 		for ch != "}" {
+			fmt.Println("From object key")
 			key := parseValue(true)
 			skipWhitespace()
 			advance(":")
 			skipWhitespace()
+			fmt.Println("From object val")
 			val := parseValue()
 			ob[key] = val
 			skipWhitespace()
@@ -116,6 +141,7 @@ ob.Parse = func(src) {
 				advance(",")
 				skipWhitespace()
 			}
+			fmt.Println("From array")
 			val := parseValue()
 			a[i] = val
 			i++
@@ -128,12 +154,23 @@ ob.Parse = func(src) {
 	o := nil
 	skipWhitespace()
 	if ch == "{" {
+		fmt.Println("in parse object")
 		o = parseObject()
+		debug
 	} else if ch == "[" {
 		o = parseArray()
 	} else {
+		debug
+		fmt.Println("From else")
 		o = parseValue(true)
 	}
+	fmt.Println("outside if")
+	skipWhitespace()
+/*
+	if ch != "" {
+		panic("expected end of string, got " + ch)
+	}
+*/
 	return o
 }
 
