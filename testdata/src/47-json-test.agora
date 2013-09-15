@@ -1,5 +1,6 @@
 fmt := import("fmt")
 json := import("./46-json")
+time := import("time")
 
 fmt.Println("test:", json.Stringify("test"))
 fmt.Println("12:", json.Stringify(12))
@@ -11,10 +12,10 @@ fmt.Println("{a: 12}:", json.Stringify({a: 12}))
 fmt.Println("{a: 12, b: true, c: string, d: false, e: 1.12}:", json.Stringify({a: 12, b: true, c: "string", d: false, e: 1.12}))
 fmt.Println("{a: func, b: obj}:", json.Stringify({a: func(){}, b: {c: 12, d: "ok"}, e: "right"}))
 fmt.Println(`with " quotes ":`, json.Stringify(`with " quotes "`))
+fmt.Println("time.Now:", json.Stringify(time.Now()))
+fmt.Println("{a: time.Now}:", json.Stringify({a: time.Now()}))
 
 err := recover(func() {
 	json.Stringify(func() {})
 })
 fmt.Println("func err:", err)
-
-return 0
