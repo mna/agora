@@ -115,6 +115,7 @@ func (dec *Decoder) readFunc() (*Fn, bool) {
 	fn.Header.Name = nm
 	fn.Header.StackSz = dec.readInt64()
 	fn.Header.ExpArgs = dec.readInt64()
+	fn.Header.ParentFnIx = dec.readInt64()
 	fn.Header.LineStart = dec.readInt64()
 	fn.Header.LineEnd = dec.readInt64()
 

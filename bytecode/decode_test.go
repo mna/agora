@@ -34,18 +34,23 @@ var (
 			// Decodes the file header and function header
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
 				Name:         "test", Fns: []*Fn{
 					&Fn{
 						Header: H{
-							Name:      "test",
-							StackSz:   2,
-							ExpArgs:   3,
-							LineStart: 5,
-							LineEnd:   6,
+							Name:       "test",
+							StackSz:    2,
+							ExpArgs:    3,
+							ParentFnIx: 0,
+							LineStart:  5,
+							LineEnd:    6,
 						},
 					},
 				}},
@@ -54,14 +59,22 @@ var (
 			// Invalid version
 			maj: 1,
 			min: 2,
-			src: AppendAny(ExpSig, encodeVersionByte(2, 3), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
+			src: AppendAny(ExpSig, encodeVersionByte(2, 3), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
 			err: ErrVersionMismatch,
 		},
 		3: {
 			// Top-level function gets the file name
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64,
+				// Ks - Ls - Is
+				ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
@@ -70,18 +83,23 @@ var (
 		4: {
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, ExpZeroInt64),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
 				Name:         "test", Fns: []*Fn{
 					&Fn{
 						Header: H{
-							Name:      "test",
-							StackSz:   2,
-							ExpArgs:   3,
-							LineStart: 5,
-							LineEnd:   6,
+							Name:       "test",
+							StackSz:    2,
+							ExpArgs:    3,
+							ParentFnIx: 0,
+							LineStart:  5,
+							LineEnd:    6,
 						},
 						Ks: []*K{
 							&K{
@@ -96,7 +114,11 @@ var (
 			// Invalid K Type
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64, ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64, ExpZeroInt64),
 			err: ErrInvalidKType,
 		},
 		6: {
@@ -110,21 +132,25 @@ var (
 			// Function with K and Is
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4),
-				't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3),
-				Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64,
-				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP)),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, Int64ToByteSlice(2),
+				// 2 Ops
+				0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP)),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
 				Name:         "test", Fns: []*Fn{
 					&Fn{
 						Header: H{
-							Name:      "test",
-							StackSz:   2,
-							ExpArgs:   3,
-							LineStart: 5,
-							LineEnd:   6,
+							Name:       "test",
+							StackSz:    2,
+							ExpArgs:    3,
+							ParentFnIx: 0,
+							LineStart:  5,
+							LineEnd:    6,
 						},
 						Ks: []*K{
 							&K{
@@ -143,7 +169,13 @@ var (
 			// Invalid opcode
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, Int64ToByteSlice(2),
+				// 2 ops
+				0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
 			err: ErrUnknownOpcode,
 		},
 		9: {
@@ -151,19 +183,32 @@ var (
 			maj: defMaj,
 			min: defMin,
 			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
-				Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64,
-				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP), Int64ToByteSlice(2), 'f', '2', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', ExpZeroInt64, Int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), ExpZeroInt64, Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, Int64ToByteSlice(2),
+				// 2 ops
+				0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP),
+				// 2nd Fn
+				Int64ToByteSlice(2), 'f', '2',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(0), Int64ToByteSlice(5), Int64ToByteSlice(6),
+				// Ks - Ls - Is
+				Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', ExpZeroInt64, Int64ToByteSlice(1),
+				// 1 op
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
 				Name:         "test", Fns: []*Fn{
 					&Fn{
 						Header: H{
-							Name:      "test",
-							StackSz:   2,
-							ExpArgs:   3,
-							LineStart: 5,
-							LineEnd:   6,
+							Name:       "test",
+							StackSz:    2,
+							ExpArgs:    3,
+							ParentFnIx: 0,
+							LineStart:  5,
+							LineEnd:    6,
 						},
 						Ks: []*K{
 							&K{
@@ -178,11 +223,12 @@ var (
 					},
 					&Fn{
 						Header: H{
-							Name:      "f2",
-							StackSz:   2,
-							ExpArgs:   3,
-							LineStart: 5,
-							LineEnd:   6,
+							Name:       "f2",
+							StackSz:    2,
+							ExpArgs:    3,
+							ParentFnIx: 0,
+							LineStart:  5,
+							LineEnd:    6,
 						},
 						Ks: []*K{
 							&K{

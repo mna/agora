@@ -74,11 +74,12 @@ type Fn struct {
 
 // An H is the function header representation.
 type H struct {
-	Name      string
-	StackSz   int64
-	ExpArgs   int64
-	LineStart int64
-	LineEnd   int64
+	Name       string
+	StackSz    int64
+	ExpArgs    int64
+	ParentFnIx int64 // Lexical scope parent function, as index into the Fn table
+	LineStart  int64
+	LineEnd    int64
 }
 
 // A K is the representation of a single constant value.
