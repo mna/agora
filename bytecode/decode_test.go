@@ -34,7 +34,7 @@ var (
 			// Decodes the file header and function header
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), ExpZeroInt64, ExpZeroInt64),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
@@ -44,7 +44,6 @@ var (
 							Name:      "test",
 							StackSz:   2,
 							ExpArgs:   3,
-							ExpVars:   4,
 							LineStart: 5,
 							LineEnd:   6,
 						},
@@ -71,7 +70,7 @@ var (
 		4: {
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, ExpZeroInt64),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
@@ -81,7 +80,6 @@ var (
 							Name:      "test",
 							StackSz:   2,
 							ExpArgs:   3,
-							ExpVars:   4,
 							LineStart: 5,
 							LineEnd:   6,
 						},
@@ -98,7 +96,7 @@ var (
 			// Invalid K Type
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), 'z', Int64ToByteSlice(7), ExpZeroInt64, ExpZeroInt64),
 			err: ErrInvalidKType,
 		},
 		6: {
@@ -113,8 +111,8 @@ var (
 			maj: defMaj,
 			min: defMin,
 			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4),
-				't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4),
-				Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7),
+				't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3),
+				Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64,
 				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP)),
 			exp: &File{
 				MajorVersion: defMaj,
@@ -125,7 +123,6 @@ var (
 							Name:      "test",
 							StackSz:   2,
 							ExpArgs:   3,
-							ExpVars:   4,
 							LineStart: 5,
 							LineEnd:   6,
 						},
@@ -146,7 +143,7 @@ var (
 			// Invalid opcode
 			maj: defMaj,
 			min: defMin,
-			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
+			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64, Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, byte(op_max)),
 			err: ErrUnknownOpcode,
 		},
 		9: {
@@ -154,8 +151,8 @@ var (
 			maj: defMaj,
 			min: defMin,
 			src: AppendAny(SigVer(defMaj, defMin), Int64ToByteSlice(4), 't', 'e', 's', 't',
-				Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7),
-				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP), Int64ToByteSlice(2), 'f', '2', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(4), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', Int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+				Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtInteger), Int64ToByteSlice(7), ExpZeroInt64,
+				Int64ToByteSlice(2), 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_K), byte(OP_ADD), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(FLG_Sn), byte(OP_DUMP), Int64ToByteSlice(2), 'f', '2', Int64ToByteSlice(2), Int64ToByteSlice(3), Int64ToByteSlice(5), Int64ToByteSlice(6), Int64ToByteSlice(1), byte(KtString), Int64ToByteSlice(5), 'c', 'o', 'n', 's', 't', ExpZeroInt64, Int64ToByteSlice(1), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 			exp: &File{
 				MajorVersion: defMaj,
 				MinorVersion: defMin,
@@ -165,7 +162,6 @@ var (
 							Name:      "test",
 							StackSz:   2,
 							ExpArgs:   3,
-							ExpVars:   4,
 							LineStart: 5,
 							LineEnd:   6,
 						},
@@ -185,7 +181,6 @@ var (
 							Name:      "f2",
 							StackSz:   2,
 							ExpArgs:   3,
-							ExpVars:   4,
 							LineStart: 5,
 							LineEnd:   6,
 						},
@@ -274,9 +269,6 @@ func equal(f1, f2 *File) bool {
 		if fn1.Header.ExpArgs != fn2.Header.ExpArgs {
 			return false
 		}
-		if fn1.Header.ExpVars != fn2.Header.ExpVars {
-			return false
-		}
 		if fn1.Header.LineStart != fn2.Header.LineStart {
 			return false
 		}
@@ -292,6 +284,14 @@ func equal(f1, f2 *File) bool {
 				return false
 			}
 			if k1.Val != k2.Val {
+				return false
+			}
+		}
+		if len(fn1.Ls) != len(fn2.Ls) {
+			return false
+		}
+		for j := 0; j < len(fn1.Ls); j++ {
+			if fn1.Ls[j] != fn2.Ls[j] {
 				return false
 			}
 		}

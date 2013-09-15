@@ -68,6 +68,7 @@ func NewFile(nm string) *File {
 type Fn struct {
 	Header H
 	Ks     []*K
+	Ls     []int64 // locals, as indexes into the K table
 	Is     []Instr
 }
 
@@ -76,7 +77,6 @@ type H struct {
 	Name      string
 	StackSz   int64
 	ExpArgs   int64
-	ExpVars   int64
 	LineStart int64
 	LineEnd   int64
 }
