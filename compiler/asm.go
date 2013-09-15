@@ -57,7 +57,6 @@ func (a *Asm) readFn() {
 	fn.Header.Name, _ = a.getLine(false)
 	fn.Header.StackSz = a.getInt64()
 	fn.Header.ExpArgs = a.getInt64()
-	fn.Header.ExpVars = a.getInt64()
 	fn.Header.LineStart = a.getInt64()
 	fn.Header.LineEnd = a.getInt64()
 	// Step to the K section (must be present, even if empty)
@@ -67,8 +66,8 @@ func (a *Asm) readFn() {
 }
 
 func (a *Asm) readKs(fn *bytecode.Fn) {
-	// While the I section is not reached
-	for l, ok := a.getLine(true); ok && !strings.HasPrefix(l, "[i]"); l, ok = a.getLine(true) {
+	// While the L section is not reached
+	for l, ok := a.getLine(true); ok && !strings.HasPrefix(l, "[l]"); l, ok = a.getLine(true) {
 		var err error
 		k := new(bytecode.K)
 		// The K Type is the first character of the line
@@ -89,6 +88,14 @@ func (a *Asm) readKs(fn *bytecode.Fn) {
 		if err != nil && a.err == nil {
 			a.err = err
 		}
+	}
+	a.readLs(fn)
+}
+
+func (a *Asm) readLs(fn *bytecode.Fn) {
+	// While the L section is not reached
+	for l, ok := a.getLine(false); ok && !strings.HasPrefix(l, "[i]"); l, ok = a.getLine(false) {
+		fn.Ls = append(fn.Ls, a.getInt64())
 	}
 	a.readIs(fn)
 }

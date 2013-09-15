@@ -75,7 +75,7 @@ func (e *Emitter) Emit(id string, syms []*parser.Symbol, scps *parser.Scope) (*b
 	f := bytecode.NewFile(id)
 	fn := new(bytecode.Fn)
 	fn.Header.Name = f.Name // Expected args is always 0 for top-level func
-	// TODO : Line start and end, ExpVars
+	// TODO : Line start and end
 	f.Fns = append(f.Fns, fn)
 	e.emitBlock(f, fn, syms)
 	return f, e.err
@@ -90,12 +90,14 @@ func (e *Emitter) emitFn(f *bytecode.File, sym *parser.Symbol) {
 	fn.Header.Name = sym.Name
 	args := sym.First.([]*parser.Symbol)
 	fn.Header.ExpArgs = int64(len(args))
-	// TODO : ExpVars, Line Start, Line End
+	// TODO : Line Start, Line End
 	f.Fns = append(f.Fns, fn)
 	// Define the expected args in the K table - *MUST* be defined in spots 0..ExpArgs - 1
 	for _, arg := range args {
 		e.assert(arg.Ar == parser.ArName, errors.New("expected argument to have name arity"))
-		e.registerK(fn, arg.Val, true)
+		ix := e.registerK(fn, arg.Val, true)
+		// Args are locals, so register in L section
+		e.registerL(fn, ix)
 	}
 	stmts := sym.Second.([]*parser.Symbol)
 	e.emitBlock(f, fn, stmts)
@@ -131,7 +133,6 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.assert(!asg, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
 	case "(name)", "import", "panic", "recover", "len", "keys": // TODO : Cleaner way to handle all builtins?
-		// TODO : For expected vars, the correct scope is required
 		// Register the symbol
 		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have name or literal arity"))
 		kix := e.registerK(fn, sym.Val, true)

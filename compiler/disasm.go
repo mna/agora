@@ -38,7 +38,6 @@ func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 		}
 		d.write(fn.Header.StackSz, true)
 		d.write(fn.Header.ExpArgs, true)
-		d.write(fn.Header.ExpVars, true)
 		d.write(fn.Header.LineStart, true)
 		d.write(fn.Header.LineEnd, true)
 
@@ -48,7 +47,12 @@ func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 			d.write(k.Type, false)
 			d.write(k.Val, true)
 		}
-		// 4- Write the function's I section
+		// 4- Write the function's L section
+		d.write("[l]", true)
+		for _, l := range fn.Ls {
+			d.write(l, true)
+		}
+		// 5- Write the function's I section
 		d.write("[i]", true)
 		for _, i := range fn.Is {
 			op, flg, ix := i.Opcode(), i.Flag(), i.Index()
