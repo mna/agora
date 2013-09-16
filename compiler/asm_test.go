@@ -30,7 +30,11 @@ var (
 
 [f]
 `,
-			exp: AppendAny(SigVer(bytecode.Version()), Int64ToByteSlice(4), 't', 'e', 's', 't', ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
+			exp: AppendAny(SigVer(bytecode.Version()), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, ExpZeroInt64,
+				// Ks - Ls - Is
+				ExpZeroInt64, ExpZeroInt64, ExpZeroInt64),
 		},
 		2: {
 			// Full valid func
@@ -39,6 +43,7 @@ var (
 [f]
 test
 1
+0
 0
 0
 2
@@ -53,10 +58,12 @@ PUSH V 0 // Push value of variable identified by constant 0 on the stack (a)
 DUMP S 1
 RET _ 0
 `,
-			exp: AppendAny(SigVer(bytecode.Version()), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(1), ExpZeroInt64, ExpZeroInt64, Int64ToByteSlice(2),
-				Int64ToByteSlice(2),
-				's', Int64ToByteSlice(1), 'a', 'i', Int64ToByteSlice(5),
-				ExpZeroInt64, Int64ToByteSlice(5),
+			exp: AppendAny(SigVer(bytecode.Version()), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(1), ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, Int64ToByteSlice(2),
+				// Ks - Ls - Is
+				Int64ToByteSlice(2), 's', Int64ToByteSlice(1), 'a', 'i', Int64ToByteSlice(5), ExpZeroInt64, Int64ToByteSlice(5),
+				// 5 ops
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("K"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("POP"), bytecode.NewFlag("V"), 0))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("V"), 0))),
@@ -71,6 +78,7 @@ RET _ 0
 [f]
 test
 1
+0
 0
 0
 2
@@ -94,6 +102,7 @@ RET _ 0
 [f]
 test
 1
+0
 0
 0
 2
@@ -125,6 +134,7 @@ test
 3
 0
 0
+0
 3
 [k]
 sAdd
@@ -145,6 +155,7 @@ Add
 2
 2
 0
+0
 2
 [k]
 sx
@@ -156,10 +167,12 @@ PUSH V 1
 ADD _ 0
 RET _ 0
 `,
-			exp: AppendAny(SigVer(bytecode.Version()), Int64ToByteSlice(4), 't', 'e', 's', 't', Int64ToByteSlice(3), ExpZeroInt64, ExpZeroInt64, Int64ToByteSlice(3),
-				Int64ToByteSlice(3),
-				's', Int64ToByteSlice(3), 'A', 'd', 'd', 'i', Int64ToByteSlice(4), 's', Int64ToByteSlice(3), '1', '9', '8', ExpZeroInt64,
-				Int64ToByteSlice(8),
+			exp: AppendAny(SigVer(bytecode.Version()), Int64ToByteSlice(4), 't', 'e', 's', 't',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(3), ExpZeroInt64, ExpZeroInt64, ExpZeroInt64, Int64ToByteSlice(3),
+				// Ks - Ls - Is
+				Int64ToByteSlice(3), 's', Int64ToByteSlice(3), 'A', 'd', 'd', 'i', Int64ToByteSlice(4), 's', Int64ToByteSlice(3), '1', '9', '8', ExpZeroInt64, Int64ToByteSlice(8),
+				// 8 ops
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("F"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("POP"), bytecode.NewFlag("V"), 0))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("K"), 1))),
@@ -168,10 +181,13 @@ RET _ 0
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("CALL"), bytecode.NewFlag("A"), 2))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("DUMP"), bytecode.NewFlag("S"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("RET"), bytecode.NewFlag("_"), 0))),
-				Int64ToByteSlice(3), 'A', 'd', 'd', Int64ToByteSlice(2), Int64ToByteSlice(2), ExpZeroInt64, Int64ToByteSlice(2),
-				Int64ToByteSlice(2),
-				's', Int64ToByteSlice(1), 'x', 's', Int64ToByteSlice(1), 'y', ExpZeroInt64,
-				Int64ToByteSlice(4),
+				// 2nd fn
+				Int64ToByteSlice(3), 'A', 'd', 'd',
+				// StackSz - ExpArgs - ParentFnIx - LineStart - LineEnd
+				Int64ToByteSlice(2), Int64ToByteSlice(2), ExpZeroInt64, ExpZeroInt64, Int64ToByteSlice(2),
+				// Ks - Ls - Is
+				Int64ToByteSlice(2), 's', Int64ToByteSlice(1), 'x', 's', Int64ToByteSlice(1), 'y', ExpZeroInt64, Int64ToByteSlice(4),
+				// 4 ops
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("V"), 0))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("PUSH"), bytecode.NewFlag("V"), 1))),
 				UInt64ToByteSlice(uint64(bytecode.NewInstr(bytecode.NewOpcode("ADD"), bytecode.NewFlag("_"), 0))),

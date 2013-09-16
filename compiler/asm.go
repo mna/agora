@@ -57,6 +57,7 @@ func (a *Asm) readFn() {
 	fn.Header.Name, _ = a.getLine(false)
 	fn.Header.StackSz = a.getInt64()
 	fn.Header.ExpArgs = a.getInt64()
+	fn.Header.ParentFnIx = a.getInt64()
 	fn.Header.LineStart = a.getInt64()
 	fn.Header.LineEnd = a.getInt64()
 	// Step to the K section (must be present, even if empty)
