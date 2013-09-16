@@ -52,6 +52,7 @@ ob.Parse = func(src) {
   conv := import("conv")
   strings := import("strings")
 
+	src = strings.Trim(src)
 	parseObjFunc := nil // Required for parseValue to call parseObject before it is defined
 
 	i := 0

@@ -1,0 +1,38 @@
+fmt := import("fmt")
+os := import("os")
+json := import("./46-json")
+
+if len(args) == 0 {
+	fmt.Println("expected a file as argument")
+	fmt.Println("usage: agora run 51-load-json.agora FILE")
+	return 1
+}
+
+fn := args[0]
+data := nil
+err := recover(func() {
+	data = os.ReadFile(fn)
+})
+if err {
+	fmt.Println("could not read file: " + err)
+	return 2
+}
+ob := json.Parse(data)
+fmt.Println("`" + ob.name + "` v" + ob.version + " by " + ob.author)
+fmt.Println()
+
+if ob.description {
+	fmt.Println(ob.description)
+	fmt.Println()
+}
+
+if len(ob.dependencies) > 0 {
+	fmt.Println("Dependencies:")
+	ks := keys(ob.dependencies)
+	l := len(ks)
+	for i := 0; i < l; i++ {
+		fmt.Println("=> `" + ks[i] + "` v" + ob.dependencies[ks[i]])
+	}
+}
+
+return 0
