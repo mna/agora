@@ -1,6 +1,6 @@
 # The agora programming language
 
-Agora is a dynamically typed, garbage collected, embeddable programming language. It is built in the Go programming language, and is meant to provide a syntactically similar, loose, dynamic and fun companion to the statically typed, machine compiled Go language - somewhat like Lua is to C.
+Agora is a dynamically typed, garbage collected, embeddable programming language. It is built with the Go programming language, and is meant to provide a syntactically similar, loose and dynamic companion to the statically typed, machine compiled Go language - somewhat like Lua is to C.
 
 ## Installation
 
@@ -10,7 +10,7 @@ This will install the agora packages as well as the `agora` command-line tool. S
 
 ## Example
 
-More examples are available in the wiki and the source code, but to give a taste of the syntax, here is the usual `hello world`:
+More examples are available in the wiki and the source code under /testdata/src, but to give a taste of the syntax, here is the usual `hello world`:
 
 ```
 // Output: Hello, Agora !
@@ -24,10 +24,10 @@ greet("Agora")
 A few things to note:
 
 * It looks *very* similar to Go, minus the types.
-* `import` is a built-in function, not a keyword. This is important with dynamically-loaded modules, it gives you control of where this overhead of loading the code is done. It returns the value exported by the module - in this case, an object that exposes methods like `Println`.
+* `import` is a built-in function, not a keyword. This is important with dynamically-loaded modules, it gives you control of where this overhead of loading and compiling the code is done. It returns the value exported by the module - in this case, an object that exposes methods like `Println`.
 * Obviously, since this is a dynamically-typed language, arguments have no types.
 * `:=` introduces a new variable. Using an undefined variable is an error, so this statement could not have been `=`.
-* Statements are valid in the top-level (module) scope. That's because a module is an implicit (top-level) function.
+* Statements are valid in the top-level (module) scope. That's because a module (the name for an agora file) is an implicit (top-level) function.
 * Semicolons are managed just like in Go, so although they are inserted in the scanning stage, they are optional (and usually omitted) in the source code.
 
 ## Resources
@@ -38,12 +38,9 @@ A few things to note:
 
 ## Changelog
 
-### v0.1.0 / 2013-09-05 (?)
+### v0.1.0 / 2013-09-17
 
 * Initial release
-* Explicit goal is to take the project off the ground, nothing fancy, not much more
-* The compiler is there mostly to check/test the runtime, it is ugly
-* No optimization, start with a decent runtime design
 
 ## License
 

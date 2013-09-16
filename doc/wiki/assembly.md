@@ -1,4 +1,4 @@
-The "assembly" source code format is an easy-to-parse assembly-style syntax that provides a human-readable representation of the low-level bytecode that the virtual machine executes. This articles documents the format of this representation, which closely matches the bytecode format. For a more thorough explanation of the various fields, see the [bytecode format](https://github.com/PuerkitoBio/agora/wiki/Bytecode-format) article. For examples of assembly source code files, look in the /testdata/asm directory.
+The "assembly" source code format is an easy-to-parse assembly-style syntax that provides a human-readable representation of the low-level bytecode that the virtual machine executes. This article documents the format of this representation, which closely matches the bytecode format. For a more thorough explanation of the various fields, see the [bytecode format](https://github.com/PuerkitoBio/agora/wiki/Bytecode-format) article. For examples of assembly source code files, look in the /testdata/asm directory.
 
 Note that anywhere in the code, whitespace-only lines and comment-only lines are skipped. The only comment notation allowed is the up-to-the-end-of-line `//` style.
 
@@ -11,7 +11,7 @@ Then comes the function header, with the following fields, one per line:
 1. The function's name. The top-level function's name should be the name of the file or the identifier of the module.
 2. The expected stack size.
 3. The expected arguments count.
-4. The expected variables count.
+4. The parent function index - that is, the function in which this function is declared. Ignored for the top-level function, can be 0.
 5. The starting line of the function in the source code.
 6. The ending line of the function in the source code.
 
@@ -24,7 +24,13 @@ Each function must have a K section, which may be empty, identified by the strin
 * The first character is the constant's type. It must be one of `i` for integer, `f` for float, `b` for boolean, and `s` for string.
 * The remaining characters represent the constant's value. Booleans are represented as `0` for `false` and `1` for true. Floats must be in a format understood by `strconv.ParseFloat()`. Integers must be in base-10.
 
-Next comes the instruction section, or the I section.
+Next comes the locals section, or the L section.
+
+## The L section
+
+Each function must have an L section, which may be empty, identified by the string `[l]`. This section lists the index of the names of the local variables of this function, corresponding to a string value in the K section. This is simply a list of integers, one per line.
+
+Next comes the instructions section, or the I section.
 
 ## The I section
 
@@ -36,7 +42,7 @@ Each function must have an I section, which may be empty, identified by the stri
 
 ## Repeat
 
-Multiple `[f]` sections can then follow, each with its own K and I section. When an instruction refers to a function (for example `PUSH F 3`), the index value is the index of the function in the assembly code, starting at 0.
+Multiple `[f]` sections can then follow, each with its own K, L and I sections. When an instruction refers to a function (for example `PUSH F 3`), the index value is the index of the function in the assembly code, starting at 0.
 
 The same goes for instructions that refer to a constant or symbol (for example, `PUSH K 2` or `POP V 3` - push value of constant at index 2; pop into variable identified by the constant at index 3). The index is the position of the constant or symbol in the K section of the assembly code.
 

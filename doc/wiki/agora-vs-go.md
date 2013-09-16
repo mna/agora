@@ -4,7 +4,7 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * The first and most immediately obvious similarity is the syntax. Like Go, Agora uses curly braces to delimit code blocks, and is semicolon-free (semicolons are *optional* and are automatically added at the scanner stage of the compiler - like Go).
 
-* The agora keywords are all the same as the Go keywords - although agora has less. They are `if`, `else`, `for`, `func`, `return`, `debug`, `break` and `continue`. 
+* The agora keywords are all mostly the same as the Go keywords - although agora has less. They are `if`, `else`, `for`, `func`, `return`, `debug`, `break` and `continue`. Of these, only `debug` is agora-specific.
 
 * Many operators are also the same. They are `+, -, *, /, %, ==, !=, >, <, >=, <=, !`, the logical operators `&&` and `||`, the increment and decrement `++` and `--`, and the assignment operators `=, :=, +=, -=, *=, /=, %=`. Operator precedence is also the same as Go.
 
@@ -20,7 +20,7 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * Comments use the same notation as Go, namely `//` for one-liners, and `/* */` for multi-line.
 
-* Cyclic dependencies are prohibited, they are detected and raise an error (although only at runtime).
+* Cyclic dependencies are prohibited, they are detected and raise an error (at runtime).
 
 ## Differences
 
@@ -38,7 +38,7 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * There are no multiple return values, functions can only return a single value.
 
-* There are *truthy* and *falsy* values other than the boolean `true` and `false`. Namely, the `0` number, the empty string, `nil` and `false` are all false. An object can also be false if it provides a meta-method `__toBool`.
+* There are *truthy* and *falsy* values other than the boolean `true` and `false`. Namely, the `0` number, the empty string, `nil` and `false` are all false. An object can also be false if it provides a meta-method `__bool`.
 
 * The `panic` built-in function takes a value and raises an error with it. However, it *doesn't* raise if the value is falsy. This is symmetric with the behaviour of `recover`.
 
