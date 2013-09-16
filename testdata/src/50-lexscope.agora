@@ -1,0 +1,18 @@
+// http://play.golang.org/p/Othby3aniF
+
+fmt := import("fmt")
+
+f1 := func(i) {
+	f2 := func() {
+		i++
+		fmt.Println("in f2", i)
+	}
+
+	fmt.Println("in f1", i)
+	f2()
+	if i < 10 {
+		f1(i + 1)
+	}
+}
+
+f1(1)

@@ -47,6 +47,7 @@ func (enc *Encoder) Encode(f *File) (err error) {
 		}
 		enc.write(fn.Header.StackSz)
 		enc.write(fn.Header.ExpArgs)
+		enc.write(fn.Header.ParentFnIx)
 		enc.write(fn.Header.LineStart)
 		enc.write(fn.Header.LineEnd)
 

@@ -38,6 +38,7 @@ func (d *Disasm) ToAsm(f *bytecode.File, w io.Writer) error {
 		}
 		d.write(fn.Header.StackSz, true)
 		d.write(fn.Header.ExpArgs, true)
+		d.write(fn.Header.ParentFnIx, true)
 		d.write(fn.Header.LineStart, true)
 		d.write(fn.Header.LineEnd, true)
 
