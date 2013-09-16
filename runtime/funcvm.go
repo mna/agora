@@ -19,7 +19,7 @@ var (
 // A funcVM is an instance of a function prototype. It holds the virtual machine
 // required to execute the instructions.
 type funcVM struct {
-	proto *AgoraFunc
+	proto *agoraFunc
 	pc    int
 	vars  map[string]Val
 	stack []Val
@@ -29,7 +29,7 @@ type funcVM struct {
 }
 
 // Instantiate a runnable representation of the function prototype.
-func newFuncVM(proto *AgoraFunc) *funcVM {
+func newFuncVM(proto *agoraFunc) *funcVM {
 	return &funcVM{
 		proto,
 		0,
@@ -71,7 +71,7 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	case bytecode.FLG_V:
 		// Fail if variable cannot be found
 		varNm := f.proto.kTable[ix].String()
-		v, ok := f.proto.ctx.getVar(varNm)
+		v, ok := f.proto.ctx.getVar(varNm, f)
 		if !ok {
 			panic("variable not found: " + varNm)
 		}
@@ -224,9 +224,9 @@ func (f *funcVM) run(args ...Val) Val {
 			f.push(f.getVal(flg, ix))
 
 		case bytecode.OP_POP:
-			if nm, v := f.proto.kTable[ix].String(), f.pop(); !f.proto.ctx.setVar(nm, v) {
-				// Not found anywhere, create variable locally
-				f.vars[nm] = v
+			if nm, v := f.proto.kTable[ix].String(), f.pop(); !f.proto.ctx.setVar(nm, v, f) {
+				// Not found anywhere, panic
+				panic("unknown variable: " + nm)
 			}
 
 		case bytecode.OP_ADD:

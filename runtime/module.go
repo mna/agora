@@ -24,7 +24,7 @@ type NativeModule interface {
 
 type agoraModule struct {
 	id  string
-	fns []*AgoraFunc
+	fns []*agoraFunc
 	v   Val
 }
 
@@ -32,12 +32,15 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 	m := &agoraModule{
 		id: f.Name,
 	}
-	m.fns = make([]*AgoraFunc, len(f.Fns))
+	m.fns = make([]*agoraFunc, len(f.Fns))
 	for i, fn := range f.Fns {
 		af := newAgoraFunc(m, c)
 		af.name = fn.Header.Name
 		af.stackSz = fn.Header.StackSz
 		af.expArgs = fn.Header.ExpArgs
+		if i != 0 { // No parent for root func
+			af.parent = m.fns[fn.Header.ParentFnIx]
+		}
 		// TODO : Ignore LineStart and LineEnd at the moment, unused.
 		m.fns[i] = af
 		af.kTable = make([]Val, len(fn.Ks))
