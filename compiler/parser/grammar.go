@@ -263,6 +263,9 @@ func (p *Parser) defineGrammar() {
 					break
 				}
 				p.advance(",")
+				if p.tkn.Id == "}" {
+					break
+				}
 			}
 		}
 		p.advance("}")
