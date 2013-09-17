@@ -6,7 +6,7 @@ Provided you already have the [Go language][go] installed and [your `$GOPATH` en
 
 `go get -t github.com/PuerkitoBio/agora/...`
 
-The three dots at the end are part of the command, literally. The agora repository is a collection of multiple packages, and this command will instruct `go get` to install all of them. The `-t` flag instructs go to also install packages required for tests.
+The three dots at the end are part of the command, literally. The agora repository is a collection of multiple packages, and this command will instruct `go get` to install all of them. The `-t` flag instructs go to also install packages required for tests (requires Go tip - Go's development version).
 
 To test the installation, run the following command (`$` represents the command prompt):
 

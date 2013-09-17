@@ -215,7 +215,7 @@ func TestPanic(t *testing.T) {
 		12: {
 			src: &object{
 				map[Val]Val{
-					String("__toBool"): NewNativeFunc(ctx, "", func(args ...Val) Val {
+					String("__bool"): NewNativeFunc(ctx, "", func(args ...Val) Val {
 						return Bool(true)
 					}),
 				},

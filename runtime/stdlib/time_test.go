@@ -20,14 +20,14 @@ func TestTimeConv(t *testing.T) {
 		runtime.Number(nw.Second()),
 		runtime.Number(nw.Nanosecond()))
 	ob := n.(runtime.Object)
-	cnv := ob.Get(runtime.String("__toString"))
+	cnv := ob.Get(runtime.String("__string"))
 	f := cnv.(runtime.Func)
 	ret := f.Call(nil)
 	exp := nw.Format(time.RFC3339)
 	if ret.String() != exp {
 		t.Errorf("expected string to return '%s', got '%s'", exp, ret)
 	}
-	cnv = ob.Get(runtime.String("__toInt"))
+	cnv = ob.Get(runtime.String("__int"))
 	f = cnv.(runtime.Func)
 	ret = f.Call(nil)
 	{

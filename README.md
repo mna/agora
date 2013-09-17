@@ -6,7 +6,7 @@ Agora is a dynamically typed, garbage collected, embeddable programming language
 
 `go get -t github.com/PuerkitoBio/agora/...`
 
-This will install the agora packages as well as the `agora` command-line tool. See `agora -h` for help, provided the `$GOPATH/bin` path is in your exported path.
+This will install the agora packages as well as the `agora` command-line tool. See `agora -h` for help, provided the `$GOPATH/bin` path is in your exported path. The `-t` flag installs the test dependencies, it works only on Go tip (latest development version), ignore it otherwise.
 
 ## Example
 
