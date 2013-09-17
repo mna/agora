@@ -1,0 +1,6 @@
+/*---
+result: testtesttest
+---*/
+a := "test"
+
+return a * 3
