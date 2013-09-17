@@ -21,7 +21,7 @@ ob.Stringify = func(src) {
   		panic("cannot marshal a func to JSON")
   	} else if type != "object" {
   		return ""
-  	} else if val.__toString {
+  	} else if val.__string {
 			// An object, but it "knows" how to stringify itself
 			return stringify(conv.String(val), true)
 		}

@@ -10,7 +10,7 @@ func TestConvBool(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	// For case 9 below
 	ob := runtime.NewObject()
-	ob.Set(runtime.String("__toBool"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
+	ob.Set(runtime.String("__bool"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
 		return runtime.Bool(false)
 	}))
 
@@ -86,7 +86,7 @@ func TestConvString(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	// For case 8 below
 	ob := runtime.NewObject()
-	ob.Set(runtime.String("__toString"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
+	ob.Set(runtime.String("__string"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
 		return runtime.String("ok")
 	}))
 
@@ -158,7 +158,7 @@ func TestConvNumber(t *testing.T) {
 	ctx := runtime.NewCtx(nil, nil)
 	// For case 10 below
 	ob := runtime.NewObject()
-	ob.Set(runtime.String("__toFloat"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
+	ob.Set(runtime.String("__float"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
 		return runtime.Number(22)
 	}))
 

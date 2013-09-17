@@ -49,10 +49,10 @@ func (t *TimeMod) newTime(tm time.Time) runtime.Val {
 		runtime.NewObject(),
 		tm,
 	}
-	ob.Set(runtime.String("__toInt"), runtime.NewNativeFunc(t.ctx, "time._time.__toInt", func(args ...runtime.Val) runtime.Val {
+	ob.Set(runtime.String("__int"), runtime.NewNativeFunc(t.ctx, "time._time.__int", func(args ...runtime.Val) runtime.Val {
 		return runtime.Number(ob.t.Unix())
 	}))
-	ob.Set(runtime.String("__toString"), runtime.NewNativeFunc(t.ctx, "time._time.__toString", func(args ...runtime.Val) runtime.Val {
+	ob.Set(runtime.String("__string"), runtime.NewNativeFunc(t.ctx, "time._time.__string", func(args ...runtime.Val) runtime.Val {
 		return runtime.String(ob.t.Format(time.RFC3339))
 	}))
 	ob.Set(runtime.String("Year"), runtime.Number(tm.Year()))
