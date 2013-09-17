@@ -138,8 +138,8 @@ The time object provides the following fields and operations:
 * **Minute** : holds the minute part of the time.
 * **Second** : holds the second part of the time.
 * **Nanosecond** : holds the nanosecond part of the time.
-* **__toInt** : overrides the integer conversion, returns the Unix time, which is the number of seconds since January 1, 1970 UTC.
-* **__toString** : overrides the string conversion, formats the time in RFC3339 format.
+* **__int** : overrides the integer conversion, returns the Unix time, which is the number of seconds since January 1, 1970 UTC.
+* **__string** : overrides the string conversion, formats the time in RFC3339 format.
 
 Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
 
