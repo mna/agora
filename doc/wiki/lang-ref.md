@@ -67,7 +67,7 @@ Number literals can be represented as integers or floats. At the moment there is
 
 ### String literals
 
-At the moment there is an inconsistency between what is accepted by the compiler and what can be used. Only string literals within double quotes should be used, i.e. `"this is a string"`. It may not contain newlines, but escape characters can be used (i.e. `\n` for newline).
+At the moment there is an inconsistency between what is accepted by the compiler and what can be used. Only string literals within double quotes should be used, i.e. `"this is a string"`. It may not contain newlines, but escape characters can be used (i.e. `\n` for newline), although there is an open issue about this at the moment (issue #9).
 
 ### Boolean literals
 
@@ -77,7 +77,7 @@ Booleans are represented with the `true` and `false` literal values. However, in
 * The empty string value
 * The number zero (`0`)
 * The `nil` value
-* An object with a `__toBool` meta-method that returns `false`
+* An object with a `__bool` meta-method that returns `false`
 
 ### Nil literal
 
@@ -93,7 +93,7 @@ A variable must be defined before it can be used. A new variable is introduced u
 
 ### Scopes
 
-All variables are declared in the scope of the function where they are defined. All module-level variables are scoped in the top-level function (the module).
+All variables are declared in the scope of the function where they are defined. All module-level variables are scoped in the top-level function (the module). Functions declared within another function can access variables in the parent functions, provided they are declared before the funtion that uses them.
 
 The only way to expose information is to return a value. When a module imports another module, it only gets access to the value returned by the imported module. With the object type, using different keys, it is possible to expose multiple functions and values.
 
@@ -183,7 +183,7 @@ Most operators have the obvious meaning.
 
 ### Increment and decrement
 
-Unlike in some languages such as C, and like Go, the `++` and `--` operators are statements and not expressions, they do not produce a value on the stack. So the statement `a := b++` is invalid. Those are postfix operators, they cannot be used as prefix.
+Unlike in some languages such as C, and like Go, the `++` and `--` operators are statements and not expressions, they do not produce a value on the stack. So the statement `a := b++` is invalid. Those are postfix operators, they cannot be used as prefix. This is subject to change and there is an open issue about this (#5).
 
 ### The if statement
 
@@ -271,6 +271,25 @@ return a
 ## Objects
 
 An object can have keys of any value except `nil`. The dot notation implicitly creates a string key, so `obj.key = 3` is equivalent to `obj["key"] = 3`. The `[]` notation is required to create keys of other types. Assigning `nil` to an object's key removes the key from the object.
+
+The following meta-methods are currently supported, so that an object's behaviour can be overridden:
+
+* **__int** : converts the object to an integer value.
+* **__float** : converts the object to a float value.
+* **__bool** : converts the object to a boolean value.
+* **__string** : converts the object to a string value.
+* **__native** : converts the object to a native Go value.
+* **__cmp** : compares the object to another value, returning 1, 0 or -1 if greater, equal or lower than the value.
+* **__add** : adds a value to the object.
+* **__sub** : subtract a value from the object.
+* **__mul** : multiply a value with the object.
+* **__div** : divide a value from the object.
+* **__mod** : gets the module of the object divided by a value.
+* **__unm** : gets the unary minus operation of the object.
+* **__len** : gets the length of the object.
+* **__keys** : gets the keys of the object.
+* **__noSuchMethod** : defines a method to call on the object if an unknown method is called.
+
 
 Next: [Standard library](https://github.com/PuerkitoBio/agora/wiki/Standard-library)
 

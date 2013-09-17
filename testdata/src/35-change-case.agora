@@ -9,13 +9,16 @@ s := import("strings")
 f := import("fmt")
 
 func changeCase(word) {
-	//return word >= "a" ? s.ToUpper(word) : s.ToLower(word)
+	return word >= "a" ? s.ToUpper(word) : s.ToLower(word)
+/*
 	if word >= "a" {
 		return s.ToUpper(word)
 	}
   return s.ToLower(word)
+*/
 }
 
-for i := 0; i < len(args); i++ {
+l := len(args)
+for i := 0; i < l; i++ {
 	f.Println(changeCase(args[i]))
 }

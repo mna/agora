@@ -55,9 +55,9 @@ func (o *object) dump() string {
 }
 
 // Int returns the integer value of the object. Such behaviour can be defined
-// if a `__toInt` method is available on the object.
+// if a `__int` method is available on the object.
 func (o *object) Int() int64 {
-	if i, ok := o.m[String("__toInt")]; ok {
+	if i, ok := o.m[String("__int")]; ok {
 		if f, ok := i.(Func); ok {
 			return f.Call(o).Int()
 		}
@@ -66,9 +66,9 @@ func (o *object) Int() int64 {
 }
 
 // Float returns the float value of the object. Such behaviour can be defined
-// if a `__toFloat` method is available on the object.
+// if a `__float` method is available on the object.
 func (o *object) Float() float64 {
-	if l, ok := o.m[String("__toFloat")]; ok {
+	if l, ok := o.m[String("__float")]; ok {
 		if f, ok := l.(Func); ok {
 			return f.Call(o).Float()
 		}
@@ -77,9 +77,9 @@ func (o *object) Float() float64 {
 }
 
 // String returns the string value of the object. Such behaviour can be defined
-// if a `__toString` method is available on the object.
+// if a `__string` method is available on the object.
 func (o *object) String() string {
-	if s, ok := o.m[String("__toString")]; ok {
+	if s, ok := o.m[String("__string")]; ok {
 		if f, ok := s.(Func); ok {
 			return f.Call(o).String()
 		}
@@ -88,21 +88,21 @@ func (o *object) String() string {
 }
 
 // Bool returns the boolean value of the object. Such behaviour can be defined
-// if a `__toBool` method is available on the object. Otherwise it returns true.
+// if a `__bool` method is available on the object. Otherwise it returns true.
 func (o *object) Bool() bool {
-	if b, ok := o.m[String("__toBool")]; ok {
+	if b, ok := o.m[String("__bool")]; ok {
 		if f, ok := b.(Func); ok {
 			return f.Call(o).Bool()
 		}
 	}
-	// If __toBool is not defined, object returns true (since it is not nil)
+	// If __bool is not defined, object returns true (since it is not nil)
 	return true
 }
 
 // Native returns the Go native value of the object. Such behaviour can be defined
-// if a `__toNative` method is available on the object.
+// if a `__native` method is available on the object.
 func (o *object) Native() interface{} {
-	if n, ok := o.m[String("__toNative")]; ok {
+	if n, ok := o.m[String("__native")]; ok {
 		if f, ok := n.(Func); ok {
 			return f.Call(o).Native()
 		}

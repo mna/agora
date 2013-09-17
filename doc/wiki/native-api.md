@@ -174,9 +174,22 @@ type Func interface {
 }
 ```
 
-So it adds the `Call` method to the common `Val` behaviour. There are two implementations of this interface, `runtime.AgoraFunc` and `runtime.NativeFunc`. Only the native function can be created via the native Go API, the agora functions are created internally by the runtime when executing an agora module.
+So it adds the `Call` method to the common `Val` behaviour. There are two implementations of this interface, `runtime.agoraFunc` and `runtime.NativeFunc`. Only the native function can be created via the native Go API, the agora functions are created internally by the runtime when executing an agora module.
 
-The `Object` is an interface that adds four methods, `Get(key Val) Val`, `Set(key Val, v Val)`, `Len() Val` and the package private `callMethod(Val, ...Val) Val`. It is created by the `runtime.NewObject()` function. Using anonymous struct embedding, it is possible to create custom `Object`s (see for example the `runtime/stdlib.file` struct in /runtime/stdlib/os.go).
+The `Object` is an interface defined as follows:
+
+```
+type Object interface {
+	Val
+	Get(Val) Val  // Get a field value
+	Set(Val, Val) // Set a field value, or remove a field if value is nil
+	Len() Val 		// Get the length of the object
+	Keys() Val 		// Get the keys of the object
+	callMethod(Val, ...Val) Val
+}
+```
+
+It is created by the `runtime.NewObject()` function. Using anonymous struct embedding, it is possible to create custom `Object`s in native modules (see for example the `runtime/stdlib.file` struct in /runtime/stdlib/os.go).
 
 ## Building a native module
 
@@ -234,7 +247,7 @@ func (m *MyMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 }
 ```
 
-To expose multiple functions (even though only one is added in this example), an object is created and the functions are set on its keys. The key value is the value to use to call the function. Primitive values can also be exposed, as well as sub-objects, after all this is the usual `runtime.Object` value. We'll look at the native function next, but first here is an example of how to use this module from within agora:
+To expose multiple functions (even though only one is added in this example), an object is created and the functions are set on its keys. The key value is the value to use to call the function. Primitive values can also be exposed, as well as sub-objects, after all this is the usual `runtime.Object` value. We'll look at the native function next, but first here is an example of how to use this module from within agora, assuming the native module has been registered in the execution context:
 
 ```
 mymod := import("github.com/PuerkitoBio/mymod")
@@ -245,7 +258,7 @@ return mymod.MyFunc(4, 9)
 
 The `runtime.NativeFunc` type implements the standard `runtime.Val` interface, so it is a valid agora value that can be passed around like any other. It is created by calling `runtime.NewNativeFunc()` that takes an execution context, a name and a Go function as argument.
 
-We've already seen the `runtime.Ctx` type, and the name is a string, but the Go function requires explanation. It must have the `runtime.FuncFn` type, which imposes the following signature:
+We've already seen the `runtime.Ctx` type, and the name is a string that is used when printing debugging information, but the Go function requires explanation. It must have the `runtime.FuncFn` type, which imposes the following signature:
 
 ```Go
 type FuncFn func(...Val) Val

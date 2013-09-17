@@ -23,7 +23,7 @@ Please note that at the moment, agora has only been tested on 64-bit Linux Ubunt
 
 ### Agora is dynamically-typed
 
-This means that variables, parameters and functions (the return value) have no types, only *values* have a type. The following types are supported:
+This means that variables, parameters and functions (the return value) have no types, only *values* have a type. The following value types are supported:
 
 * String, i.e. `"hello, I'm a string!"`
 * Number, i.e. `17` or `3.1415`
@@ -34,7 +34,7 @@ This means that variables, parameters and functions (the return value) have no t
 
 ### Agora is embeddable
 
-This means that it can be part of a bigger program. Since agora is built in the Go programming language as a collection of packages (*libraries*), it is designed to be easily embedded in a Go program to provide dynamic scripting capabilities to the otherwise static Go executable (see the [native Go API][native] for more information on how to call agora from Go). Go can execute agora code, and agora code can call Go code via *native modules* exposed to agora.
+This means that it can be part of a bigger program. Since agora is built with the Go programming language as a collection of packages ( *libraries* ), it is designed to be easily embedded in a Go program to provide dynamic scripting capabilities to the otherwise static Go executable (see the [native Go API][native] for more information on how to call agora from Go). Go can execute agora code, and agora code can call Go code via *native modules* exposed to agora.
 
 But thanks to the `agora` command-line tool (which we'll get to in a minute), it is also possible to run agora programs directly, without a host. Well, this is more or less true: the tool *is* a general-purpose Go host.
 
@@ -74,7 +74,7 @@ The tool supports many sub-commands, but for this *getting started* article, we 
 Let's write a simple program that converts the case of its command-line arguments based on the case of the first letter. If the word starts with an uppercase, the whole word is converted to lowercase, and vice-versa. Admittedly, this is not terribly useful, but the goal is to get acquainted with the language.
 
 ```
-// Import the required native modules
+// Import the required modules
 s := import("strings")
 f := import("fmt")
 
@@ -87,7 +87,8 @@ func changeCase(word) {
 }
 
 // Loop over all received arguments
-for i := 0; i < len(args); i++ {
+l := len(args)
+for i := 0; i < l; i++ {
 	f.Println(changeCase(args[i]))
 }
 ```
@@ -108,7 +109,7 @@ The `changeCase` function takes a single word as argument, and checks if it is g
 
 Then there is a loop over all received arguments (obtained via the `args` reserved identifier). Each blank-separated word is sent to `changeCase` for conversion, and printed on the screen, one per line. The result of `agora run` also displays `= <nil> (runtime.null)`, because each function has an explicit `return nil` statement added if it doesn't end with a `return`.
 
-That's it! In future versions, a `for range` construct will be available, and 	possibly a functional-style `map`, but for v0.1, that's the way to do it. Note that the `changeCase` function could also be written using the ternary `?:` operator. This is left as an exercise for the reader.
+That's it! In future versions, a `for range` construct will likely be available, and possibly a functional-style `map`, but for v0.1, that's the way to do it. Note that the `changeCase` function could also be written using the ternary `?:` operator. This is left as an exercise for the reader.
 
 ## More resources
 

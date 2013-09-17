@@ -12,8 +12,6 @@ There are currently seven (7) stdlib modules:
 
 ## conv
 
-The `conv` module exposes the following methods:
-
 * **Number(val)** : converts val to a number, returns the number.
 * **String(val)** : converts val to a string, returns the string.
 * **Bool(val)** : converts val to a boolean, returns the boolean.
@@ -91,7 +89,6 @@ The `conv` module exposes the following methods:
 * **Name** : the name of the file or directory.
 * **Size** : the size in bytes of the file.
 * **IsDir** : a boolean indicating if the item is a directory.
-
 
 `Open` and `TryOpen` return an object with the following fields:
 

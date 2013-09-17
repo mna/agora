@@ -15,6 +15,7 @@ The rest of the file is made up of 1 or many function representations. Each func
 
 * The function's header
 * The function's constants or symbols (referred to as the K section)
+* The function's local variables (reterred to as the L section)
 * The function's instructions (referred to as the I section)
 
 A **string** is encoded as follows:
@@ -27,7 +28,7 @@ A **string** is encoded as follows:
 * **string** : the name of the function. For the top-level function, this is the name of the source file.
 * **int64**  : the initial **stack size** required by the function. This is merely a hint to the VM so that a reasonable initial stack is allocated, but it may grow as needed (for example, the compiler may not take into account loops in the stack size).
 * **int64**  : the number of **expected arguments** that the function may receive. Being a dynamic language, more or less actual arguments may be passed, but this represents the number of arguments that have corresponding parameters acting as local variables for these arguments inside the function. Unlike the stack size, this must be exactly the number of defined arguments on the function's signature. This value is always 0 for the top-level function.
-* **int64**  : the number of **expected variables** in the function. Much like the stack size, this is merely a hint to the VM so that a reasonable initial variable map size is allocated, but it may grow as needed. The expected arguments of the function count towards the number of variables.
+* **int64**  : the index of the parent function - that is, the function inside of which this function is declared. This field is set to 0 and is ignored for the top-level function.
 * **int64**  : the starting line number in the source code file where this function is defined, starting at 1. This is for debugging purpose only.
 * **int64**  : the ending line number in the source code file where this function is defined, starting at 1. This is for debugging purpose only.
 
@@ -41,6 +42,17 @@ Then comes *n* times the definition of a single constant:
 
 * **byte**   : indicates the type of the constant, where `i` indicates an integer ( **int64** ), `b` a boolean (stored as an **int64**, and where `0` means `false`, any other value is `true`), `f` indicates a float ( **float64** ), and finally `s` indicates a **string**.
 * **variable** : the following field depends on the type of the constant.
+
+
+### The L section
+
+There is a *header* of the L section, namely:
+
+* **int64**  : the first field in this section represents the number of local variables that make up the L section. For this *n* number of times, the following section is present.
+
+Then comes *n* times the definition of a single local variable:
+
+* **int64** : a local variable is defined simply as an index into the K section. The value at this index is a string representing the local variable name.
 
 ### The I section
 

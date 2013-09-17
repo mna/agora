@@ -30,6 +30,8 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * There is no uppercase rule for what is or isn't exported by a module. The only thing a module exports is the return value of the top-level function. Anything else is private inside the module. To return multiple functions (say, like the `fmt` module), an object is returned. However, the uppercase-is-public is still used as a convention (for instance, all stdlib's functions start with an uppercase).
 
+* There is no "short statement" allowed in an `if` statement before the condition.
+
 * There is a ternary `condition ? iftrue : iffalse` operator.
 
 * A function may receive an arbitrary number of arguments, maybe exceeding the number of expected (formal) arguments declared in its signature. All actual arguments passed to a function are always available using the reserved `args` identifier, which is an array-like object, with keys ranging from 0 to the number of arguments received minus one. Also, since the top-level function cannot declare expected arguments, this is the only way to retrieve arguments passed to the module.
