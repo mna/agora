@@ -1,0 +1,22 @@
+f := import("fmt")
+conv := import("conv")
+
+cases := {
+	empty: "",
+	nilstr: "nil",
+	zero: 0,
+	boolfalse: false }
+
+ops := {}
+ops[true] = "=="
+ops[false] = "!="
+
+k := keys(cases)
+l := len(k)
+for i := 0; i < l; i++ {
+	val := cases[k[i]]
+	if conv.Type(val) != "number" {
+		f.Println(k[i], val == nil, "nil")
+		f.Println(nil, nil == val, k[i])
+	}
+}
