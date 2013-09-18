@@ -67,8 +67,8 @@ ob.Parse = func(src) {
 	}
 	
 	func skipWhitespace() {
-		for ch == " " {
-			advance(" ")
+		for ch == " " || ch == "\n" || ch == "\t" || ch == "\r" {
+			advance("")
 		}
 	}
 

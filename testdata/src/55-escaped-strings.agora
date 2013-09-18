@@ -1,0 +1,2 @@
+a := "this\nis\ta\nmulti-line\n\"string\"!"
+return a

@@ -1,0 +1,21 @@
+// Generated from the disassembler, v0.1
+[f]
+55-escaped-strings.agora
+1
+0
+0
+0
+0
+[k]
+sthis
+is	a
+multi-line
+"string"!
+sa
+[l]
+1
+[i]
+PUSH K 0
+POP V 1
+PUSH V 1
+RET _ 0

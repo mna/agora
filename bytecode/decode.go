@@ -26,7 +26,7 @@ func NewDecoder(r io.Reader) *Decoder {
 // It checks if the agora bytecode signature is present at the start of the data.
 func IsBytecode(rs io.ReadSeeker) bool {
 	var i int32
-	if err := binary.Read(rs, binary.LittleEndian, i); err != nil {
+	if err := binary.Read(rs, binary.LittleEndian, &i); err != nil {
 		return false
 	}
 	defer rs.Seek(0, 0)

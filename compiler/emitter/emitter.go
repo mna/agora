@@ -478,8 +478,10 @@ func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool, local
 			val = s
 			kt = bytecode.KtString
 		} else if s[0] == '"' || s[0] == '`' {
-			// Strip the quotes
-			s = s[1 : len(s)-1]
+			// Unquote the string, keeping escaped characters
+			var err error
+			s, err = strconv.Unquote(s)
+			e.assert(err == nil, err)
 			val = s
 			kt = bytecode.KtString
 		} else if strings.Index(s, ".") >= 0 {
