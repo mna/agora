@@ -143,7 +143,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		v = strings.Replace(v, "\\n", "\n", -1)
 		switch retv := ret.(type) {
 		case runtime.Object, runtime.Func:
-			str := fmt.Sprintf("%v", retv.Native())
+			str := fmt.Sprintf("%s", retv)
 			if str != v {
 				t.Errorf("[%s] - expected result '%s', got '%s'", id, v, str)
 			}

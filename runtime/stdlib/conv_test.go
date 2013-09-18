@@ -1,6 +1,7 @@
 package stdlib
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/PuerkitoBio/agora/runtime"
@@ -89,11 +90,13 @@ func TestConvString(t *testing.T) {
 	ob.Set(runtime.String("__string"), runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val {
 		return runtime.String("ok")
 	}))
+	// For case 7 below
+	fn := runtime.NewNativeFunc(ctx, "nm", func(args ...runtime.Val) runtime.Val { return runtime.Nil })
 
 	cases := []struct {
-		src runtime.Val
-		exp runtime.Val
-		err bool
+		src   runtime.Val
+		exp   runtime.Val
+		start bool
 	}{
 		0: {
 			src: runtime.Nil,
@@ -121,11 +124,12 @@ func TestConvString(t *testing.T) {
 		},
 		6: {
 			src: runtime.NewObject(),
-			err: true,
+			exp: runtime.String("{}"),
 		},
 		7: {
-			src: runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val { return runtime.Nil }),
-			err: true,
+			src:   fn,
+			exp:   runtime.String("<func nm ("),
+			start: true,
 		},
 		8: {
 			src: ob,
@@ -138,16 +142,12 @@ func TestConvString(t *testing.T) {
 	for i, c := range cases {
 		func() {
 			defer func() {
-				if e := recover(); (e != nil) != c.err {
-					if c.err {
-						t.Errorf("[%d] - expected a panic, got none", i)
-					} else {
-						t.Errorf("[%d] - expected no panic, got %v", i, e)
-					}
+				if e := recover(); e != nil {
+					t.Errorf("[%d] - expected no panic, got %v", i, e)
 				}
 			}()
 			ret := cm.conv_String(c.src)
-			if ret != c.exp {
+			if (c.start && !strings.HasPrefix(ret.String(), c.exp.String())) || (!c.start && ret != c.exp) {
 				t.Errorf("[%d] - expected %v, got %v", i, c.exp, ret)
 			}
 		}()

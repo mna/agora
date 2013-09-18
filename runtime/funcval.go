@@ -7,9 +7,8 @@ import (
 
 var (
 	// Predefined errors
-	ErrInvalidConvFuncToInt    = errors.New("cannot convert Func to Int")
-	ErrInvalidConvFuncToFloat  = errors.New("cannot convert Func to Float")
-	ErrInvalidConvFuncToString = errors.New("cannot convert Func to String")
+	ErrInvalidConvFuncToInt   = errors.New("cannot convert Func to Int")
+	ErrInvalidConvFuncToFloat = errors.New("cannot convert Func to Float")
 
 	ErrInvalidOpAddOnFunc = errors.New("cannot apply Add on a Func value")
 	ErrInvalidOpSubOnFunc = errors.New("cannot apply Sub on a Func value")
@@ -23,9 +22,7 @@ var (
 // Native() and Cmp() which must be done on the actual type.
 type funcVal struct {
 	ctx  *Ctx
-	name string // this field is set only for Native funcs, because it uses the funcVal.dump()
-	// call. Agora functions override dump() so that the agora name is used
-	// automatically.
+	name string
 }
 
 func (f *funcVal) dump() string {
@@ -42,9 +39,9 @@ func (f *funcVal) Float() float64 {
 	panic(ErrInvalidConvFuncToFloat)
 }
 
-// String is an invalid conversion.
+// String prints the function representation
 func (f *funcVal) String() string {
-	panic(ErrInvalidConvFuncToString)
+	return fmt.Sprintf("<func %s (%p)>", f.name, f)
 }
 
 // Bool returns true.

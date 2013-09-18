@@ -166,7 +166,7 @@ func (r *run) Execute(args []string) error {
 	}
 	res, err := m.Run(vals...)
 	if err == nil && !r.NoResult {
-		fmt.Fprintf(outf, "\n= %v (%T)\n", res.Native(), res)
+		fmt.Fprintf(outf, "\n= %s (%T)\n", res, res)
 	}
 	return err
 }

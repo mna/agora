@@ -1,5 +1,5 @@
 /*---
-result: map[_:_-value!! 4:4-value! s:s-value i:i-value 4:int-4-value 5:int-5-value-via-i-var string:int-s-value-via-s-var]
+result: {_:_-value!!,4:4-value!,s:s-value,i:i-value,4:int-4-value,5:int-5-value-via-i-var,string:int-s-value-via-s-var}
 ---*/
 i := 5
 s := `string`

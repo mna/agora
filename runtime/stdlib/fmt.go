@@ -35,20 +35,20 @@ func (f *FmtMod) SetCtx(c *runtime.Ctx) {
 	f.ctx = c
 }
 
-func toNative(args []runtime.Val) []interface{} {
+func toStringIface(args []runtime.Val) []interface{} {
 	var ifs []interface{}
 
 	if len(args) > 0 {
 		ifs = make([]interface{}, len(args))
 		for i, v := range args {
-			ifs[i] = v.Native()
+			ifs[i] = v.String()
 		}
 	}
 	return ifs
 }
 
 func (f *FmtMod) fmt_Print(args ...runtime.Val) runtime.Val {
-	ifs := toNative(args)
+	ifs := toStringIface(args)
 	n, err := fmt.Fprint(f.ctx.Stdout, ifs...)
 	if err != nil {
 		panic(err)
@@ -57,7 +57,7 @@ func (f *FmtMod) fmt_Print(args ...runtime.Val) runtime.Val {
 }
 
 func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
-	ifs := toNative(args)
+	ifs := toStringIface(args)
 	n, err := fmt.Fprintln(f.ctx.Stdout, ifs...)
 	if err != nil {
 		panic(err)

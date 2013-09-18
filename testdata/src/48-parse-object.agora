@@ -1,5 +1,5 @@
 /*---
-result: map[a:1]
+result: {a:1}
 ---*/
 json := import("./46-json.agora")
 

@@ -8,9 +8,8 @@ import (
 
 var (
 	// Predefined errors
-	ErrInvalidConvObjToInt    = errors.New("cannot convert Object to Int")
-	ErrInvalidConvObjToFloat  = errors.New("cannot convert Object to Float")
-	ErrInvalidConvObjToString = errors.New("cannot convert Object to String")
+	ErrInvalidConvObjToInt   = errors.New("cannot convert Object to Int")
+	ErrInvalidConvObjToFloat = errors.New("cannot convert Object to Float")
 
 	ErrInvalidOpAddOnObj = errors.New("cannot apply Add on this Object")
 	ErrInvalidOpSubOnObj = errors.New("cannot apply Sub on this Object")
@@ -76,7 +75,7 @@ func (o *object) Float() float64 {
 	panic(ErrInvalidConvObjToFloat)
 }
 
-// String returns the string value of the object. Such behaviour can be defined
+// String returns the string value of the object. Such behaviour can be overridden
 // if a `__string` method is available on the object.
 func (o *object) String() string {
 	if s, ok := o.m[String("__string")]; ok {
@@ -84,7 +83,21 @@ func (o *object) String() string {
 			return f.Call(o).String()
 		}
 	}
-	panic(ErrInvalidConvObjToString)
+	// Otherwise print the object's contents
+	buf := bytes.NewBuffer(nil)
+	buf.WriteByte('{')
+	keys := o.Keys().(Object)
+	for i, l := int64(0), keys.Len().Int(); i < l; i++ {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+		ival := Number(i)
+		buf.WriteString(keys.Get(ival).String())
+		buf.WriteByte(':')
+		buf.WriteString(o.Get(keys.Get(ival)).String())
+	}
+	buf.WriteByte('}')
+	return buf.String()
 }
 
 // Bool returns the boolean value of the object. Such behaviour can be defined
