@@ -37,7 +37,7 @@ type Arithmetic interface {
 
 type defaultArithmetic struct{}
 
-func (ar *defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val {
+func (ar defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val {
 	lt, rt := Type(l), Type(r)
 	mm := "__" + op
 	if lt == "number" && rt == "number" {
@@ -77,27 +77,27 @@ func (ar *defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Va
 	panic(NewTypeError(lt, op))
 }
 
-func (ar *defaultArithmetic) Add(l, r Val) Val {
+func (ar defaultArithmetic) Add(l, r Val) Val {
 	return ar.binaryOp(l, r, "add", true)
 }
 
-func (ar *defaultArithmetic) Sub(l, r Val) Val {
+func (ar defaultArithmetic) Sub(l, r Val) Val {
 	return ar.binaryOp(l, r, "sub", false)
 }
 
-func (ar *defaultArithmetic) Mul(l, r Val) Val {
+func (ar defaultArithmetic) Mul(l, r Val) Val {
 	return ar.binaryOp(l, r, "mul", false)
 }
 
-func (ar *defaultArithmetic) Div(l, r Val) Val {
+func (ar defaultArithmetic) Div(l, r Val) Val {
 	return ar.binaryOp(l, r, "div", false)
 }
 
-func (ar *defaultArithmetic) Mod(l, r Val) Val {
+func (ar defaultArithmetic) Mod(l, r Val) Val {
 	return ar.binaryOp(l, r, "mod", false)
 }
 
-func (ar *defaultArithmetic) Unm(l Val) Val {
+func (ar defaultArithmetic) Unm(l Val) Val {
 	lt := Type(l)
 	if lt == "number" {
 		return Number(-l.Float())
@@ -181,7 +181,7 @@ var (
 
 type defaultComparer struct{}
 
-func (dc *defaultComparer) Cmp(l, r Val) int {
+func (dc defaultComparer) Cmp(l, r Val) int {
 	lt, rt := Type(l), Type(r)
 	if lt == rt {
 		// Comparable types

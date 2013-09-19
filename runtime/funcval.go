@@ -1,25 +1,11 @@
 package runtime
 
 import (
-	"errors"
 	"fmt"
 )
 
-var (
-	// Predefined errors
-	ErrInvalidConvFuncToInt   = errors.New("cannot convert Func to Int")
-	ErrInvalidConvFuncToFloat = errors.New("cannot convert Func to Float")
-
-	ErrInvalidOpAddOnFunc = errors.New("cannot apply Add on a Func value")
-	ErrInvalidOpSubOnFunc = errors.New("cannot apply Sub on a Func value")
-	ErrInvalidOpMulOnFunc = errors.New("cannot apply Mul on a Func value")
-	ErrInvalidOpDivOnFunc = errors.New("cannot apply Div on a Func value")
-	ErrInvalidOpModOnFunc = errors.New("cannot apply Mod on a Func value")
-	ErrInvalidOpUnmOnFunc = errors.New("cannot apply Unm on a Func value")
-)
-
 // funcVal implements most of the Val interface's methods, except
-// Native() and Cmp() which must be done on the actual type.
+// Native() which must be done on the actual type.
 type funcVal struct {
 	ctx  *Ctx
 	name string
@@ -31,12 +17,12 @@ func (f *funcVal) dump() string {
 
 // Int is an invalid conversion.
 func (f *funcVal) Int() int64 {
-	panic(ErrInvalidConvFuncToInt)
+	panic(NewTypeError("int", "func"))
 }
 
 // Float is an invalid conversion.
 func (f *funcVal) Float() float64 {
-	panic(ErrInvalidConvFuncToFloat)
+	panic(NewTypeError("float", "func"))
 }
 
 // String prints the function representation
@@ -47,34 +33,4 @@ func (f *funcVal) String() string {
 // Bool returns true.
 func (f *funcVal) Bool() bool {
 	return true
-}
-
-// Add is an invalid operation.
-func (f *funcVal) Add(v Val) Val {
-	panic(ErrInvalidOpAddOnFunc)
-}
-
-// Sub is an invalid operation.
-func (f *funcVal) Sub(v Val) Val {
-	panic(ErrInvalidOpSubOnFunc)
-}
-
-// Mul is an invalid operation.
-func (f *funcVal) Mul(v Val) Val {
-	panic(ErrInvalidOpMulOnFunc)
-}
-
-// Div is an invalid operation.
-func (f *funcVal) Div(v Val) Val {
-	panic(ErrInvalidOpDivOnFunc)
-}
-
-// Mod is an invalid operation.
-func (f *funcVal) Mod(v Val) Val {
-	panic(ErrInvalidOpModOnFunc)
-}
-
-// Unm is an invalid operation.
-func (f *funcVal) Unm() Val {
-	panic(ErrInvalidOpUnmOnFunc)
 }

@@ -1,7 +1,6 @@
 package runtime
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,12 +8,23 @@ import (
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
-var (
-	// Predefined errors
-	ErrModuleNotFound  = errors.New("module not found")
-	ErrModuleHasNoFunc = errors.New("module has no function")
-	ErrCyclicDepFound  = errors.New("cyclic module dependency found")
+type (
+	ModuleNotFoundError   string
+	CyclicDependencyError string
 )
+
+func (e ModuleNotFoundError) Error() string {
+	return string(e)
+}
+func NewModuleNotFoundError(id string) ModuleNotFoundError {
+	return ModuleNotFoundError(fmt.Sprint("module not found: %s", id))
+}
+func (e CyclicDependencyError) Error() string {
+	return string(e)
+}
+func NewCyclicDependencyError(id string) CyclicDependencyError {
+	return CyclicDependencyError(fmt.Sprint("cyclic dependency: %s already being loaded", id))
+}
 
 // The Compiler interface defines the required behaviour for a Compiler.
 type Compiler interface {
@@ -34,13 +44,15 @@ type frame struct {
 // thread-safe way.
 type Ctx struct {
 	// Public fields
-	Stdout   io.ReadWriter  // The standard streams
-	Stdin    io.ReadWriter  // ...
-	Stderr   io.ReadWriter  // ...
-	Logic    LogicProcessor // The boolean logic processor (And, Or, Not)
-	Resolver ModuleResolver // The module loading resolver (match a module to a string literal)
-	Compiler Compiler       // The source code compiler
-	Debug    bool           // Debug mode outputs helpful messages
+	Stdout     io.ReadWriter  // The standard streams
+	Stdin      io.ReadWriter  // ...
+	Stderr     io.ReadWriter  // ...
+	Logic      LogicProcessor // The boolean logic processor (And, Or, Not)
+	Arithmetic Arithmetic     // The arithmetic processor
+	Comparer   Comparer       // The comparison processor
+	Resolver   ModuleResolver // The module loading resolver (match a module to a string literal)
+	Compiler   Compiler       // The source code compiler
+	Debug      bool           // Debug mode outputs helpful messages
 
 	// Call stack
 	frames []*frame
@@ -63,6 +75,8 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		Stdin:       os.Stdin,
 		Stderr:      os.Stderr,
 		Logic:       defaultLogic{},
+		Arithmetic:  defaultArithmetic{},
+		Comparer:    defaultComparer{},
 		Resolver:    resolver,
 		Compiler:    comp,
 		scope:       make(map[*agoraFunc][]*funcVM),
@@ -99,7 +113,7 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 //
 func (c *Ctx) Load(id string) (Module, error) {
 	if id == "" {
-		return nil, ErrModuleNotFound
+		return nil, NewModuleNotFoundError(id)
 	}
 	// If already loaded, return from cache
 	if m, ok := c.loadedMods[id]; ok {
@@ -145,7 +159,7 @@ func (c *Ctx) RegisterNativeModule(m NativeModule) {
 // Mark the specified module as currently executing
 func (c *Ctx) pushModule(id string) {
 	if c.loadingMods[id] {
-		panic(ErrCyclicDepFound)
+		panic(NewCyclicDependencyError(id))
 	}
 	c.loadingMods[id] = true
 }
