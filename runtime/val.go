@@ -117,6 +117,68 @@ type Comparer interface {
 	Cmp(Val) int
 }
 
+var (
+	// Unmutable, this would be a const if it was possible
+	uneqMatrix = map[string]map[string]int{
+		"nil": map[string]int{
+			"number": -1,
+			"string": -1,
+			"bool":   -1,
+			"object": -1,
+			"func":   -1,
+			"custom": -1,
+		},
+		"number": map[string]int{
+			"nil":    1,
+			"string": -1,
+			"bool":   1,
+			"object": -1,
+			"func":   1,
+			"custom": 1,
+		},
+		"string": map[string]int{
+			"number": 1,
+			"nil":    1,
+			"bool":   1,
+			"object": 1,
+			"func":   1,
+			"custom": 1,
+		},
+		"bool": map[string]int{
+			"number": -1,
+			"string": -1,
+			"nil":    1,
+			"object": -1,
+			"func":   -1,
+			"custom": -1,
+		},
+		"object": map[string]int{
+			"number": 1,
+			"string": -1,
+			"bool":   1,
+			"nil":    1,
+			"func":   1,
+			"custom": 1,
+		},
+		"func": map[string]int{
+			"number": -1,
+			"string": -1,
+			"bool":   1,
+			"object": -1,
+			"nil":    1,
+			"custom": 1,
+		},
+		"custom": map[string]int{
+			"number": -1,
+			"string": -1,
+			"bool":   1,
+			"object": -1,
+			"func":   -1,
+			"nil":    1,
+		},
+	}
+)
+
 type defaultComparer struct{}
 
 func (dc *defaultComparer) Cmp(l, r Val) int {
@@ -158,14 +220,62 @@ func (dc *defaultComparer) Cmp(l, r Val) int {
 			if lf == rf {
 				return 0
 			} else {
+				// "greater" or "lower" has no sense for funcs, return -1
 				return -1
 			}
+		case "object":
+			// If left has meta method, use left, otherwise right, else compare
+			lo, ro := l.(Object), r.(Object)
+			if v, ok := lo.callMetaMethod("__cmp", r, Bool(true)); ok {
+				return v.Int()
+			}
+			if v, ok := ro.callMetaMethod("__cmp", l, Bool(false)); ok {
+				return v.Int()
+			}
+			if lo == ro {
+				return 0
+			} else {
+				// "greater" or "lower" has no sense for objects, return -1
+				return -1
+			}
+		case "custom":
+			if l == r {
+				return 0
+			} else {
+				// "greater" or "lower" has no sense for custom vals, return -1
+				return -1
+			}
+		default:
+			panic(NewTypeError(lt, "cmp"))
 		}
+	} else {
+		// Uncomparable types, first check for meta-methods
+		var o Object
+		var isLeft bool
+		var otherv Val
+		if lt == "object" {
+			o = l.(Object)
+			isLeft = true
+			otherv = r
+		} else if rt == "object" {
+			o = r.(Object)
+			isLeft = false
+			otherv = l
+		}
+		if o != nil {
+			if v, ok := o.callMetaMethod("__cmp", otherv, Bool(isLeft)); ok {
+				return v.Int()
+			}
+		}
+		// Else, return arbitrary but constant result
+		return uneqMatrix[lt][rt]
 	}
 }
 
 // The dumper interface defines the required behaviour to pretty-print
 // the values.
+// TODO : Should provide a default impl or make it public, so that custom types
+// can actually be built from outside the package.
 type dumper interface {
 	dump() string
 }
