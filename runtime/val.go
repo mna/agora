@@ -1,5 +1,19 @@
 package runtime
 
+import (
+	"fmt"
+)
+
+type TypeError string
+
+func (te TypeError) Error() string {
+	return string(te)
+}
+
+func NewTypeError(t, op string) TypeError {
+	return TypeError(fmt.Sprintf("type error: %s not allowed for type %s", op, t))
+}
+
 // Converter declares the required methods to convert a value
 // to any one of the supported types (except Object and Func).
 type Converter interface {
@@ -21,11 +35,133 @@ type Arithmetic interface {
 	Unm() Val
 }
 
+type defaultArithmetic struct{}
+
+func (ar *defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val {
+	lt, rt := Type(l), Type(r)
+	mm := "__" + op
+	if lt == "number" && rt == "number" {
+		// Two numbers, standard arithmetic operation
+		switch op {
+		case "add":
+			return Number(l.Float() + r.Float())
+		case "sub":
+			return Number(l.Float() - r.Float())
+		case "mul":
+			return Number(l.Float() * r.Float())
+		case "div":
+			return Number(l.Float() / r.Float())
+		case "mod":
+			return Number(l.Float() % r.Float())
+		}
+	} else if allowStrings && lt == "string" && rt == "string" {
+		// Two strings
+		switch op {
+		case "add":
+			return String(l.String() + r.String())
+		}
+	} else if lt == "object" {
+		// If left operand is an object with a meta-method
+		lo := l.(Object)
+		if v, ok := lo.callMetaMethod(mm, r, Bool(true)); ok {
+			return v
+		}
+	}
+	// Last chance: if right operand is an object with a meta-method
+	if rt == object {
+		ro := r.(Object)
+		if v, ok := ro.callMetaMethod(mm, l, Bool(false)); ok {
+			return v
+		}
+	}
+	panic(NewTypeError(lt, op))
+}
+
+func (ar *defaultArithmetic) Add(l, r Val) Val {
+	return ar.binaryOp(l, r, "add", true)
+}
+
+func (ar *defaultArithmetic) Sub(l, r Val) Val {
+	return ar.binaryOp(l, r, "sub", false)
+}
+
+func (ar *defaultArithmetic) Mul(l, r Val) Val {
+	return ar.binaryOp(l, r, "mul", false)
+}
+
+func (ar *defaultArithmetic) Div(l, r Val) Val {
+	return ar.binaryOp(l, r, "div", false)
+}
+
+func (ar *defaultArithmetic) Mod(l, r Val) Val {
+	return ar.binaryOp(l, r, "mod", false)
+}
+
+func (ar *defaultArithmetic) Unm(l Val) Val {
+	lt := Type(l)
+	if lt == "number" {
+		return Number(-l.Float())
+	} else if lt == "object" {
+		lo := l.(Object)
+		if v, ok := lo.callMetaMethod("__unm"); ok {
+			return v
+		}
+	}
+	panic(NewTypeError(lt, "unm"))
+}
+
 // Comparer defines the method required to compare two Values.
 // Cmp() returns 1 if the method receiver value is greater, 0 if
 // it is equal, and -1 if it is lower.
 type Comparer interface {
 	Cmp(Val) int
+}
+
+type defaultComparer struct{}
+
+func (dc *defaultComparer) Cmp(l, r Val) int {
+	lt, rt := Type(l), Type(r)
+	if lt == rt {
+		// Comparable types
+		switch lt {
+		case "nil":
+			return 0
+		case "number":
+			lf, rf := l.Float(), r.Float()
+			if lf == rf {
+				return 0
+			} else if lf < rf {
+				return -1
+			} else {
+				return 1
+			}
+		case "string":
+			ls, rs := l.String(), r.String()
+			if ls == rs {
+				return 0
+			} else if ls < rs {
+				return -1
+			} else {
+				return 1
+			}
+		case "bool":
+			lb, rb := l.Bool(), r.Bool()
+			if lb == rb {
+				return 0
+			} else if lb {
+				return 1 // true is greater than false (0)
+			} else {
+				-1
+			}
+		case "func":
+			lf, rf := l.Native(), r.Native()
+			if lf == rf {
+				return 0
+			} else {
+				return -1
+			}
+		}
+	}
 }
 
 // The dumper interface defines the required behaviour to pretty-print
@@ -44,9 +180,28 @@ type dumper interface {
 // * Func
 type Val interface {
 	Converter
-	Comparer
-	Arithmetic
 	dumper
+}
+
+func Type(v Val) string {
+	switch v.(type) {
+	case runtime.String:
+		return runtime.String("string")
+	case runtime.Number:
+		return runtime.String("number")
+	case runtime.Bool:
+		return runtime.String("bool")
+	case runtime.Func:
+		return runtime.String("func")
+	case runtime.Object:
+		return runtime.String("object")
+	default:
+		if v == runtime.Nil {
+			return runtime.String("nil")
+		} else {
+			return runtime.String("custom")
+		}
+	}
 }
 
 // The LogicProcessor interface defines the method required to implement
