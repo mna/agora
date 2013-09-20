@@ -13,7 +13,7 @@ func (e NoSuchMethodError) Error() string {
 	return string(e)
 }
 func NewNoSuchMethodError(m string) NoSuchMethodError {
-	return NoSuchMethodError(fmt.Sprint("no such method: %s", m))
+	return NoSuchMethodError(fmt.Sprintf("no such method: %s", m))
 }
 
 type Object interface {

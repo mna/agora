@@ -15,7 +15,7 @@ func (e EmptyModuleError) Error() string {
 	return string(e)
 }
 func NewEmptyModuleError(id string) EmptyModuleError {
-	return EmptyModuleError(fmt.Sprint("empty module: %s", id))
+	return EmptyModuleError(fmt.Sprintf("empty module: %s", id))
 }
 
 // The Module interface defines the required behaviours for a Module.

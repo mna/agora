@@ -17,13 +17,13 @@ func (e ModuleNotFoundError) Error() string {
 	return string(e)
 }
 func NewModuleNotFoundError(id string) ModuleNotFoundError {
-	return ModuleNotFoundError(fmt.Sprint("module not found: %s", id))
+	return ModuleNotFoundError(fmt.Sprintf("module not found: %s", id))
 }
 func (e CyclicDependencyError) Error() string {
 	return string(e)
 }
 func NewCyclicDependencyError(id string) CyclicDependencyError {
-	return CyclicDependencyError(fmt.Sprint("cyclic dependency: %s already being loaded", id))
+	return CyclicDependencyError(fmt.Sprintf("cyclic dependency: %s already being loaded", id))
 }
 
 // The Compiler interface defines the required behaviour for a Compiler.
