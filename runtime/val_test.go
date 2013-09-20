@@ -5,6 +5,7 @@ import (
 )
 
 func TestAddMixed(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   Val
 		y   Val
@@ -46,7 +47,7 @@ func TestAddMixed(t *testing.T) {
 			if c.p {
 				defer assert(c.x, c.y)
 			}
-			res := c.x.Add(c.y)
+			res := ari.Add(c.x, c.y)
 			if res != c.exp {
 				t.Errorf("%v + %v : expected %v, got %v", c.x, c.y, c.exp, res)
 			}

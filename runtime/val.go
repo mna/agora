@@ -11,7 +11,7 @@ func (te TypeError) Error() string {
 }
 
 func NewTypeError(t, op string) TypeError {
-	return TypeError(fmt.Sprintf("type error: %s not allowed for type %s", op, t))
+	return TypeError(fmt.Sprintf("type error: %s not allowed with type %s", op, t))
 }
 
 // Converter declares the required methods to convert a value
@@ -27,12 +27,12 @@ type Converter interface {
 // Arithmetic defines the methods required to compute all
 // the supported arithmetic operations.
 type Arithmetic interface {
-	Add(Val) Val
-	Sub(Val) Val
-	Mul(Val) Val
-	Div(Val) Val
-	Mod(Val) Val
-	Unm() Val
+	Add(Val, Val) Val
+	Sub(Val, Val) Val
+	Mul(Val, Val) Val
+	Div(Val, Val) Val
+	Mod(Val, Val) Val
+	Unm(Val) Val
 }
 
 type defaultArithmetic struct{}
@@ -52,7 +52,7 @@ func (ar defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val
 		case "div":
 			return Number(l.Float() / r.Float())
 		case "mod":
-			return Number(l.Float() % r.Float())
+			return Number(l.Int() % r.Int())
 		}
 	} else if allowStrings && lt == "string" && rt == "string" {
 		// Two strings
@@ -68,7 +68,7 @@ func (ar defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val
 		}
 	}
 	// Last chance: if right operand is an object with a meta-method
-	if rt == object {
+	if rt == "object" {
 		ro := r.(Object)
 		if v, ok := ro.callMetaMethod(mm, l, Bool(false)); ok {
 			return v
@@ -114,7 +114,7 @@ func (ar defaultArithmetic) Unm(l Val) Val {
 // Cmp() returns 1 if the method receiver value is greater, 0 if
 // it is equal, and -1 if it is lower.
 type Comparer interface {
-	Cmp(Val) int
+	Cmp(Val, Val) int
 }
 
 var (
@@ -213,7 +213,7 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 			} else if lb {
 				return 1 // true is greater than false (0)
 			} else {
-				-1
+				return -1
 			}
 		case "func":
 			lf, rf := l.Native(), r.Native()
@@ -227,10 +227,10 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 			// If left has meta method, use left, otherwise right, else compare
 			lo, ro := l.(Object), r.(Object)
 			if v, ok := lo.callMetaMethod("__cmp", r, Bool(true)); ok {
-				return v.Int()
+				return int(v.Int())
 			}
 			if v, ok := ro.callMetaMethod("__cmp", l, Bool(false)); ok {
-				return v.Int()
+				return int(v.Int())
 			}
 			if lo == ro {
 				return 0
@@ -264,7 +264,7 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 		}
 		if o != nil {
 			if v, ok := o.callMetaMethod("__cmp", otherv, Bool(isLeft)); ok {
-				return v.Int()
+				return int(v.Int())
 			}
 		}
 		// Else, return arbitrary but constant result
@@ -295,21 +295,21 @@ type Val interface {
 
 func Type(v Val) string {
 	switch v.(type) {
-	case runtime.String:
-		return runtime.String("string")
-	case runtime.Number:
-		return runtime.String("number")
-	case runtime.Bool:
-		return runtime.String("bool")
-	case runtime.Func:
-		return runtime.String("func")
-	case runtime.Object:
-		return runtime.String("object")
+	case String:
+		return "string"
+	case Number:
+		return "number"
+	case Bool:
+		return "bool"
+	case Func:
+		return "func"
+	case Object:
+		return "object"
 	default:
-		if v == runtime.Nil {
-			return runtime.String("nil")
+		if v == Nil {
+			return "nil"
 		} else {
-			return runtime.String("custom")
+			return "custom"
 		}
 	}
 }

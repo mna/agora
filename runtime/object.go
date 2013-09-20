@@ -2,19 +2,19 @@ package runtime
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 )
 
-var (
-	// Predefined errors
-	ErrInvalidConvObjToInt   = errors.New("cannot convert Object to Int")
-	ErrInvalidConvObjToFloat = errors.New("cannot convert Object to Float")
-
-	ErrNoSuchMethod     = errors.New("method does not exist")
-	ErrFieldNotFunction = errors.New("field is not a function")
-	ErrInvalidNilKey    = errors.New("field key cannot be nil")
+type (
+	NoSuchMethodError string
 )
+
+func (e NoSuchMethodError) Error() string {
+	return string(e)
+}
+func NewNoSuchMethodError(m string) NoSuchMethodError {
+	return NoSuchMethodError(fmt.Sprint("no such method: %s", m))
+}
 
 type Object interface {
 	Val
@@ -62,7 +62,7 @@ func (o *object) Int() int64 {
 	if v, ok := o.callMetaMethod("__int"); ok {
 		return v.Int()
 	}
-	panic(ErrInvalidConvObjToInt)
+	panic(NewTypeError("int", Type(o)))
 }
 
 // Float returns the float value of the object. Such behaviour can be defined
@@ -71,7 +71,7 @@ func (o *object) Float() float64 {
 	if v, ok := o.callMetaMethod("__float"); ok {
 		return v.Float()
 	}
-	panic(ErrInvalidConvObjToFloat)
+	panic(NewTypeError("float", Type(o)))
 }
 
 // String returns the string value of the object. Such behaviour can be overridden
@@ -159,7 +159,7 @@ func (o *object) Set(key Val, v Val) {
 	if v == Nil {
 		delete(o.m, key)
 	} else if key == Nil {
-		panic(ErrInvalidNilKey)
+		panic(NewTypeError("key", Type(key)))
 	} else {
 		o.m[key] = v
 	}
@@ -174,12 +174,12 @@ func (o *object) callMethod(nm Val, args ...Val) Val {
 		if f, ok := v.(Func); ok {
 			return f.Call(o, args...)
 		} else {
-			panic(ErrFieldNotFunction)
+			panic(NewNoSuchMethodError(nm.String()))
 		}
 	} else if v, ok := o.callMetaMethod("__noSuchMethod", append([]Val{nm}, args...)...); ok {
 		// Method not found - call __noSuchMethod if it exists, otherwise panic
 		return v
 	} else {
-		panic(ErrNoSuchMethod)
+		panic(NewNoSuchMethodError(nm.String()))
 	}
 }

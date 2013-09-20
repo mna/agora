@@ -110,6 +110,7 @@ func TestNumberAsBool(t *testing.T) {
 }
 
 func TestAddNumber(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   float64
 		y   float64
@@ -126,7 +127,7 @@ func TestAddNumber(t *testing.T) {
 
 	for _, c := range cases {
 		vx, vy := Number(c.x), Number(c.y)
-		res := vx.Add(vy)
+		res := ari.Add(vx, vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f + %f : expected %f, got %f", c.x, c.y, c.exp, res.Float())
 		}
@@ -134,6 +135,7 @@ func TestAddNumber(t *testing.T) {
 }
 
 func TestSubNumber(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   float64
 		y   float64
@@ -150,7 +152,7 @@ func TestSubNumber(t *testing.T) {
 
 	for _, c := range cases {
 		vx, vy := Number(c.x), Number(c.y)
-		res := vx.Sub(vy)
+		res := ari.Sub(vx, vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f - %f : expected %f, got %f", c.x, c.y, c.exp, fres)
 		}
@@ -158,6 +160,7 @@ func TestSubNumber(t *testing.T) {
 }
 
 func TestMulNumber(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   float64
 		y   float64
@@ -174,7 +177,7 @@ func TestMulNumber(t *testing.T) {
 
 	for _, c := range cases {
 		vx, vy := Number(c.x), Number(c.y)
-		res := vx.Mul(vy)
+		res := ari.Mul(vx, vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f * %f : expected %f, got %f", c.x, c.y, c.exp, fres)
 		}
@@ -182,6 +185,7 @@ func TestMulNumber(t *testing.T) {
 }
 
 func TestDivNumber(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   float64
 		y   float64
@@ -196,7 +200,7 @@ func TestDivNumber(t *testing.T) {
 
 	for _, c := range cases {
 		vx, vy := Number(c.x), Number(c.y)
-		res := vx.Div(vy)
+		res := ari.Div(vx, vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f / %f : expected %f, got %f", c.x, c.y, c.exp, fres)
 		}
@@ -204,6 +208,7 @@ func TestDivNumber(t *testing.T) {
 }
 
 func TestModNumber(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   float64
 		y   float64
@@ -218,7 +223,7 @@ func TestModNumber(t *testing.T) {
 
 	for _, c := range cases {
 		vx, vy := Number(c.x), Number(c.y)
-		res := vx.Mod(vy)
+		res := ari.Mod(vx, vy)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("%f %% %f : expected %f, got %f", c.x, c.y, c.exp, fres)
 		}
@@ -226,6 +231,7 @@ func TestModNumber(t *testing.T) {
 }
 
 func TestUnmNumber(t *testing.T) {
+	ari := defaultArithmetic{}
 	cases := []struct {
 		x   float64
 		exp float64
@@ -239,7 +245,7 @@ func TestUnmNumber(t *testing.T) {
 
 	for _, c := range cases {
 		vx := Number(c.x)
-		res := vx.Unm()
+		res := ari.Unm(vx)
 		if fres := res.Float(); math.Abs(c.exp-fres) > floatCompareBuffer {
 			t.Errorf("-%f : expected %f, got %f", c.x, c.exp, fres)
 		}
