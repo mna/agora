@@ -120,27 +120,3 @@ func TestStringAsBool(t *testing.T) {
 		}
 	}
 }
-
-func TestAddString(t *testing.T) {
-	ari := defaultArithmetic{}
-	cases := []struct {
-		x   string
-		y   string
-		exp string
-	}{
-		{x: "", y: "", exp: ""},
-		{x: " ", y: "", exp: " "},
-		{x: "", y: " ", exp: " "},
-		{x: " ", y: " ", exp: "  "},
-		{x: "abc", y: "def", exp: "abcdef"},
-		{x: "abc\ndef\t", y: "ghi\njkl\x00m", exp: "abc\ndef\tghi\njkl\x00m"},
-	}
-
-	for _, c := range cases {
-		vx, vy := String(c.x), String(c.y)
-		res := ari.Add(vx, vy)
-		if sres := res.String(); c.exp != sres {
-			t.Errorf("%s + %s : expected %s, got %s", c.x, c.y, c.exp, sres)
-		}
-	}
-}

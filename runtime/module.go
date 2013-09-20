@@ -41,6 +41,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 	m := &agoraModule{
 		id: f.Name,
 	}
+	// Define all functions
 	m.fns = make([]*agoraFunc, len(f.Fns))
 	for i, fn := range f.Fns {
 		af := newAgoraFunc(m, c)

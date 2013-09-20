@@ -250,9 +250,11 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 		}
 	} else {
 		// Uncomparable types, first check for meta-methods
-		var o Object
-		var isLeft bool
-		var otherv Val
+		var (
+			o      Object
+			isLeft bool
+			otherv Val
+		)
 		if lt == "object" {
 			o = l.(Object)
 			isLeft = true
@@ -288,6 +290,7 @@ type dumper interface {
 // * Nil (null)
 // * Object
 // * Func
+// * Custom (any other Val impl)
 type Val interface {
 	Converter
 	dumper
