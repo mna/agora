@@ -17,12 +17,12 @@ func (f *funcVal) dump() string {
 
 // Int is an invalid conversion.
 func (f *funcVal) Int() int64 {
-	panic(NewTypeError("int", "func"))
+	panic(NewTypeError("func", "", "int"))
 }
 
 // Float is an invalid conversion.
 func (f *funcVal) Float() float64 {
-	panic(NewTypeError("float", "func"))
+	panic(NewTypeError("func", "", "float"))
 }
 
 // String prints the function representation

@@ -1,6 +1,7 @@
 /*---
 result: 97.7
 ---*/
+conv := import("conv")
 a := 7
 b := 10
 add := a + b
@@ -12,4 +13,4 @@ not := !a
 unm := -a
 debug
 
-return a + b + add + sub + mul + div + mod + not + unm
+return a + b + add + sub + mul + div + mod + conv.Number(not) + unm

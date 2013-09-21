@@ -1,6 +1,12 @@
 /*---
 result: testtesttest
 ---*/
-a := "test"
+strings := import("strings")
+a := {
+	val: "test",
+	__mul: func(n) {
+		return strings.Repeat(this.val, n)
+	},
+}
 
 return a * 3

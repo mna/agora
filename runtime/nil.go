@@ -21,12 +21,12 @@ func (n null) dump() string {
 
 // Int is an invalid conversion.
 func (n null) Int() int64 {
-	panic(NewTypeError("int", Type(n)))
+	panic(NewTypeError(Type(n), "", "int"))
 }
 
 // Float is an invalid conversion.
 func (n null) Float() float64 {
-	panic(NewTypeError("float", Type(n)))
+	panic(NewTypeError(Type(n), "", "float"))
 }
 
 // String returns the string "nil".

@@ -314,7 +314,7 @@ func (f *funcVM) run(args ...Val) Val {
 			if ob, ok := vr.(Object); ok {
 				ob.Set(k, vl)
 			} else {
-				panic(NewTypeError("object", Type(vr)))
+				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_GFLD:
@@ -322,7 +322,7 @@ func (f *funcVM) run(args ...Val) Val {
 			if ob, ok := vr.(Object); ok {
 				f.push(ob.Get(k))
 			} else {
-				panic(NewTypeError("object", Type(vr)))
+				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_CFLD:
@@ -335,7 +335,7 @@ func (f *funcVM) run(args ...Val) Val {
 			if ob, ok := vr.(Object); ok {
 				f.push(ob.callMethod(k, args...))
 			} else {
-				panic(NewTypeError("object", Type(vr)))
+				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_CALL:
@@ -344,7 +344,7 @@ func (f *funcVM) run(args ...Val) Val {
 			x := f.pop()
 			fn, ok := x.(Func)
 			if !ok {
-				panic(NewTypeError("func", Type(x)))
+				panic(NewTypeError(Type(x), "", "func"))
 			}
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)

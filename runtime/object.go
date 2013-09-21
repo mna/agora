@@ -62,7 +62,7 @@ func (o *object) Int() int64 {
 	if v, ok := o.callMetaMethod("__int"); ok {
 		return v.Int()
 	}
-	panic(NewTypeError("int", Type(o)))
+	panic(NewTypeError(Type(o), "", "int"))
 }
 
 // Float returns the float value of the object. Such behaviour can be defined
@@ -71,7 +71,7 @@ func (o *object) Float() float64 {
 	if v, ok := o.callMetaMethod("__float"); ok {
 		return v.Float()
 	}
-	panic(NewTypeError("float", Type(o)))
+	panic(NewTypeError(Type(o), "", "float"))
 }
 
 // String returns the string value of the object. Such behaviour can be overridden
@@ -159,7 +159,7 @@ func (o *object) Set(key Val, v Val) {
 	if v == Nil {
 		delete(o.m, key)
 	} else if key == Nil {
-		panic(NewTypeError("key", Type(key)))
+		panic(NewTypeError(Type(key), "", "key"))
 	} else {
 		o.m[key] = v
 	}

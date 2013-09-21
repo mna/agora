@@ -10,8 +10,11 @@ func (te TypeError) Error() string {
 	return string(te)
 }
 
-func NewTypeError(t, op string) TypeError {
-	return TypeError(fmt.Sprintf("type error: %s not allowed with type %s", op, t))
+func NewTypeError(t1, t2, op string) TypeError {
+	if t2 != "" {
+		return TypeError(fmt.Sprintf("type error: %s not allowed with types %s and %s", op, t1, t2))
+	}
+	return TypeError(fmt.Sprintf("type error: %s not allowed with type %s", op, t1))
 }
 
 // Converter declares the required methods to convert a value
@@ -74,7 +77,7 @@ func (ar defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val
 			return v
 		}
 	}
-	panic(NewTypeError(lt, op))
+	panic(NewTypeError(lt, rt, op))
 }
 
 func (ar defaultArithmetic) Add(l, r Val) Val {
@@ -107,7 +110,7 @@ func (ar defaultArithmetic) Unm(l Val) Val {
 			return v
 		}
 	}
-	panic(NewTypeError(lt, "unm"))
+	panic(NewTypeError(lt, "", "unm"))
 }
 
 // Comparer defines the method required to compare two Values.
@@ -246,7 +249,7 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 				return -1
 			}
 		default:
-			panic(NewTypeError(lt, "cmp"))
+			panic(NewTypeError(lt, "", "cmp"))
 		}
 	} else {
 		// Uncomparable types, first check for meta-methods
