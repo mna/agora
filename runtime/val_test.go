@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"math"
 	"testing"
 )
 
@@ -8,38 +9,19 @@ const (
 	floatCompareBuffer = 1e-6
 )
 
-func TestArithmetic(t *testing.T) {
-	ctx := NewCtx(nil, nil)
-	ari := defaultArithmetic{}
-	o := NewObject()
-	oplus := NewObject()
-	oplus.Set(String("__add"), NewNativeFunc(ctx, "", func(args ...Val) Val {
-		ExpectAtLeastNArgs(2, args)
-		return args[0]
-	}))
-	fn := NewNativeFunc(ctx, "", func(_ ...Val) Val { return Nil })
-	checkPanic := func(lbl string, i int, p bool) {
-		if e := recover(); (e != nil) != p {
-			if p {
-				t.Errorf("[%s %d] - expected error, got none", lbl, i)
-			} else {
-				t.Errorf("[%s %d] - expected no error, got %s", lbl, i, e)
-			}
-		}
-	}
+type binArithCase struct {
+	l, r, exp Val
+	err       bool
+}
 
-	// Add
-	adds := []struct {
-		l, r, exp Val
-		err       bool
-	}{
-		{l: Number(2), r: Number(5), exp: Number(7)},
-		{l: Number(-2), r: Number(5.123), exp: Number(3.123)},
-		{l: Number(2.24), r: Number(0.01), exp: Number(2.25)},
-		{l: Number(0), r: Number(0.0), exp: Number(0)},
-		{l: String("hi"), r: String("you"), exp: String("hiyou")},
-		{l: String("0"), r: String("2"), exp: String("02")},
-		{l: String(""), r: String(""), exp: String("")},
+var (
+	ctx   = NewCtx(nil, nil)
+	ari   = defaultArithmetic{}
+	o     = NewObject()
+	oplus = NewObject()
+	fn    = NewNativeFunc(ctx, "", func(_ ...Val) Val { return Nil })
+
+	common = []binArithCase{
 		{l: Nil, r: Nil, err: true},
 		{l: Nil, r: Number(2), err: true},
 		{l: Nil, r: String("test"), err: true},
@@ -95,13 +77,124 @@ func TestArithmetic(t *testing.T) {
 		{l: fn, r: fn, err: true},
 		// TODO: Custom
 	}
-	for i, c := range adds {
-		func() {
-			defer checkPanic("add", i, c.err)
-			ret := ari.Add(c.l, c.r)
-			if ret != c.exp {
-				t.Errorf("[add %d] - expected %s, got %s", i, c.exp, ret)
+
+	adds = append(common, []binArithCase{
+		{l: Number(2), r: Number(5), exp: Number(7)},
+		{l: Number(-2), r: Number(5.123), exp: Number(3.123)},
+		{l: Number(2.24), r: Number(0.01), exp: Number(2.25)},
+		{l: Number(0), r: Number(0.0), exp: Number(0)},
+		{l: String("hi"), r: String("you"), exp: String("hiyou")},
+		{l: String("0"), r: String("2"), exp: String("02")},
+		{l: String(""), r: String(""), exp: String("")},
+	}...)
+
+	subs = append(common, []binArithCase{
+		{l: Number(5), r: Number(2), exp: Number(3)},
+		{l: Number(-2), r: Number(5.123), exp: Number(-7.123)},
+		{l: Number(2.24), r: Number(0.01), exp: Number(2.23)},
+		{l: Number(0), r: Number(0.0), exp: Number(0)},
+		{l: String("hi"), r: String("you"), err: true},
+	}...)
+
+	muls = append(common, []binArithCase{
+		{l: Number(5), r: Number(2), exp: Number(10)},
+		{l: Number(-2), r: Number(5.123), exp: Number(-10.246)},
+		{l: Number(2.24), r: Number(0.01), exp: Number(0.0224)},
+		{l: Number(0), r: Number(0.0), exp: Number(0)},
+		{l: String("hi"), r: String("you"), err: true},
+	}...)
+
+	divs = append(common, []binArithCase{
+		{l: Number(5), r: Number(2), exp: Number(2.5)},
+		{l: Number(-2), r: Number(5.123), exp: Number(-0.390396252)},
+		{l: Number(2.24), r: Number(0.01), exp: Number(224)},
+		{l: Number(0), r: Number(0.0), exp: Number(math.NaN())},
+		{l: String("hi"), r: String("you"), err: true},
+	}...)
+
+	mods = append(common, []binArithCase{
+		{l: Number(5), r: Number(2), exp: Number(1)},
+		{l: Number(-2), r: Number(5.123), exp: Number(-2)},
+		{l: Number(2.24), r: Number(1.1), exp: Number(0)},
+		{l: Number(0), r: Number(0.0), err: true},
+		{l: String("hi"), r: String("you"), err: true},
+	}...)
+
+	unms = []binArithCase{
+		{l: Nil, err: true},
+		{l: Number(4), exp: Number(-4)},
+		{l: Number(-3.1415), exp: Number(3.1415)},
+		{l: Number(0), exp: Number(0)},
+		{l: String("ok"), err: true},
+		{l: Bool(false), err: true},
+		{l: oplus, exp: Number(-1)},
+		{l: o, err: true},
+		{l: fn, err: true},
+		// TODO : Custom type
+	}
+)
+
+func init() {
+	fRetArg := NewNativeFunc(ctx, "", func(args ...Val) Val {
+		ExpectAtLeastNArgs(2, args)
+		return args[0]
+	})
+	fRetUnm := NewNativeFunc(ctx, "", func(args ...Val) Val {
+		return Number(-1)
+	})
+	oplus.Set(String("__add"), fRetArg)
+	oplus.Set(String("__sub"), fRetArg)
+	oplus.Set(String("__mul"), fRetArg)
+	oplus.Set(String("__div"), fRetArg)
+	oplus.Set(String("__mod"), fRetArg)
+	oplus.Set(String("__unm"), fRetUnm)
+}
+
+func TestArithmetic(t *testing.T) {
+	checkPanic := func(lbl string, i int, p bool) {
+		if e := recover(); (e != nil) != p {
+			if p {
+				t.Errorf("[%s %d] - expected error, got none", lbl, i)
+			} else {
+				t.Errorf("[%s %d] - expected no error, got %s", lbl, i, e)
 			}
-		}()
+		}
+	}
+	cases := map[string][]binArithCase{
+		"add": adds,
+		"sub": subs,
+		"mul": muls,
+		"div": divs,
+		"mod": mods,
+		"unm": unms,
+	}
+	for k, v := range cases {
+		for i, c := range v {
+			func() {
+				defer checkPanic(k, i, c.err)
+				var ret Val
+				switch k {
+				case "add":
+					ret = ari.Add(c.l, c.r)
+				case "sub":
+					ret = ari.Sub(c.l, c.r)
+				case "mul":
+					ret = ari.Mul(c.l, c.r)
+				case "div":
+					ret = ari.Div(c.l, c.r)
+				case "mod":
+					ret = ari.Mod(c.l, c.r)
+				case "unm":
+					ret = ari.Unm(c.l)
+				}
+				if _, ok := ret.(Number); ok {
+					if math.Abs(ret.Float()-c.exp.Float()) > floatCompareBuffer {
+						t.Errorf("[%s %d] - expected %s, got %s", k, i, c.exp, ret)
+					}
+				} else if ret != c.exp {
+					t.Errorf("[%s %d] - expected %s, got %s", k, i, c.exp, ret)
+				}
+			}()
+		}
 	}
 }
