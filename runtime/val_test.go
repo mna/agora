@@ -9,19 +9,45 @@ const (
 	floatCompareBuffer = 1e-6
 )
 
-type binArithCase struct {
+// Test cases for arithmetic
+type arithCase struct {
 	l, r, exp Val
 	err       bool
 }
 
+// Define a custom type
+type cusType struct{}
+
+func (c cusType) Int() int64 {
+	return 1
+}
+func (c cusType) Float() float64 {
+	return 1.0
+}
+func (c cusType) String() string {
+	return "cus!"
+}
+func (c cusType) Bool() bool {
+	return true
+}
+func (c cusType) Native() interface{} {
+	return c
+}
+func (c cusType) dump() string {
+	return c.String()
+}
+
 var (
+	// Common variables for the tests
 	ctx   = NewCtx(nil, nil)
 	ari   = defaultArithmetic{}
 	o     = NewObject()
 	oplus = NewObject()
 	fn    = NewNativeFunc(ctx, "", func(_ ...Val) Val { return Nil })
+	cus   = cusType{}
 
-	common = []binArithCase{
+	// Common cases, same result regardless of operation
+	common = []arithCase{
 		{l: Nil, r: Nil, err: true},
 		{l: Nil, r: Number(2), err: true},
 		{l: Nil, r: String("test"), err: true},
@@ -29,21 +55,21 @@ var (
 		{l: Nil, r: o, err: true},
 		{l: Nil, r: oplus, exp: Nil},
 		{l: Nil, r: fn, err: true},
-		// TODO: Custom
+		{l: Nil, r: cusType{}, err: true},
 		{l: Number(2), r: Nil, err: true},
 		{l: Number(2), r: String("test"), err: true},
 		{l: Number(2), r: Bool(true), err: true},
 		{l: Number(2), r: o, err: true},
 		{l: Number(2), r: oplus, exp: Number(2)},
 		{l: Number(2), r: fn, err: true},
-		// TODO: Custom
+		{l: Number(2), r: cusType{}, err: true},
 		{l: String("ok"), r: Nil, err: true},
 		{l: String("ok"), r: Number(2), err: true},
 		{l: String("ok"), r: Bool(true), err: true},
 		{l: String("ok"), r: o, err: true},
 		{l: String("ok"), r: oplus, exp: String("ok")},
 		{l: String("ok"), r: fn, err: true},
-		// TODO: Custom
+		{l: String("ok"), r: cusType{}, err: true},
 		{l: Bool(true), r: Nil, err: true},
 		{l: Bool(true), r: Number(2), err: true},
 		{l: Bool(true), r: String("test"), err: true},
@@ -51,7 +77,7 @@ var (
 		{l: Bool(true), r: o, err: true},
 		{l: Bool(true), r: oplus, exp: Bool(true)},
 		{l: Bool(true), r: fn, err: true},
-		// TODO: Custom
+		{l: Bool(true), r: cusType{}, err: true},
 		{l: oplus, r: Nil, exp: Nil},
 		{l: oplus, r: Number(2), exp: Number(2)},
 		{l: oplus, r: String("test"), exp: String("test")},
@@ -59,7 +85,7 @@ var (
 		{l: oplus, r: o, exp: o},
 		{l: oplus, r: oplus, exp: oplus},
 		{l: oplus, r: fn, exp: fn},
-		// TODO: Custom
+		{l: oplus, r: cus, exp: cus},
 		{l: o, r: Nil, err: true},
 		{l: o, r: Number(2), err: true},
 		{l: o, r: String("test"), err: true},
@@ -67,7 +93,7 @@ var (
 		{l: o, r: o, err: true},
 		{l: o, r: oplus, exp: o},
 		{l: o, r: fn, err: true},
-		// TODO: Custom
+		{l: o, r: cusType{}, err: true},
 		{l: fn, r: Nil, err: true},
 		{l: fn, r: Number(2), err: true},
 		{l: fn, r: String("test"), err: true},
@@ -75,10 +101,19 @@ var (
 		{l: fn, r: o, err: true},
 		{l: fn, r: oplus, exp: fn},
 		{l: fn, r: fn, err: true},
-		// TODO: Custom
+		{l: fn, r: cusType{}, err: true},
+		{l: cus, r: Nil, err: true},
+		{l: cus, r: Number(2), err: true},
+		{l: cus, r: String("test"), err: true},
+		{l: cus, r: Bool(true), err: true},
+		{l: cus, r: o, err: true},
+		{l: cus, r: oplus, exp: cus},
+		{l: cus, r: fn, err: true},
+		{l: cus, r: cusType{}, err: true},
 	}
 
-	adds = append(common, []binArithCase{
+	// Add-specific cases
+	adds = append(common, []arithCase{
 		{l: Number(2), r: Number(5), exp: Number(7)},
 		{l: Number(-2), r: Number(5.123), exp: Number(3.123)},
 		{l: Number(2.24), r: Number(0.01), exp: Number(2.25)},
@@ -88,7 +123,8 @@ var (
 		{l: String(""), r: String(""), exp: String("")},
 	}...)
 
-	subs = append(common, []binArithCase{
+	// Sub-specific cases
+	subs = append(common, []arithCase{
 		{l: Number(5), r: Number(2), exp: Number(3)},
 		{l: Number(-2), r: Number(5.123), exp: Number(-7.123)},
 		{l: Number(2.24), r: Number(0.01), exp: Number(2.23)},
@@ -96,7 +132,8 @@ var (
 		{l: String("hi"), r: String("you"), err: true},
 	}...)
 
-	muls = append(common, []binArithCase{
+	// Mul-specific cases
+	muls = append(common, []arithCase{
 		{l: Number(5), r: Number(2), exp: Number(10)},
 		{l: Number(-2), r: Number(5.123), exp: Number(-10.246)},
 		{l: Number(2.24), r: Number(0.01), exp: Number(0.0224)},
@@ -104,7 +141,8 @@ var (
 		{l: String("hi"), r: String("you"), err: true},
 	}...)
 
-	divs = append(common, []binArithCase{
+	// Div-specific cases
+	divs = append(common, []arithCase{
 		{l: Number(5), r: Number(2), exp: Number(2.5)},
 		{l: Number(-2), r: Number(5.123), exp: Number(-0.390396252)},
 		{l: Number(2.24), r: Number(0.01), exp: Number(224)},
@@ -112,7 +150,8 @@ var (
 		{l: String("hi"), r: String("you"), err: true},
 	}...)
 
-	mods = append(common, []binArithCase{
+	// Mod-specific cases
+	mods = append(common, []arithCase{
 		{l: Number(5), r: Number(2), exp: Number(1)},
 		{l: Number(-2), r: Number(5.123), exp: Number(-2)},
 		{l: Number(2.24), r: Number(1.1), exp: Number(0)},
@@ -120,7 +159,8 @@ var (
 		{l: String("hi"), r: String("you"), err: true},
 	}...)
 
-	unms = []binArithCase{
+	// Unm-specific cases
+	unms = []arithCase{
 		{l: Nil, err: true},
 		{l: Number(4), exp: Number(-4)},
 		{l: Number(-3.1415), exp: Number(3.1415)},
@@ -130,7 +170,7 @@ var (
 		{l: oplus, exp: Number(-1)},
 		{l: o, err: true},
 		{l: fn, err: true},
-		// TODO : Custom type
+		{l: cus, err: true},
 	}
 )
 
@@ -150,6 +190,32 @@ func init() {
 	oplus.Set(String("__unm"), fRetUnm)
 }
 
+func TestType(t *testing.T) {
+	cases := []struct {
+		src Val
+		exp string
+	}{
+		{src: Nil, exp: "nil"},
+		{src: Bool(true), exp: "bool"},
+		{src: Bool(false), exp: "bool"},
+		{src: Number(1), exp: "number"},
+		{src: Number(3.1415), exp: "number"},
+		{src: Number(0.0), exp: "number"},
+		{src: String("ok"), exp: "string"},
+		{src: String(""), exp: "string"},
+		{src: fn, exp: "func"},
+		{src: o, exp: "object"},
+		{src: oplus, exp: "object"},
+		{src: cusType{}, exp: "custom"},
+	}
+	for i, c := range cases {
+		got := Type(c.src)
+		if got != c.exp {
+			t.Errorf("[%d] - expected %s, got %s", i, c.exp, got)
+		}
+	}
+}
+
 func TestArithmetic(t *testing.T) {
 	checkPanic := func(lbl string, i int, p bool) {
 		if e := recover(); (e != nil) != p {
@@ -160,7 +226,7 @@ func TestArithmetic(t *testing.T) {
 			}
 		}
 	}
-	cases := map[string][]binArithCase{
+	cases := map[string][]arithCase{
 		"add": adds,
 		"sub": subs,
 		"mul": muls,
