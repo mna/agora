@@ -141,6 +141,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	if v, ok := m["result"]; ok {
 		assert = true
 		v = strings.Replace(v, "\\n", "\n", -1)
+		v = strings.Replace(v, "\\t", "\t", -1)
 		switch retv := ret.(type) {
 		case runtime.Object, runtime.Func:
 			str := fmt.Sprintf("%s", retv)
@@ -156,6 +157,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	if v, ok := m["output"]; ok {
 		assert = true
 		v = strings.Replace(v, "\\n", "\n", -1)
+		v = strings.Replace(v, "\\t", "\t", -1)
 		if got := buf.String(); got != v {
 			t.Errorf("[%s] - expected output '%s', got '%s'", id, v, got)
 		}

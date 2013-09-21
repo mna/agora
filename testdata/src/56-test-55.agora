@@ -1,2 +1,5 @@
+/*---
+result: this\nis\ta\nmulti-line\n"string"!
+---*/
 m55 := import("55-escaped-strings")
 return m55

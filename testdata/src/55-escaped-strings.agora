@@ -1,2 +1,5 @@
+/*---
+result: this\nis\ta\nmulti-line\n"string"!
+---*/
 a := "this\nis\ta\nmulti-line\n\"string\"!"
 return a
