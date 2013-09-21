@@ -188,6 +188,7 @@ func init() {
 	oplus.Set(String("__div"), fRetArg)
 	oplus.Set(String("__mod"), fRetArg)
 	oplus.Set(String("__unm"), fRetUnm)
+	oplus.Set(String("__cmp"), fRetUnm)
 }
 
 func TestType(t *testing.T) {
@@ -261,6 +262,94 @@ func TestArithmetic(t *testing.T) {
 					t.Errorf("[%s %d] - expected %s, got %s", k, i, c.exp, ret)
 				}
 			}()
+		}
+	}
+}
+
+func TestComparer(t *testing.T) {
+	cases := []struct {
+		l, r Val
+		exp  int
+	}{
+		{l: Nil, r: Nil, exp: 0},
+		{l: Nil, r: Number(2), exp: -1},
+		{l: Nil, r: String("ok"), exp: -1},
+		{l: Nil, r: Bool(true), exp: -1},
+		{l: Nil, r: oplus, exp: -1},
+		{l: Nil, r: o, exp: -1},
+		{l: Nil, r: fn, exp: -1},
+		{l: Nil, r: cus, exp: -1},
+		{l: Number(2), r: Nil, exp: 1},
+		{l: Number(2), r: Number(0), exp: 1},
+		{l: Number(-3.45), r: Number(1.23), exp: -1},
+		{l: Number(2.0), r: Number(2), exp: 0},
+		{l: Number(2.4), r: Number(0), exp: 1},
+		{l: Number(2), r: String("ok"), exp: -1},
+		{l: Number(2), r: Bool(true), exp: 1},
+		{l: Number(2), r: oplus, exp: -1},
+		{l: Number(2), r: o, exp: -1},
+		{l: Number(2), r: fn, exp: 1},
+		{l: Number(2), r: cus, exp: 1},
+		{l: String("ok"), r: Nil, exp: 1},
+		{l: String("ok"), r: Number(2), exp: 1},
+		{l: String("ok"), r: String("test"), exp: -1},
+		{l: String("ok"), r: String(""), exp: 1},
+		{l: String("ok"), r: String("ok "), exp: -1},
+		{l: String("ok"), r: Bool(false), exp: 1},
+		{l: String("ok"), r: oplus, exp: -1},
+		{l: String("ok"), r: o, exp: 1},
+		{l: String("ok"), r: fn, exp: 1},
+		{l: String("ok"), r: cus, exp: 1},
+		{l: Bool(true), r: Nil, exp: 1},
+		{l: Bool(true), r: Number(2), exp: -1},
+		{l: Bool(true), r: String("ok"), exp: -1},
+		{l: Bool(true), r: Bool(true), exp: 0},
+		{l: Bool(true), r: Bool(false), exp: 1},
+		{l: Bool(false), r: Bool(false), exp: 0},
+		{l: Bool(false), r: Bool(true), exp: -1},
+		{l: Bool(false), r: oplus, exp: -1},
+		{l: Bool(false), r: o, exp: -1},
+		{l: Bool(false), r: fn, exp: -1},
+		{l: Bool(false), r: cus, exp: -1},
+		{l: oplus, r: Nil, exp: -1},
+		{l: oplus, r: Number(2), exp: -1},
+		{l: oplus, r: String("ok"), exp: -1},
+		{l: oplus, r: Bool(true), exp: -1},
+		{l: oplus, r: oplus, exp: -1},
+		{l: oplus, r: o, exp: -1},
+		{l: oplus, r: fn, exp: -1},
+		{l: oplus, r: cus, exp: -1},
+		{l: o, r: Nil, exp: 1},
+		{l: o, r: Number(2), exp: 1},
+		{l: o, r: String("ok"), exp: -1},
+		{l: o, r: Bool(true), exp: 1},
+		{l: o, r: oplus, exp: -1},
+		{l: o, r: o, exp: 0},
+		{l: o, r: NewObject(), exp: -1},
+		{l: o, r: fn, exp: 1},
+		{l: o, r: cus, exp: 1},
+		{l: fn, r: Nil, exp: 1},
+		{l: fn, r: Number(2), exp: -1},
+		{l: fn, r: String("ok"), exp: -1},
+		{l: fn, r: Bool(true), exp: 1},
+		{l: fn, r: oplus, exp: -1},
+		{l: fn, r: o, exp: -1},
+		{l: fn, r: fn, exp: 0},
+		{l: fn, r: cus, exp: 1},
+		{l: cus, r: Nil, exp: 1},
+		{l: cus, r: Number(2), exp: -1},
+		{l: cus, r: String("ok"), exp: -1},
+		{l: cus, r: Bool(true), exp: 1},
+		{l: cus, r: oplus, exp: -1},
+		{l: cus, r: o, exp: -1},
+		{l: cus, r: fn, exp: -1},
+		{l: cus, r: cus, exp: 0},
+	}
+	cmp := defaultComparer{}
+	for i, c := range cases {
+		got := cmp.Cmp(c.l, c.r)
+		if got != c.exp {
+			t.Errorf("[%d] - expected %d, got %d", i, c.exp, got)
 		}
 	}
 }
