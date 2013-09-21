@@ -9,6 +9,15 @@ import (
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
+type EmptyModuleError string
+
+func (e EmptyModuleError) Error() string {
+	return string(e)
+}
+func NewEmptyModuleError(id string) EmptyModuleError {
+	return EmptyModuleError(fmt.Sprintf("empty module: %s", id))
+}
+
 // The Module interface defines the required behaviours for a Module.
 type Module interface {
 	ID() string
@@ -32,6 +41,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 	m := &agoraModule{
 		id: f.Name,
 	}
+	// Define all functions
 	m.fns = make([]*agoraFunc, len(f.Fns))
 	for i, fn := range f.Fns {
 		af := newAgoraFunc(m, c)
@@ -74,7 +84,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 func (m *agoraModule) Run(args ...Val) (v Val, err error) {
 	defer PanicToError(&err)
 	if len(m.fns) == 0 {
-		return Nil, ErrModuleHasNoFunc
+		return Nil, NewEmptyModuleError(m.ID())
 	}
 	// Do not re-run a module if it has already been imported. Use the cached value.
 	if m.v == nil {

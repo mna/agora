@@ -60,14 +60,6 @@ func (a *agoraFunc) Native() interface{} {
 	return a
 }
 
-// Cmp compares an Agora function to another value.
-func (a *agoraFunc) Cmp(v Val) int {
-	if a == v {
-		return 0
-	}
-	return -1
-}
-
 // Call instantiates an executable function intance from this agora function
 // prototype, sets the `this` value and executes the function's instructions.
 // It returns the agora function's return value.
@@ -100,14 +92,6 @@ func ExpectAtLeastNArgs(n int, args []Val) {
 // Native returns the Go native representation of the native function type.
 func (n *NativeFunc) Native() interface{} {
 	return n
-}
-
-// Cmp compares the native function with another value.
-func (n *NativeFunc) Cmp(v Val) int {
-	if n == v {
-		return 0
-	}
-	return -1
 }
 
 // Call executes the native function and returns its return value.

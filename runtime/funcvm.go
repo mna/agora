@@ -2,18 +2,12 @@ package runtime
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"math"
 	"sort"
 
 	"github.com/PuerkitoBio/agora/bytecode"
-)
-
-var (
-	// Predefined errors
-	ErrValNotAnObject = errors.New("value is not an object")
 )
 
 // A funcVM is an instance of a function prototype. It holds the virtual machine
@@ -194,8 +188,13 @@ func (vm *funcVM) createLocals() {
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
 func (f *funcVM) run(args ...Val) Val {
+	// Keep reference to arithmetic and comparer
+	arith := f.proto.ctx.Arithmetic
+	cmp := f.proto.ctx.Comparer
+
 	// Create local variables
 	f.createLocals()
+
 	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
 	for j, l := int64(0), int64(len(args)); j < f.proto.expArgs; j++ {
 		if j < l {
@@ -231,23 +230,23 @@ func (f *funcVM) run(args ...Val) Val {
 
 		case bytecode.OP_ADD:
 			y, x := f.pop(), f.pop()
-			f.push(x.Add(y))
+			f.push(arith.Add(x, y))
 
 		case bytecode.OP_SUB:
 			y, x := f.pop(), f.pop()
-			f.push(x.Sub(y))
+			f.push(arith.Sub(x, y))
 
 		case bytecode.OP_MUL:
 			y, x := f.pop(), f.pop()
-			f.push(x.Mul(y))
+			f.push(arith.Mul(x, y))
 
 		case bytecode.OP_DIV:
 			y, x := f.pop(), f.pop()
-			f.push(x.Div(y))
+			f.push(arith.Div(x, y))
 
 		case bytecode.OP_MOD:
 			y, x := f.pop(), f.pop()
-			f.push(x.Mod(y))
+			f.push(arith.Mod(x, y))
 
 		case bytecode.OP_NOT:
 			x := f.pop()
@@ -255,37 +254,31 @@ func (f *funcVM) run(args ...Val) Val {
 
 		case bytecode.OP_UNM:
 			x := f.pop()
-			f.push(x.Unm())
+			f.push(arith.Unm(x))
 
 		case bytecode.OP_EQ:
 			y, x := f.pop(), f.pop()
-			cmp := x.Cmp(y)
-			f.push(Bool(cmp == 0))
+			f.push(Bool(cmp.Cmp(x, y) == 0))
 
 		case bytecode.OP_NEQ:
 			y, x := f.pop(), f.pop()
-			cmp := x.Cmp(y)
-			f.push(Bool(cmp != 0))
+			f.push(Bool(cmp.Cmp(x, y) != 0))
 
 		case bytecode.OP_LT:
 			y, x := f.pop(), f.pop()
-			cmp := x.Cmp(y)
-			f.push(Bool(cmp < 0))
+			f.push(Bool(cmp.Cmp(x, y) < 0))
 
 		case bytecode.OP_LTE:
 			y, x := f.pop(), f.pop()
-			cmp := x.Cmp(y)
-			f.push(Bool(cmp <= 0))
+			f.push(Bool(cmp.Cmp(x, y) <= 0))
 
 		case bytecode.OP_GT:
 			y, x := f.pop(), f.pop()
-			cmp := x.Cmp(y)
-			f.push(Bool(cmp > 0))
+			f.push(Bool(cmp.Cmp(x, y) > 0))
 
 		case bytecode.OP_GTE:
 			y, x := f.pop(), f.pop()
-			cmp := x.Cmp(y)
-			f.push(Bool(cmp >= 0))
+			f.push(Bool(cmp.Cmp(x, y) >= 0))
 
 		case bytecode.OP_AND:
 			y, x := f.pop(), f.pop()
@@ -321,7 +314,7 @@ func (f *funcVM) run(args ...Val) Val {
 			if ob, ok := vr.(Object); ok {
 				ob.Set(k, vl)
 			} else {
-				panic(ErrValNotAnObject)
+				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_GFLD:
@@ -329,7 +322,7 @@ func (f *funcVM) run(args ...Val) Val {
 			if ob, ok := vr.(Object); ok {
 				f.push(ob.Get(k))
 			} else {
-				panic(ErrValNotAnObject)
+				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_CFLD:
@@ -342,7 +335,7 @@ func (f *funcVM) run(args ...Val) Val {
 			if ob, ok := vr.(Object); ok {
 				f.push(ob.callMethod(k, args...))
 			} else {
-				panic(ErrValNotAnObject)
+				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_CALL:
@@ -351,7 +344,7 @@ func (f *funcVM) run(args ...Val) Val {
 			x := f.pop()
 			fn, ok := x.(Func)
 			if !ok {
-				panic("call on a non-function value")
+				panic(NewTypeError(Type(x), "", "func"))
 			}
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)

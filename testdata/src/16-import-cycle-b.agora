@@ -1,5 +1,5 @@
 /*---
-error: cyclic module dependency found
+error: cyclic dependency: 16-import-cycle-b already being loaded
 ---*/
 a := import("16-import-cycle-a")
 return 2

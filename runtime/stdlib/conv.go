@@ -49,18 +49,5 @@ func (c *ConvMod) conv_Bool(args ...runtime.Val) runtime.Val {
 
 func (c *ConvMod) conv_Type(args ...runtime.Val) runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	switch args[0].(type) {
-	case runtime.String:
-		return runtime.String("string")
-	case runtime.Number:
-		return runtime.String("number")
-	case runtime.Bool:
-		return runtime.String("bool")
-	case runtime.Func:
-		return runtime.String("func")
-	case runtime.Object:
-		return runtime.String("object")
-	default:
-		return runtime.String("nil")
-	}
+	return runtime.String(runtime.Type(args[0]))
 }

@@ -1,18 +1,8 @@
 package runtime
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
-	"strings"
-)
-
-var (
-	// Predefined errors
-	ErrInvalidOpSubOnString = errors.New("cannot apply Sub on a String value")
-	ErrInvalidOpDivOnString = errors.New("cannot apply Div on a String value")
-	ErrInvalidOpModOnString = errors.New("cannot apply Mod on a String value")
-	ErrInvalidOpUnmOnString = errors.New("cannot apply Unm on a String value")
 )
 
 // String is the representation of the String type. It is equivalent
@@ -59,48 +49,4 @@ func (s String) Bool() bool {
 // Native returns the Go native representation of the value.
 func (s String) Native() interface{} {
 	return string(s)
-}
-
-// Cmp compares the value with another value.
-func (s String) Cmp(v Val) int {
-	if vs := v.String(); string(s) > vs {
-		return 1
-	} else if string(s) < vs {
-		return -1
-	} else {
-		return 0
-	}
-}
-
-// Add performs the concatenation of the string with the supplied value,
-// converted to a string.
-func (s String) Add(v Val) Val {
-	return String(string(s) + v.String())
-}
-
-// Sub is an invalid operation.
-func (s String) Sub(v Val) Val {
-	panic(ErrInvalidOpSubOnString)
-}
-
-// Mul repeats n number of times the string, n being the
-// value converted to an integer.
-// TODO : Is this a *good idea*?
-func (s String) Mul(v Val) Val {
-	return String(strings.Repeat(string(s), int(v.Int())))
-}
-
-// Div is an invalid operation.
-func (s String) Div(v Val) Val {
-	panic(ErrInvalidOpDivOnString)
-}
-
-// Mod is an invalid operation.
-func (s String) Mod(v Val) Val {
-	panic(ErrInvalidOpModOnString)
-}
-
-// Unm is an invalid operation.
-func (s String) Unm() Val {
-	panic(ErrInvalidOpUnmOnString)
 }

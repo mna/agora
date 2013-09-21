@@ -1,5 +1,5 @@
 /*---
-error: value is not an object
+error: type error: object not allowed with type nil
 ---*/
 a := {b: {c: {d: "hi"}}}
 return a.b.j.k
