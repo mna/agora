@@ -214,9 +214,13 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
 	case "&&", "||":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
-		e.emitAny(f, fn, sym, sym.First)
-		e.emitAny(f, fn, sym, sym.Second)
-		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
+		if sym.Id == "&&" {
+			// Equivalent to if <first> then <second> else <first>
+			e.emitShortcutIf(f, fn, sym, sym.First, sym.Second, sym.First)
+		} else {
+			// Equivalent to if <first> then <first> else <second>
+			e.emitShortcutIf(f, fn, sym, sym.First, sym.First, sym.Second)
+		}
 	case "=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `+` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)

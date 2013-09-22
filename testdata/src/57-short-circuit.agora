@@ -1,6 +1,16 @@
 /*---
-output:
-result: true
+output: c\nd\n
+result: truefalse22default17test18
 ---*/
 fmt := import("fmt")
-return true || fmt.Println("ok")
+strings := import("strings")
+
+a := true || fmt.Println("a")
+b := false && fmt.Println("b")
+c := true && fmt.Println("c")
+d := false || fmt.Println("d")
+e := "" || "default"
+f := 0 || 17
+g := "test" || "notest"
+h := 18 || 1
+return strings.Concat(a, b, c, d, e, f, g, h)
