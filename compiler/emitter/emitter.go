@@ -24,8 +24,6 @@ var (
 		">=": bytecode.OP_GTE,
 		"==": bytecode.OP_EQ,
 		"!=": bytecode.OP_NEQ,
-		"&&": bytecode.OP_AND,
-		"||": bytecode.OP_OR,
 	}
 	binAsgSym2op = map[string]bytecode.Opcode{
 		"+=": bytecode.OP_ADD,
@@ -462,7 +460,7 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 		e.stackSz[fn] += (1 - (2 * int64(ix)))
 	case bytecode.OP_POP, bytecode.OP_RET, bytecode.OP_UNM, bytecode.OP_NOT, bytecode.OP_TEST,
 		bytecode.OP_LT, bytecode.OP_LTE, bytecode.OP_GT, bytecode.OP_GTE, bytecode.OP_EQ,
-		bytecode.OP_AND, bytecode.OP_OR, bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,
+		bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,
 		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD, bytecode.OP_NEQ:
 		e.stackSz[fn] -= 1
 	case bytecode.OP_SFLD:

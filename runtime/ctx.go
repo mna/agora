@@ -47,7 +47,6 @@ type Ctx struct {
 	Stdout     io.ReadWriter  // The standard streams
 	Stdin      io.ReadWriter  // ...
 	Stderr     io.ReadWriter  // ...
-	Logic      LogicProcessor // The boolean logic processor (And, Or, Not)
 	Arithmetic Arithmetic     // The arithmetic processor
 	Comparer   Comparer       // The comparison processor
 	Resolver   ModuleResolver // The module loading resolver (match a module to a string literal)
@@ -74,7 +73,6 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		Stdout:      os.Stdout,
 		Stdin:       os.Stdin,
 		Stderr:      os.Stderr,
-		Logic:       defaultLogic{},
 		Arithmetic:  defaultArithmetic{},
 		Comparer:    defaultComparer{},
 		Resolver:    resolver,

@@ -250,7 +250,7 @@ func (f *funcVM) run(args ...Val) Val {
 
 		case bytecode.OP_NOT:
 			x := f.pop()
-			f.push(f.proto.ctx.Logic.Not(x))
+			f.push(Bool(!x.Bool()))
 
 		case bytecode.OP_UNM:
 			x := f.pop()
@@ -279,14 +279,6 @@ func (f *funcVM) run(args ...Val) Val {
 		case bytecode.OP_GTE:
 			y, x := f.pop(), f.pop()
 			f.push(Bool(cmp.Cmp(x, y) >= 0))
-
-		case bytecode.OP_AND:
-			y, x := f.pop(), f.pop()
-			f.push(f.proto.ctx.Logic.And(x, y))
-
-		case bytecode.OP_OR:
-			y, x := f.pop(), f.pop()
-			f.push(f.proto.ctx.Logic.Or(x, y))
 
 		case bytecode.OP_TEST:
 			if !f.pop().Bool() {

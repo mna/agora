@@ -319,27 +319,3 @@ func Type(v Val) string {
 		}
 	}
 }
-
-// The LogicProcessor interface defines the method required to implement
-// boolean logic. It is defined as an interface for pluggable replacement
-// for testing.
-type LogicProcessor interface {
-	Not(v Val) Bool
-	And(x, y Val) Bool
-	Or(x, y Val) Bool
-}
-
-// The default implementation of the logic processor.
-type defaultLogic struct{}
-
-func (d defaultLogic) Not(v Val) Bool {
-	return Bool(!v.Bool())
-}
-
-func (d defaultLogic) And(x, y Val) Bool {
-	return Bool(x.Bool() && y.Bool())
-}
-
-func (d defaultLogic) Or(x, y Val) Bool {
-	return Bool(x.Bool() || y.Bool())
-}

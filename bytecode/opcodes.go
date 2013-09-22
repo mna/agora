@@ -25,8 +25,6 @@ const (
 	OP_LTE                // lower than or equal on two values from the stack, push the result
 	OP_GT                 // greater than on two values from the stack, push the result
 	OP_GTE                // greater than or equal on two values from the stack, push the result
-	OP_AND                // boolean `and` on two values from the stack, push the result
-	OP_OR                 // boolean `or` on two values from the stack, push the result
 	OP_TEST               // check the boolean value on top of the stack, if false jump n instructions
 	OP_JMP                // perform an unconditional jump (forward or backward, depending on the flag)
 	OP_NEW                // create and initialize a new object, push the result
@@ -59,8 +57,6 @@ var (
 		OP_LTE:  "LTE",
 		OP_GT:   "GT",
 		OP_GTE:  "GTE",
-		OP_AND:  "AND",
-		OP_OR:   "OR",
 		OP_TEST: "TEST",
 		OP_JMP:  "JMP",
 		OP_NEW:  "NEW",
@@ -89,8 +85,6 @@ var (
 		"LTE":  OP_LTE,
 		"GT":   OP_GT,
 		"GTE":  OP_GTE,
-		"AND":  OP_AND,
-		"OR":   OP_OR,
 		"TEST": OP_TEST,
 		"JMP":  OP_JMP,
 		"NEW":  OP_NEW,
