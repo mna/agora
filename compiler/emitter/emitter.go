@@ -135,6 +135,23 @@ func (e *Emitter) emitBlock(f *bytecode.File, fn *bytecode.Fn, syms []*parser.Sy
 	}
 }
 
+func (e *Emitter) emitShortcutIf(f *bytecode.File, fn *bytecode.Fn, parent *parser.Symbol, cond, truePart, falsePart interface{}) {
+	// Emit the condition
+	e.emitAny(f, fn, parent, cond)
+	// Next comes the TEST
+	tstIx := e.addTempInstr(fn)
+	// Then the true expression
+	e.emitAny(f, fn, parent, truePart)
+	// Then a jump over the false expression
+	jmpIx := e.addTempInstr(fn)
+	// Update the test instruction, here starts the false part
+	e.updateTestInstr(fn, tstIx)
+	// Emit the false expression
+	e.emitAny(f, fn, parent, falsePart)
+	// Update the jump instruction, to after the false part
+	e.updateJumpfInstr(fn, jmpIx)
+}
+
 func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, asg asgType) {
 	if e.err != nil {
 		return
@@ -275,20 +292,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "?":
 		// Similar to if, but yields a value
 		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))
-		// First is the condition, always a *Symbol
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
-		// Next comes the TEST
-		tstIx := e.addTempInstr(fn)
-		// Then the true expression, always a *Symbol
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
-		// Then a jump over the false expression
-		jmpIx := e.addTempInstr(fn)
-		// Update the test instruction, here starts the false part
-		e.updateTestInstr(fn, tstIx)
-		// Emit the false expression, always a *Symbol
-		e.emitSymbol(f, fn, sym.Third.(*parser.Symbol), atFalse)
-		// Update the jump instruction, to after the false part
-		e.updateJumpfInstr(fn, jmpIx)
+		e.emitShortcutIf(f, fn, sym, sym.First, sym.Second, sym.Third)
 	case "if":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
 		// First is the condition, always a *Symbol

@@ -1,0 +1,12 @@
+/*---
+result: 1
+---*/
+a := {}
+b := "test"
+c := nil
+
+if a ? b : c {
+	return 1
+}
+
+return -1

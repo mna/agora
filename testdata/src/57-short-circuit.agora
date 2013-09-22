@@ -1,0 +1,6 @@
+/*---
+output:
+result: true
+---*/
+fmt := import("fmt")
+return true || fmt.Println("ok")
