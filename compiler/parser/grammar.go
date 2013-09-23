@@ -1,5 +1,9 @@
 package parser
 
+import (
+	"fmt"
+)
+
 // This function defines the whole grammar of the language.
 func (p *Parser) defineGrammar() {
 	// Ponctuation symbols
@@ -223,7 +227,8 @@ func (p *Parser) defineGrammar() {
 			sym.First = left
 			sym.Second = a
 			sym.Third = nil
-			if (left.Ar != ArUnary || left.Id != "func") &&
+			fmt.Println(left)
+			if left.Ar != ArUnary && (left.Id != "func" || left.Name != "") &&
 				left.Ar != ArName && left.Id != "(" &&
 				left.Id != "&&" && left.Id != "||" && left.Id != "?" {
 				p.error(left, "expected a variable name")

@@ -1,0 +1,5 @@
+a := func() {
+	return 3
+}()
+
+return a
