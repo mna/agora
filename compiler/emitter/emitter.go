@@ -220,7 +220,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			e.emitShortcutIf(f, fn, sym, sym.First, sym.First, sym.Second)
 		}
 	case "=":
-		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `+` to have binary arity"))
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `=` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		left := sym.First.(*parser.Symbol)
 		if left.Id == "." {
