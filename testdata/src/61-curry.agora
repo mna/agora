@@ -1,0 +1,13 @@
+/*---
+result: 28
+---*/
+func makeAdder(n) {
+	return func(x) {
+		return n + x
+	}
+}
+
+add2 := makeAdder(2)
+add10 := makeAdder(10)
+
+return add2(3) + add10(9) + add2(2)

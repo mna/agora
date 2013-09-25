@@ -1,57 +1,52 @@
+conv := import("conv")
+strings := import("strings")
+
 ob := {}
 
-ob.Stringify = func(src) {
-	// Required here until closures are implemented...
-  conv := import("conv")
-  strings := import("strings")
+func ignored(key, val) {
+	return conv.Type(key) == "func" || conv.Type(val) == "func"
+}
 
-  func ignored(key, val) {
-  	return conv.Type(key) == "func" || conv.Type(val) == "func"
-  }
+func stringify(val, quote) {
+	type := conv.Type(val)
+	if type == "string" || ((type == "number" || type == "bool") && quote) {
+		// TODO : more robust escape of quotes in the string...
+		str := strings.Replace(val, `"`, `\"`)
+		return `"` + str + `"`
+	} else if type == "number" || type == "bool" {
+		return conv.String(val)
+	} else if type == "func" {
+		panic("cannot marshal a func to JSON")
+	} else if type != "object" {
+		return ""
+	} else if val.__string {
+		// An object, but it "knows" how to stringify itself
+		return stringify(conv.String(val), true)
+	}
 
-  func stringify(val, quote) {
-  	type := conv.Type(val)
-  	if type == "string" || ((type == "number" || type == "bool") && quote) {
-  		// TODO : more robust escape of quotes in the string...
-			str := strings.Replace(val, `"`, `\"`)
-  		return `"` + str + `"`
-  	} else if type == "number" || type == "bool" {
-  		return conv.String(val)
-  	} else if type == "func" {
-  		panic("cannot marshal a func to JSON")
-  	} else if type != "object" {
-  		return ""
-  	} else if val.__string {
-			// An object, but it "knows" how to stringify itself
-			return stringify(conv.String(val), true)
+	// Finally, the object the "hard" way
+	ks := keys(val)
+	l := len(ks)
+	obj := "{"
+	for i := 0; i < l; i++ {
+		key := ks[i]
+		v := val[ks[i]]
+		if !ignored(key, v) {
+			if obj != "{" {
+				obj += ", "
+			}
+			obj = strings.Concat(obj, stringify(key, true), ":", stringify(v, false))
 		}
-  
-  	// Finally, the object the "hard" way
-  	ks := keys(val)
-  	l := len(ks)
-  	obj := "{"
-  	for i := 0; i < l; i++ {
-  		key := ks[i]
-  		v := val[ks[i]]
-  		if !ignored(key, v) {
-				if obj != "{" {
-					obj += ", "
-				}
-  			obj = strings.Concat(obj, stringify(key, true), ":", stringify(v, false))
-  		}
-  	}
-		obj += "}"
-  	return obj
-  }
+	}
+	obj += "}"
+	return obj
+}
 
+ob.Stringify = func(src) {
 	return stringify(src, true)
 }
 
 ob.Parse = func(src) {
-	// Required here until closures are implemented...
-  conv := import("conv")
-  strings := import("strings")
-
 	src = strings.Trim(src)
 	parseObjFunc := nil // Required for parseValue to call parseObject before it is defined
 

@@ -34,3 +34,52 @@ func (f *funcVal) String() string {
 func (f *funcVal) Bool() bool {
 	return true
 }
+
+// The environment for a given func value. This is a linked list.
+type env struct {
+	upvals map[string]Val
+	parent *env
+}
+
+// An agoraFuncVal is a func's value, capturing its environment.
+type agoraFuncVal struct {
+	*funcVal
+	proto *agoraFuncDef
+	env   *env
+}
+
+// Create a new function value from the specified function prototype,
+// with the given function instance (VM) as environment.
+func newAgoraFuncVal(def *agoraFuncDef, vm *funcVM) *agoraFuncVal {
+	var e *env
+	if vm != nil {
+		e = &env{
+			vm.vars,
+			vm.val.env,
+		}
+	}
+	return &agoraFuncVal{
+		&funcVal{
+			def.ctx,
+			def.name,
+		},
+		def,
+		e,
+	}
+}
+
+// Call instantiates an executable function intance from this agora function
+// value, sets the `this` value and executes the function's instructions.
+// It returns the agora function's return value.
+func (a *agoraFuncVal) Call(this Val, args ...Val) Val {
+	vm := newFuncVM(a)
+	vm.this = this
+	a.proto.ctx.pushFn(a, vm)
+	defer a.proto.ctx.popFn()
+	return vm.run(args...)
+}
+
+// Native returns the Go native representation of an agora function.
+func (a *agoraFuncVal) Native() interface{} {
+	return a
+}

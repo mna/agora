@@ -14,3 +14,19 @@ A variable *v* must be closed-over once the function *f1* in which it is declare
 The first approach means that two closures referring to the same *v* inherit independent copies of *v* after the closure is created.
 
 The second approach allows two closures referring to the same *v* to share its value, which is probably the expected behaviour, or at least it is the behaviour in Go (http://play.golang.org/p/qhiXgw9Bfn).
+
+## Solution
+
+This solution is simple, easy to implement, and plays well with the GC. It is O(n) but n will most often be <= 3 in common cases.
+
+It involves splitting the current single representation of `Func` for both the prototype and the actual value into two separate representations.
+
+* `agoraFunc` will represent the prototype, which means all the static information about the function.
+* `agoraFuncVal` will represent a function value, and will be created each time a new function value is produced at runtime and will hold both its prototype and its runtime context - a linked list of reachable local variables (i.e. allows for closures, currying, and normal funcs). It will be created something like `newFuncVal(proto, parentVM)`.
+* `funcVM` will still represent one running instance of a function value, with its stack, state, local variables, etc.
+
+Native functions are left untouched, since they can't close over agora variables.
+
+The get/setVar methods of the `Ctx` will be impacted. Resolving a variable will not mean looking at the function VM's list of locals, and its function value's runtime context, then its function value's parent's runtime context, up the hierarchy. There will be dead code to remove in `Ctx` regarding the lexical scope/current variable resolution.
+
+The upside is that closures come for free (no need to do "escape analysis" and move upvalues at a specific time), as long as the function value is reachable, it keeps its full context. The downside is that *all* variables are kept, not just the ones closed-over. This will have to be done ultimately, so that unreferenced values get GCed.
