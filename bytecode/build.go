@@ -1,5 +1,5 @@
 package bytecode
 const (
-	AGORA_BUILD = "86dfd0a"
-	GO_BUILD = "go version devel +a6d1a3f0411a Sat Sep 14 09:30:36 2013 +0200 darwin/amd64"
+	AGORA_BUILD = "28eb2dd"
+	GO_BUILD = "go version devel +1607e9e9e6de Tue Sep 24 00:17:08 2013 -0400 darwin/amd64"
 )

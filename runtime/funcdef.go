@@ -15,6 +15,26 @@ type Func interface {
 	Call(this Val, args ...Val) Val
 }
 
+// An agoraFunc represents an agora function's prototype.
+type agoraFuncDef struct {
+	ctx *Ctx
+	mod *agoraModule
+	// Internal fields filled by the compiler
+	name    string
+	stackSz int64
+	expArgs int64
+	kTable  []Val
+	lTable  []string
+	code    []bytecode.Instr
+}
+
+func newAgoraFuncDef(mod *agoraModule, c *Ctx) *agoraFuncDef {
+	return &agoraFuncDef{
+		ctx: c,
+		mod: mod,
+	}
+}
+
 // NewNativeFunc returns a native function initialized with the specified context,
 // name and function implementation.
 func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
@@ -27,55 +47,10 @@ func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
 	}
 }
 
-// An agoraFunc represents an agora function.
-type agoraFunc struct {
-	// Expose the default Func value's behaviour
-	*funcVal
-
-	// Internal fields filled by the compiler
-	mod     *agoraModule
-	stackSz int64
-	expArgs int64
-	parent  *agoraFunc
-	kTable  []Val
-	lTable  []string
-	code    []bytecode.Instr
-}
-
-func newAgoraFunc(mod *agoraModule, c *Ctx) *agoraFunc {
-	return &agoraFunc{
-		&funcVal{ctx: c},
-		mod,
-		0,
-		0,
-		nil,
-		nil,
-		nil,
-		nil,
-	}
-}
-
-// Native returns the Go native representation of an agora function.
-func (a *agoraFunc) Native() interface{} {
-	return a
-}
-
-// Call instantiates an executable function intance from this agora function
-// prototype, sets the `this` value and executes the function's instructions.
-// It returns the agora function's return value.
-func (a *agoraFunc) Call(this Val, args ...Val) Val {
-	vm := newFuncVM(a)
-	vm.this = this
-	a.ctx.pushFn(a, vm)
-	defer a.ctx.popFn()
-	return vm.run(args...)
-}
-
 // A NativeFunc represents a Go function exposed to agora.
 type NativeFunc struct {
 	// Expose the default Func value's behaviour
 	*funcVal
-
 	// Internal fields
 	fn FuncFn
 }

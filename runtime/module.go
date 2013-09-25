@@ -31,26 +31,26 @@ type NativeModule interface {
 	SetCtx(*Ctx)
 }
 
+// An agora module holds its ID, its function table, and the value it returned.
 type agoraModule struct {
 	id  string
-	fns []*agoraFunc
+	fns []*agoraFuncDef
 	v   Val
 }
 
+// Create a new agora module from the specified bytecode file and for the specified
+// execution context.
 func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 	m := &agoraModule{
 		id: f.Name,
 	}
 	// Define all functions
-	m.fns = make([]*agoraFunc, len(f.Fns))
+	m.fns = make([]*agoraFuncDef, len(f.Fns))
 	for i, fn := range f.Fns {
-		af := newAgoraFunc(m, c)
+		af := newAgoraFuncDef(m, c)
 		af.name = fn.Header.Name
 		af.stackSz = fn.Header.StackSz
 		af.expArgs = fn.Header.ExpArgs
-		if i != 0 { // No parent for root func
-			af.parent = m.fns[fn.Header.ParentFnIx]
-		}
 		// TODO : Ignore LineStart and LineEnd at the moment, unused.
 		m.fns[i] = af
 		af.kTable = make([]Val, len(fn.Ks))
@@ -70,7 +70,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 		}
 		af.lTable = make([]string, len(fn.Ls))
 		for j, l := range fn.Ls {
-			af.lTable[j] = af.kTable[l].String()
+			af.lTable[j] = string(af.kTable[l].(String))
 		}
 		af.code = make([]bytecode.Instr, len(fn.Is))
 		for j, ins := range fn.Is {
@@ -91,7 +91,8 @@ func (m *agoraModule) Run(args ...Val) (v Val, err error) {
 		fn := m.fns[0]
 		fn.ctx.pushModule(m.ID())
 		defer fn.ctx.popModule(m.ID())
-		m.v = m.fns[0].Call(nil, args...)
+		fv := newAgoraFuncVal(fn, nil)
+		m.v = fv.Call(nil, args...)
 	}
 	return m.v, nil
 }

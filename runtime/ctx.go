@@ -57,9 +57,6 @@ type Ctx struct {
 	frames []*frame
 	frmsp  int
 
-	// Lexical scope map, a func may have many instances in execution
-	scope map[*agoraFunc][]*funcVM
-
 	// Modules management
 	loadingMods map[string]bool // Modules currently being loaded
 	loadedMods  map[string]Module
@@ -77,7 +74,6 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		Comparer:    defaultComparer{},
 		Resolver:    resolver,
 		Compiler:    comp,
-		scope:       make(map[*agoraFunc][]*funcVM),
 		loadingMods: make(map[string]bool),
 		loadedMods:  make(map[string]Module),
 	}
@@ -179,48 +175,16 @@ func (c *Ctx) pushFn(f Func, fvm *funcVM) {
 		c.frames[c.frmsp] = &frame{f, fvm}
 	}
 	c.frmsp++
-
-	// If this is an agora function, keep in lexical scope
-	if af, ok := f.(*agoraFunc); ok {
-		vms, ok := c.scope[af]
-		if !ok {
-			vms = make([]*funcVM, 1)
-		}
-		c.scope[af] = append(vms, fvm)
-	}
 }
 
 // Pop the top function from the frame stack.
 func (c *Ctx) popFn() {
 	c.frmsp--
-	frm := c.frames[c.frmsp]
 	c.frames[c.frmsp] = nil // free this reference for gc
-	if af, ok := frm.f.(*agoraFunc); ok {
-		vms := c.scope[af]
-		vms[len(vms)-1] = nil // For GC, don't just reslice
-		vms = vms[:len(vms)-1]
-		if len(vms) == 0 {
-			delete(c.scope, af)
-		} else {
-			c.scope[af] = vms
-		}
-	}
 }
 
 func (c *Ctx) findVarVm(nm string, fvm *funcVM) *funcVM {
-	for fvm != nil {
-		if _, ok := fvm.vars[nm]; ok {
-			return fvm
-		}
-		parent := fvm.proto.parent
-		fvm = nil
-		if parent != nil {
-			vms := c.scope[parent]
-			if len(vms) > 0 {
-				fvm = vms[len(vms)-1]
-			}
-		}
-	}
+	// TODO : Reimplement using the env
 	return nil
 }
 

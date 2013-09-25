@@ -13,23 +13,33 @@ import (
 // A funcVM is an instance of a function prototype. It holds the virtual machine
 // required to execute the instructions.
 type funcVM struct {
-	proto *agoraFunc
+	// Func info
+	val   *agoraFuncVal
+	proto *agoraFuncDef
+	debug bool
+
+	// Stack and counters
 	pc    int
-	vars  map[string]Val
 	stack []Val
 	sp    int
-	this  Val
-	args  Val
+
+	// Variables
+	vars map[string]Val
+	this Val
+	args Val
 }
 
 // Instantiate a runnable representation of the function prototype.
-func newFuncVM(proto *agoraFunc) *funcVM {
+func newFuncVM(fv *agoraFuncVal) *funcVM {
+	p := fv.proto
 	return &funcVM{
-		proto,
+		fv,
+		p,
+		p.ctx.Debug,
 		0,
-		make(map[string]Val, len(proto.lTable)),
-		make([]Val, 0, proto.stackSz),
+		make([]Val, 0, p.stackSz),
 		0,
+		make(map[string]Val, len(p.lTable)),
 		nil,
 		nil,
 	}
@@ -39,8 +49,8 @@ func newFuncVM(proto *agoraFunc) *funcVM {
 func (f *funcVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if f.sp == len(f.stack) {
-		if f.proto.ctx.Debug && f.sp == cap(f.stack) {
-			fmt.Fprintf(f.proto.ctx.Stdout, "DEBUG expanding stack of func %s, current size: %d\n", f.proto.name, len(f.stack))
+		if f.debug && f.sp == cap(f.stack) {
+			fmt.Fprintf(f.proto.ctx.Stdout, "DEBUG expanding stack of func %s, current size: %d\n", f.val.name, len(f.stack))
 		}
 		f.stack = append(f.stack, v)
 	} else {
@@ -75,7 +85,7 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	case bytecode.FLG_T:
 		return f.this
 	case bytecode.FLG_F:
-		return f.proto.mod.fns[ix]
+		return newAgoraFuncVal(f.proto.mod.fns[ix], f)
 	case bytecode.FLG_A:
 		return f.args
 	}
@@ -94,7 +104,7 @@ func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 	case bytecode.FLG_T:
 		fmt.Fprint(w, " ; [this]")
 	case bytecode.FLG_F:
-		fmt.Fprintf(w, " ; %s", f.proto.mod.fns[i.Index()].dump())
+		fmt.Fprintf(w, " ; [func %s]", f.proto.mod.fns[i.Index()].name)
 	case bytecode.FLG_A:
 		fmt.Fprint(w, " ; [args]")
 	}
@@ -103,7 +113,7 @@ func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 // Pretty-print a function's execution context.
 func (f *funcVM) dump() string {
 	buf := bytes.NewBuffer(nil)
-	fmt.Fprintf(buf, "\n> %s\n", f.proto.dump())
+	fmt.Fprintf(buf, "\n> %s\n", f.val.dump())
 	// Constants
 	fmt.Fprintf(buf, "  Constants:\n")
 	for i, v := range f.proto.kTable {
@@ -347,7 +357,7 @@ func (f *funcVM) run(args ...Val) Val {
 			f.push(fn.Call(nil, args...))
 
 		case bytecode.OP_DUMP:
-			if f.proto.ctx.Debug {
+			if f.debug {
 				// Dumps `ix` number of stack traces
 				f.proto.ctx.dump(int(ix))
 			}
