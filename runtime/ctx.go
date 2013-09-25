@@ -183,16 +183,18 @@ func (c *Ctx) popFn() {
 	c.frames[c.frmsp] = nil // free this reference for gc
 }
 
-func (c *Ctx) findVarVm(nm string, fvm *funcVM) *funcVM {
-	// TODO : Reimplement using the env
-	return nil
-}
-
 // Get the variable identified by name, looking up the lexical scope stack and ultimately the
 // built-ins.
 func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
-	if vm := c.findVarVm(nm, fvm); vm != nil {
-		return vm.vars[nm], true
+	// First look in locals
+	if v, ok := fvm.vars[nm]; ok {
+		return v, true
+	}
+	// Then recursively in parent environments
+	for parent := fvm.val.env; parent != nil; parent = parent.parent {
+		if v, ok := parent.upvals[nm]; ok {
+			return v, true
+		}
 	}
 	// Finally, look if the identifier refers to a built-in function.
 	// This will return Nil if it doesn't match any built-in.
@@ -203,9 +205,17 @@ func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
 // Set the value of the variable identified by the provided name, looking up the
 // frame stack if necessary. Returns true if the variable was found.
 func (c *Ctx) setVar(nm string, v Val, fvm *funcVM) bool {
-	if vm := c.findVarVm(nm, fvm); vm != nil {
-		vm.vars[nm] = v
+	// First attempt to set as local var
+	if _, ok := fvm.vars[nm]; ok {
+		fvm.vars[nm] = v
 		return true
+	}
+	// Then recursively in parent environments
+	for parent := fvm.val.env; parent != nil; parent = parent.parent {
+		if _, ok := parent.upvals[nm]; ok {
+			parent.upvals[nm] = v
+			return true
+		}
 	}
 	return false
 }
