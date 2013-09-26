@@ -33,15 +33,11 @@ type funcVM struct {
 func newFuncVM(fv *agoraFuncVal) *funcVM {
 	p := fv.proto
 	return &funcVM{
-		fv,
-		p,
-		p.ctx.Debug,
-		0,
-		make([]Val, 0, p.stackSz),
-		0,
-		make(map[string]Val, len(p.lTable)),
-		nil,
-		nil,
+		val:   fv,
+		proto: p,
+		debug: p.ctx.Debug,
+		stack: make([]Val, 0, p.stackSz),
+		vars:  make(map[string]Val, len(p.lTable)),
 	}
 }
 
@@ -202,19 +198,30 @@ func (f *funcVM) run(args ...Val) Val {
 	arith := f.proto.ctx.Arithmetic
 	cmp := f.proto.ctx.Comparer
 
-	// Create local variables
-	f.createLocals()
+	// If the program counter is 0, this is an initial run, not a resume as
+	// a coroutine.
+	if f.pc == 0 {
+		// Create local variables
+		f.createLocals()
 
-	// Expected args are defined in constant table spots 0 to ExpArgs - 1.
-	for j, l := int64(0), int64(len(args)); j < f.proto.expArgs; j++ {
-		if j < l {
-			f.vars[f.proto.kTable[j].String()] = args[j]
-		} else {
-			f.vars[f.proto.kTable[j].String()] = Nil
+		// Expected args are defined in constant table spots 0 to ExpArgs - 1.
+		for j, l := int64(0), int64(len(args)); j < f.proto.expArgs; j++ {
+			if j < l {
+				f.vars[f.proto.kTable[j].String()] = args[j]
+			} else {
+				f.vars[f.proto.kTable[j].String()] = Nil
+			}
 		}
+		// Keep the args array
+		f.args = f.createArgsVal(args)
+	} else {
+		// This is a resume for a coroutine, push the received arg (only one) on the stack
+		var a0 Val = Nil
+		if len(args) > 0 {
+			a0 = args[0]
+		}
+		f.push(a0)
 	}
-	// Keep the args array
-	f.args = f.createArgsVal(args)
 
 	// Execute the instructions
 	for {
@@ -226,7 +233,14 @@ func (f *funcVM) run(args ...Val) Val {
 		f.pc++
 		switch op {
 		case bytecode.OP_RET:
-			// End this function call, return the value on top of the stack
+			// End this function call, return the value on top of the stack and remove
+			// the vm if it was set on the value
+			f.val.coroState = nil
+			return f.pop()
+
+		case bytecode.OP_YLD:
+			// Yield a value, save the vm so it can be called back, and return
+			f.val.coroState = f
 			return f.pop()
 
 		case bytecode.OP_PUSH:

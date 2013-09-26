@@ -44,8 +44,9 @@ type env struct {
 // An agoraFuncVal is a func's value, capturing its environment.
 type agoraFuncVal struct {
 	*funcVal
-	proto *agoraFuncDef
-	env   *env
+	proto     *agoraFuncDef
+	env       *env
+	coroState *funcVM
 }
 
 // Create a new function value from the specified function prototype,
@@ -65,6 +66,7 @@ func newAgoraFuncVal(def *agoraFuncDef, vm *funcVM) *agoraFuncVal {
 		},
 		def,
 		e,
+		nil,
 	}
 }
 
