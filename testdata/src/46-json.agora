@@ -47,11 +47,12 @@ ob.Stringify = func(src) {
 }
 
 ob.Parse = func(src) {
-	src = strings.Trim(src)
+
+	ob.src = strings.Trim(src)
 	parseObjFunc := nil // Required for parseValue to call parseObject before it is defined
 
-	i := 0
-	ch := strings.ByteAt(src, i)
+	ob.i = 0
+	ob.ch = strings.ByteAt(src, i)
 	
 	func advance(expect) {
 		if expect != "" && ch != expect {
