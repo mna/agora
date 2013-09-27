@@ -376,6 +376,11 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "continue":
 		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid continue statement outside any `for` loop"))
 		e.addForData(fn, false, e.addTempInstr(fn))
+	case "yield":
+		// Push the value to yield
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		// Yield
+		e.addInstr(fn, bytecode.OP_YLD, bytecode.FLG__, 0)
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
