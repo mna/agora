@@ -71,6 +71,13 @@ func (p *Parser) defineGrammar() {
 		return e
 	})
 
+	// The yield keyword expression
+	p.prefix("yield", func(sym *Symbol) *Symbol {
+		e := p.expression(0)
+		sym.First = e
+		return sym
+	})
+
 	// The assignment operators
 	p.assignment("=")
 	p.assignment("+=")

@@ -70,14 +70,20 @@ func newAgoraFuncVal(def *agoraFuncDef, vm *funcVM) *agoraFuncVal {
 	}
 }
 
-// Call instantiates an executable function intance from this agora function
+// Call instantiates an executable function instance from this agora function
 // value, sets the `this` value and executes the function's instructions.
 // It returns the agora function's return value.
 func (a *agoraFuncVal) Call(this Val, args ...Val) Val {
-	vm := newFuncVM(a)
+	// If the function value already has a vm, reuse it, this is a coroutine
+	vm := a.coroState
+	if vm == nil {
+		vm = newFuncVM(a)
+	}
+	// Set the `this` each time, the same value may have been assigned to an object and called
+	// TODO : Is this the desired behaviour?
 	vm.this = this
-	a.proto.ctx.pushFn(a, vm)
-	defer a.proto.ctx.popFn()
+	a.ctx.pushFn(a, vm)
+	defer a.ctx.popFn()
 	return vm.run(args...)
 }
 
