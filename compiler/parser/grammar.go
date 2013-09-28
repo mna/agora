@@ -73,8 +73,14 @@ func (p *Parser) defineGrammar() {
 
 	// The yield keyword expression
 	p.prefix("yield", func(sym *Symbol) *Symbol {
-		e := p.expression(0)
-		sym.First = e
+		// Is there an expression following the yield keyword?
+		if p.tkn.Id != ";" && p.tkn.Id != "," && p.tkn.Id != ")" && p.tkn.Id != "}" && p.tkn.Id != "]" {
+			e := p.expression(0)
+			sym.First = e
+		} else {
+			// Equivalent of yield nil
+			sym.First = p.makeSymbol("nil", 0).clone()
+		}
 		return sym
 	})
 

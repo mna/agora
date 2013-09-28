@@ -1,12 +1,21 @@
 /*---
 result: 3
+output: a is nil\nb is nil\n
 ---*/
 fmt := import("fmt")
 
 func fn(n) {
 	i := yield
+	yield
 	return n + i
 }
 
-fn(1)
-return fn(2)
+a := fn(1)
+if a == nil {
+	fmt.Println("a is nil")
+}
+b := fn(2)
+if b == nil {
+	fmt.Println("b is nil")
+}
+return fn(3)

@@ -239,7 +239,7 @@ func (f *funcVM) run(args ...Val) Val {
 			return f.pop()
 
 		case bytecode.OP_YLD:
-			// Yield a value, save the vm so it can be called back, and return
+			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
 			return f.pop()
 
