@@ -1,0 +1,6 @@
+/*---
+error: cannot yield from the top-level module function
+---*/
+a := 5
+b := yield a
+return b

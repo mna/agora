@@ -377,6 +377,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid continue statement outside any `for` loop"))
 		e.addForData(fn, false, e.addTempInstr(fn))
 	case "yield":
+		e.assert(len(e.fnIx) > 1, errors.New("cannot yield from the top-level module function"))
 		// Push the value to yield
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Yield
