@@ -1,0 +1,12 @@
+/*---
+result: 3
+---*/
+fmt := import("fmt")
+
+func fn(n) {
+	i := yield
+	return n + i
+}
+
+fn(1)
+return fn(2)

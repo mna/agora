@@ -184,7 +184,12 @@ func (p *Parser) defineGrammar() {
 
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
-		sym.First = p.expression(0)
+		if p.tkn.Id == ";" {
+			// Empty return, treat as return nil
+			sym.First = p.makeSymbol("nil", 0).clone()
+		} else {
+			sym.First = p.expression(0)
+		}
 		p.advance(";")
 		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")

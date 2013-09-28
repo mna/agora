@@ -1,9 +1,9 @@
 /*---
-output: 2\n4\n9\n5\n
+output: 2\n4\n12\n5\n
 ---*/
 func fn(n) {
 	i := yield n + 1
-	i = yield i * 2
+	i = (yield i * 2) + 1
 	return i * 3
 }
 
