@@ -1,0 +1,33 @@
+fmt := import("fmt")
+
+func producer() {
+	for {
+		yield fmt.Scanln()
+	}
+}
+
+func receive(prod) {
+	val := prod()
+	return val
+}
+
+func filter(prod) {
+	return func() {
+		line := 1
+		for {
+			x := receive(prod)
+			x = string(line) + " " + x
+			yield x
+			line++
+		}
+	}
+}
+
+func consumer(prod) {
+	for {
+		x := receive(prod)
+		fmt.Println(x)
+	}
+}
+
+consumer(filter(producer))
