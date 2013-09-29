@@ -215,6 +215,7 @@ func (p *Parser) defineGrammar() {
 	p.builtin("bool")
 	p.builtin("type")
 	p.builtin("status")
+	p.builtin("reset")
 
 	// func can be both an expression prefix:
 	//   fnAdd := func(x, y) {return x+y}

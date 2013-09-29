@@ -1,6 +1,6 @@
 /*---
 result: 4
-output: func\nrunning\nsuspended\nfunc\nnumber\n
+output: func\nrunning\nsuspended\nfunc\n
 ---*/
 
 fmt := import("fmt")
@@ -18,5 +18,4 @@ fmt.Println(status(fn))
 fn(2)
 a := fn(3)
 fmt.Println(status(fn))
-fmt.Println(status(a))
 return a

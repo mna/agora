@@ -349,6 +349,8 @@ func (f *funcVM) run(args ...Val) Val {
 				args[j-1] = f.pop()
 			}
 			if ob, ok := vr.(Object); ok {
+				// TODO : Do not push returned value if unused (grow stack for nothing). When multiple return values
+				// are added, add intelligence to know how many are used/discarded.
 				f.push(ob.callMethod(k, args...))
 			} else {
 				panic(NewTypeError(Type(vr), "", "object"))
@@ -368,6 +370,8 @@ func (f *funcVM) run(args ...Val) Val {
 				args[j-1] = f.pop()
 			}
 			// Call the function, and store the return value on the stack
+			// TODO : Do not push returned value if unused (grow stack for nothing). When multiple return values
+			// are added, add intelligence to know how many are used/discarded.
 			f.push(fn.Call(nil, args...))
 
 		case bytecode.OP_DUMP:

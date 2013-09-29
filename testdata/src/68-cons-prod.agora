@@ -13,7 +13,7 @@ func receive(prod) {
 
 func filter(prod) {
 	return func() {
-		line := 1
+	line := 1
 		for {
 			x := receive(prod)
 			x = string(line) + " " + x
