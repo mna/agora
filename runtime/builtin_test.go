@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"io"
+	"strings"
 	"testing"
 )
 
@@ -295,6 +296,275 @@ func TestRecover(t *testing.T) {
 		ret := bi._recover(f)
 		if c.exp != ret {
 			t.Errorf("[%d] - expected %v, got %v", i, c.exp, ret)
+		}
+	}
+}
+
+func TestConvBool(t *testing.T) {
+	ctx := NewCtx(nil, nil)
+	// For case 9 below
+	ob := NewObject()
+	ob.Set(String("__bool"), NewNativeFunc(ctx, "", func(args ...Val) Val {
+		return Bool(false)
+	}))
+
+	cases := []struct {
+		src Val
+		exp Val
+		err bool
+	}{
+		0: {
+			src: Nil,
+			exp: Bool(false),
+		},
+		1: {
+			src: Number(1),
+			exp: Bool(true),
+		},
+		2: {
+			src: Number(3.1415),
+			exp: Bool(true),
+		},
+		3: {
+			src: Number(0),
+			exp: Bool(false),
+		},
+		4: {
+			src: Bool(true),
+			exp: Bool(true),
+		},
+		5: {
+			src: Bool(false),
+			exp: Bool(false),
+		},
+		6: {
+			src: String("some string"),
+			exp: Bool(true),
+		},
+		7: {
+			src: NewObject(),
+			exp: Bool(true),
+		},
+		8: {
+			src: NewNativeFunc(ctx, "", func(args ...Val) Val { return Nil }),
+			exp: Bool(true),
+		},
+		9: {
+			src: ob,
+			exp: Bool(false),
+		},
+	}
+
+	bm := new(builtinMod)
+	bm.SetCtx(ctx)
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if e := recover(); (e != nil) != c.err {
+					if c.err {
+						t.Errorf("[%d] - expected a panic, got none", i)
+					} else {
+						t.Errorf("[%d] - expected no panic, got %v", i, e)
+					}
+				}
+			}()
+			ret := bm._bool(c.src)
+			if ret != c.exp {
+				t.Errorf("[%d] - expected %v, got %v", i, c.exp, ret)
+			}
+		}()
+	}
+}
+
+func TestConvString(t *testing.T) {
+	ctx := NewCtx(nil, nil)
+	// For case 8 below
+	ob := NewObject()
+	ob.Set(String("__string"), NewNativeFunc(ctx, "", func(args ...Val) Val {
+		return String("ok")
+	}))
+	// For case 7 below
+	fn := NewNativeFunc(ctx, "nm", func(args ...Val) Val { return Nil })
+
+	cases := []struct {
+		src   Val
+		exp   Val
+		start bool
+	}{
+		0: {
+			src: Nil,
+			exp: String("nil"),
+		},
+		1: {
+			src: Number(1),
+			exp: String("1"),
+		},
+		2: {
+			src: Number(3.1415),
+			exp: String("3.1415"),
+		},
+		3: {
+			src: Bool(true),
+			exp: String("true"),
+		},
+		4: {
+			src: Bool(false),
+			exp: String("false"),
+		},
+		5: {
+			src: String("some string"),
+			exp: String("some string"),
+		},
+		6: {
+			src: NewObject(),
+			exp: String("{}"),
+		},
+		7: {
+			src:   fn,
+			exp:   String("<func nm ("),
+			start: true,
+		},
+		8: {
+			src: ob,
+			exp: String("ok"),
+		},
+	}
+
+	bm := new(builtinMod)
+	bm.SetCtx(ctx)
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if e := recover(); e != nil {
+					t.Errorf("[%d] - expected no panic, got %v", i, e)
+				}
+			}()
+			ret := bm._string(c.src)
+			if (c.start && !strings.HasPrefix(ret.String(), c.exp.String())) || (!c.start && ret != c.exp) {
+				t.Errorf("[%d] - expected %v, got %v", i, c.exp, ret)
+			}
+		}()
+	}
+}
+
+func TestConvNumber(t *testing.T) {
+	ctx := NewCtx(nil, nil)
+	// For case 10 below
+	ob := NewObject()
+	ob.Set(String("__float"), NewNativeFunc(ctx, "", func(args ...Val) Val {
+		return Number(22)
+	}))
+
+	cases := []struct {
+		src Val
+		exp Val
+		err bool
+	}{
+		0: {
+			src: Nil,
+			err: true,
+		},
+		1: {
+			src: Number(1),
+			exp: Number(1),
+		},
+		2: {
+			src: Bool(true),
+			exp: Number(1),
+		},
+		3: {
+			src: Bool(false),
+			exp: Number(0),
+		},
+		4: {
+			src: String(""),
+			err: true,
+		},
+		5: {
+			src: String("not a number"),
+			err: true,
+		},
+		6: {
+			src: String("17"),
+			exp: Number(17),
+		},
+		7: {
+			src: String("3.1415"),
+			exp: Number(3.1415),
+		},
+		8: {
+			src: NewObject(),
+			err: true,
+		},
+		9: {
+			src: NewNativeFunc(ctx, "", func(args ...Val) Val { return Nil }),
+			err: true,
+		},
+		10: {
+			src: ob,
+			exp: Number(22),
+		},
+	}
+
+	bm := new(builtinMod)
+	bm.SetCtx(ctx)
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if e := recover(); (e != nil) != c.err {
+					if c.err {
+						t.Errorf("[%d] - expected a panic, got none", i)
+					} else {
+						t.Errorf("[%d] - expected no panic, got %v", i, e)
+					}
+				}
+			}()
+			ret := bm._number(c.src)
+			if ret != c.exp {
+				t.Errorf("[%d] - expected %v, got %v", i, c.exp, ret)
+			}
+		}()
+	}
+}
+
+func TestConvType(t *testing.T) {
+	ctx := NewCtx(nil, nil)
+
+	cases := []struct {
+		src Val
+		exp string
+	}{
+		0: {
+			src: Nil,
+			exp: "nil",
+		},
+		1: {
+			src: Number(0),
+			exp: "number",
+		},
+		2: {
+			src: Bool(false),
+			exp: "bool",
+		},
+		3: {
+			src: String(""),
+			exp: "string",
+		},
+		4: {
+			src: NewNativeFunc(ctx, "", func(args ...Val) Val { return Nil }),
+			exp: "func",
+		},
+		5: {
+			src: NewObject(),
+			exp: "object",
+		},
+	}
+	bm := new(builtinMod)
+	bm.SetCtx(ctx)
+	for i, c := range cases {
+		ret := bm._type(c.src)
+		if ret.String() != c.exp {
+			t.Errorf("[%d] - expected %s, got %s", i, c.exp, ret)
 		}
 	}
 }

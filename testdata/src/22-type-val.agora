@@ -1,8 +1,7 @@
 /*---
-output: number\nbool\nstring\nnil\nobject\nfunc\nobject\nobject\n
+output: number\nbool\nstring\nnil\nobject\nfunc\nobject\n
 ---*/
 f := import("fmt")
-c := import("conv")
 
 n := 7
 b := true
@@ -13,12 +12,10 @@ fn := func() {
 	return false
 }
 
-f.Println(c.Type(n))
-f.Println(c.Type(b))
-f.Println(c.Type(s))
-f.Println(c.Type(z))
-f.Println(c.Type(o))
-f.Println(c.Type(fn))
-f.Println(c.Type(f))
-f.Println(c.Type(c))
-
+f.Println(type(n))
+f.Println(type(b))
+f.Println(type(s))
+f.Println(type(z))
+f.Println(type(o))
+f.Println(type(fn))
+f.Println(type(f))

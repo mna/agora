@@ -32,6 +32,7 @@ const (
 	OP_GFLD               // get the value of an object's field, push the result, using 2 values from the stack (object variable and key)
 	OP_CFLD               // call a method on an object, push the result, using 2 values + n arguments from the stack (object variable and key)
 	OP_CALL               // call a function, push the result, using 1 value + n arguments from the stack
+	OP_YLD                // yield a value for coroutine cooperative threading
 	op_dbgstart
 	OP_DUMP               // print the execution context, if the Ctx is in debug mode
 	op_max                // Indicates the maximum legal opcode
@@ -64,6 +65,7 @@ var (
 		OP_GFLD: "GFLD",
 		OP_CFLD: "CFLD",
 		OP_CALL: "CALL",
+		OP_YLD:  "YLD",
 		OP_DUMP: "DUMP",
 	}
 
@@ -92,6 +94,7 @@ var (
 		"GFLD": OP_GFLD,
 		"CFLD": OP_CFLD,
 		"CALL": OP_CALL,
+		"YLD":  OP_YLD,
 		"DUMP": OP_DUMP,
 	}
 )

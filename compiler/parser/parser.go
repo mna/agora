@@ -323,7 +323,7 @@ func (p *Parser) statement() interface{} {
 		return n.std()
 	}
 	v := p.expression(0)
-	if !v.asg && v.Id != "(" && v.Id != ":=" {
+	if !v.asg && v.Id != "(" && v.Id != ":=" && v.Id != "yield" {
 		p.error(v, "bad expression statement")
 	}
 	p.advance(";")

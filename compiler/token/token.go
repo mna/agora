@@ -85,6 +85,7 @@ const (
 	DEBUG
 	BREAK
 	CONTINUE
+	YIELD
 	keyword_end
 )
 
@@ -149,6 +150,7 @@ var tokens = [...]string{
 	DEBUG:    "debug",
 	BREAK:    "break",
 	CONTINUE: "continue",
+	YIELD:    "yield",
 }
 
 // String returns the string corresponding to the token tok.

@@ -71,6 +71,19 @@ func (p *Parser) defineGrammar() {
 		return e
 	})
 
+	// The yield keyword expression
+	p.prefix("yield", func(sym *Symbol) *Symbol {
+		// Is there an expression following the yield keyword?
+		if p.tkn.Id != ";" && p.tkn.Id != "," && p.tkn.Id != ")" && p.tkn.Id != "}" && p.tkn.Id != "]" {
+			e := p.expression(0)
+			sym.First = e
+		} else {
+			// Equivalent of yield nil
+			sym.First = p.makeSymbol("nil", 0).clone()
+		}
+		return sym
+	})
+
 	// The assignment operators
 	p.assignment("=")
 	p.assignment("+=")
@@ -177,7 +190,12 @@ func (p *Parser) defineGrammar() {
 
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
-		sym.First = p.expression(0)
+		if p.tkn.Id == ";" {
+			// Empty return, treat as return nil
+			sym.First = p.makeSymbol("nil", 0).clone()
+		} else {
+			sym.First = p.expression(0)
+		}
 		p.advance(";")
 		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")
@@ -192,6 +210,12 @@ func (p *Parser) defineGrammar() {
 	p.builtin("recover")
 	p.builtin("len")
 	p.builtin("keys")
+	p.builtin("number")
+	p.builtin("string")
+	p.builtin("bool")
+	p.builtin("type")
+	p.builtin("status")
+	p.builtin("reset")
 
 	// func can be both an expression prefix:
 	//   fnAdd := func(x, y) {return x+y}

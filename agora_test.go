@@ -105,7 +105,6 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		new(runtime.FileResolver),
 	}, new(compiler.Compiler))
 	ctx.Stdout = buf
-	ctx.RegisterNativeModule(new(stdlib.ConvMod))
 	ctx.RegisterNativeModule(new(stdlib.FilepathMod))
 	ctx.RegisterNativeModule(new(stdlib.FmtMod))
 	ctx.RegisterNativeModule(new(stdlib.MathMod))
@@ -114,18 +113,18 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	ctx.RegisterNativeModule(new(stdlib.TimeMod))
 
 	mod, err := ctx.Load(id)
-	if err != nil {
-		panic(err)
-	}
-	var args []runtime.Val
-	if v, ok := m["args"]; ok {
-		s := strings.Split(v, " ")
-		args = make([]runtime.Val, len(s))
-		for i, arg := range s {
-			args[i] = runtime.String(arg)
+	var ret runtime.Val
+	if err == nil {
+		var args []runtime.Val
+		if v, ok := m["args"]; ok {
+			s := strings.Split(v, " ")
+			args = make([]runtime.Val, len(s))
+			for i, arg := range s {
+				args[i] = runtime.String(arg)
+			}
 		}
+		ret, err = mod.Run(args...)
 	}
-	ret, err := mod.Run(args...)
 
 	assert := false
 	if v, ok := m["error"]; ok {

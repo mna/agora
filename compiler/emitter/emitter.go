@@ -158,7 +158,8 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "nil":
 		e.assert(asg == atFalse, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
-	case "(name)", "import", "panic", "recover", "len", "keys": // TODO : Cleaner way to handle all builtins?
+	case "(name)", "import", "panic", "recover", "len", "keys", "string", "number",
+		"bool", "type", "status", "reset": // TODO : Cleaner way to handle all builtins
 		// Register the symbol, may or may not be a local
 		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have name or literal arity"))
 		kix := e.registerK(fn, sym.Val, true, asg == atDefine)
@@ -376,6 +377,12 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "continue":
 		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid continue statement outside any `for` loop"))
 		e.addForData(fn, false, e.addTempInstr(fn))
+	case "yield":
+		e.assert(len(e.fnIx) > 1, errors.New("cannot yield from the top-level module function"))
+		// Push the value to yield
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		// Yield
+		e.addInstr(fn, bytecode.OP_YLD, bytecode.FLG__, 0)
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)

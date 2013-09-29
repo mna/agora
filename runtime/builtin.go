@@ -22,6 +22,12 @@ func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
 		b.ob.Set(String("recover"), NewNativeFunc(b.ctx, "recover", b._recover))
 		b.ob.Set(String("len"), NewNativeFunc(b.ctx, "len", b._len))
 		b.ob.Set(String("keys"), NewNativeFunc(b.ctx, "keys", b._keys))
+		b.ob.Set(String("number"), NewNativeFunc(b.ctx, "number", b._number))
+		b.ob.Set(String("string"), NewNativeFunc(b.ctx, "string", b._string))
+		b.ob.Set(String("bool"), NewNativeFunc(b.ctx, "bool", b._bool))
+		b.ob.Set(String("type"), NewNativeFunc(b.ctx, "type", b._type))
+		b.ob.Set(String("status"), NewNativeFunc(b.ctx, "status", b._status))
+		b.ob.Set(String("reset"), NewNativeFunc(b.ctx, "reset", b._reset))
 	}
 	return b.ob, nil
 }
@@ -99,4 +105,54 @@ func (b *builtinMod) _keys(args ...Val) Val {
 	ExpectAtLeastNArgs(1, args)
 	ob := args[0].(Object)
 	return ob.Keys()
+}
+
+func (b *builtinMod) _number(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return Number(args[0].Float())
+}
+
+func (b *builtinMod) _string(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return String(args[0].String())
+}
+
+func (b *builtinMod) _bool(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return Bool(args[0].Bool())
+}
+
+func (b *builtinMod) _type(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return String(Type(args[0]))
+}
+
+func (b *builtinMod) _status(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	if v, ok := args[0].(*agoraFuncVal); ok {
+		// If v is in the frame stack, return `running`
+		// If v.coroState is not nil, return `suspended`
+		// Else, return `func` (meaning next call is an initial call)
+		if b.ctx.IsRunning(v) {
+			return String("running")
+		} else if v.coroState != nil {
+			return String("suspended")
+		}
+	} else if _, ok := args[0].(Func); !ok {
+		// Can only be called on a Func
+		panic(NewTypeError(Type(args[0]), "", "status"))
+	}
+	return String("func")
+}
+
+func (b *builtinMod) _reset(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	if v, ok := args[0].(*agoraFuncVal); ok {
+		// Clear the coro state, so next call will be with a new VM
+		v.coroState = nil
+	} else if _, ok := args[0].(Func); !ok {
+		// Can only be called on a Func
+		panic(NewTypeError(Type(args[0]), "", "reset"))
+	}
+	return Nil
 }

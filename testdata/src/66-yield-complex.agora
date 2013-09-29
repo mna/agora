@@ -1,0 +1,17 @@
+/*---
+output: 1\nnil\nnil\n{f:test,e:7,d:4,c:3,b:2,a:1}\n
+---*/
+fmt := import("fmt")
+
+func fn(a, b, c) {
+	return {a: a, b: b, c: c, d: yield 1, e: yield, f: yield}
+}
+
+x := fn(1, 2, 3)
+fmt.Println(x)
+y := fn(4, 5, 6)
+fmt.Println(y)
+z := fn(7, 8, 9)
+fmt.Println(z)
+ob := fn("test", "again", "ok")
+fmt.Println(ob)
