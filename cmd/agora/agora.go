@@ -138,7 +138,6 @@ func (r *run) Execute(args []string) error {
 		// Register the standard lib's Fmt package
 		ctx.RegisterNativeModule(new(stdlib.FmtMod))
 		ctx.RegisterNativeModule(new(stdlib.FilepathMod))
-		ctx.RegisterNativeModule(new(stdlib.ConvMod))
 		ctx.RegisterNativeModule(new(stdlib.StringsMod))
 		ctx.RegisterNativeModule(new(stdlib.MathMod))
 		ctx.RegisterNativeModule(new(stdlib.OsMod))

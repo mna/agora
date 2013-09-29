@@ -1,27 +1,26 @@
-conv := import("conv")
 strings := import("strings")
 
 ob := {}
 
 func ignored(key, val) {
-	return conv.Type(key) == "func" || conv.Type(val) == "func"
+	return type(key) == "func" || type(val) == "func"
 }
 
 func stringify(val, quote) {
-	type := conv.Type(val)
-	if type == "string" || ((type == "number" || type == "bool") && quote) {
+	t := type(val)
+	if t == "string" || ((t == "number" || t == "bool") && quote) {
 		// TODO : more robust escape of quotes in the string...
 		str := strings.Replace(val, `"`, `\"`)
 		return `"` + str + `"`
-	} else if type == "number" || type == "bool" {
-		return conv.String(val)
-	} else if type == "func" {
+	} else if t == "number" || t == "bool" {
+		return string(val)
+	} else if t == "func" {
 		panic("cannot marshal a func to JSON")
-	} else if type != "object" {
+	} else if t != "object" {
 		return ""
 	} else if val.__string {
 		// An object, but it "knows" how to stringify itself
-		return stringify(conv.String(val), true)
+		return stringify(string(val), true)
 	}
 
 	// Finally, the object the "hard" way
@@ -100,10 +99,10 @@ ob.Parse = func(src) {
 		if onlyNum {
 			// If there is an error converting, retVal will remain unchanged
 			recover(func() {
-				retVal = conv.Number(val)
+				retVal = number(val)
 			})
 		} else if val == "true" || val == "false" {
-			retVal = conv.Bool(val)
+			retVal = bool(val)
 		}
 		return retVal
 	}

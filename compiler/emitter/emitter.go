@@ -158,7 +158,8 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "nil":
 		e.assert(asg == atFalse, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
-	case "(name)", "import", "panic", "recover", "len", "keys": // TODO : Cleaner way to handle all builtins
+	case "(name)", "import", "panic", "recover", "len", "keys", "string", "number",
+		"bool", "type": // TODO : Cleaner way to handle all builtins
 		// Register the symbol, may or may not be a local
 		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have name or literal arity"))
 		kix := e.registerK(fn, sym.Val, true, asg == atDefine)

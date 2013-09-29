@@ -22,6 +22,10 @@ func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
 		b.ob.Set(String("recover"), NewNativeFunc(b.ctx, "recover", b._recover))
 		b.ob.Set(String("len"), NewNativeFunc(b.ctx, "len", b._len))
 		b.ob.Set(String("keys"), NewNativeFunc(b.ctx, "keys", b._keys))
+		b.ob.Set(String("number"), NewNativeFunc(b.ctx, "number", b._number))
+		b.ob.Set(String("string"), NewNativeFunc(b.ctx, "string", b._string))
+		b.ob.Set(String("bool"), NewNativeFunc(b.ctx, "bool", b._bool))
+		b.ob.Set(String("type"), NewNativeFunc(b.ctx, "type", b._type))
 	}
 	return b.ob, nil
 }
@@ -99,4 +103,24 @@ func (b *builtinMod) _keys(args ...Val) Val {
 	ExpectAtLeastNArgs(1, args)
 	ob := args[0].(Object)
 	return ob.Keys()
+}
+
+func (b *builtinMod) _number(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return Number(args[0].Float())
+}
+
+func (b *builtinMod) _string(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return String(args[0].String())
+}
+
+func (b *builtinMod) _bool(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return Bool(args[0].Bool())
+}
+
+func (b *builtinMod) _type(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	return String(Type(args[0]))
 }

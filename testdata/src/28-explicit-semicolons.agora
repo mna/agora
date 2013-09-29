@@ -1,9 +1,7 @@
 /*---
 result: 17
 ---*/
-c := import("conv");
-
-a := c.Number("10") + 24;
+a := number("10") + 24;
 if !a {
 	return a;
 };

@@ -105,7 +105,6 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		new(runtime.FileResolver),
 	}, new(compiler.Compiler))
 	ctx.Stdout = buf
-	ctx.RegisterNativeModule(new(stdlib.ConvMod))
 	ctx.RegisterNativeModule(new(stdlib.FilepathMod))
 	ctx.RegisterNativeModule(new(stdlib.FmtMod))
 	ctx.RegisterNativeModule(new(stdlib.MathMod))
