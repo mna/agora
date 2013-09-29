@@ -26,6 +26,7 @@ func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
 		b.ob.Set(String("string"), NewNativeFunc(b.ctx, "string", b._string))
 		b.ob.Set(String("bool"), NewNativeFunc(b.ctx, "bool", b._bool))
 		b.ob.Set(String("type"), NewNativeFunc(b.ctx, "type", b._type))
+		b.ob.Set(String("status"), NewNativeFunc(b.ctx, "status", b._status))
 	}
 	return b.ob, nil
 }
@@ -123,4 +124,21 @@ func (b *builtinMod) _bool(args ...Val) Val {
 func (b *builtinMod) _type(args ...Val) Val {
 	ExpectAtLeastNArgs(1, args)
 	return String(Type(args[0]))
+}
+
+func (b *builtinMod) _status(args ...Val) Val {
+	ExpectAtLeastNArgs(1, args)
+	// Applies only to functions, otherwise return the type
+	if v, ok := args[0].(*agoraFuncVal); ok {
+		// If v is in the frame stack, return `running`
+		// If v.coroState is not nil, return `suspended`
+		// Else, return `func` (meaning next call is an initial call)
+		if b.ctx.IsRunning(v) {
+			return String("running")
+		} else if v.coroState != nil {
+			return String("suspended")
+		}
+	}
+	t := Type(args[0])
+	return String(t)
 }

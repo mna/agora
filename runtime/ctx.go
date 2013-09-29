@@ -183,6 +183,16 @@ func (c *Ctx) popFn() {
 	c.frames[c.frmsp] = nil // free this reference for gc
 }
 
+// IsRunning returns true if the specified function is currently executing.
+func (c *Ctx) IsRunning(f Func) bool {
+	for i := c.frmsp - 1; i >= 0; i-- {
+		if c.frames[i].f == f {
+			return true
+		}
+	}
+	return false
+}
+
 // Get the variable identified by name, looking up the lexical scope stack and ultimately the
 // built-ins.
 func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
