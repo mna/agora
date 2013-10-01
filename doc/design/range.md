@@ -49,3 +49,25 @@ There is no range over those type of values, there is no natural loop for those 
 * Or try a full agora implementation, provided as a builtin and stored in the Go code as embedded resource?
 
 * Or treat the for loop body as a function, so that a `for v := range(fn) {body}` is syntactic sugar for `fn(func(){body})`, where `fn` calls the provided func once for each iteration?
+
+Here is the tentative implementation, that seems both simple and generic enough to support all types of range-enabled values:
+
+-1 		: RNGS An N 		; create coro, pop n args and pass them to the range.
+
+ 0 		: PUSH R  N 		; push n values - only 1 for now - from the coro on top of the range stack (the values) then push the condition bool value (true if coro is still alive, false if it ended).
+
+ 1 		: TEST Jf N 		; test the condition value, jump forward n instructions if false, otherwise continue, pops the condition value from the stack.
+
+ 2 		: POP  V  X 		; pop the top value from the stack (the value that was pushed by line 0) into the variable at index x, which is the iterator variable (i.e. the `v` in `for v := range something`). Could be multiple pop instructions once multiple return values are implemented.
+
+ 3..n : <loop body> 	; the instructions in the `for` loop body.
+
+ n+1 	: JMP Jb X 			; jump back to instruction 0, start a new iteration.
+
+ n+2 	: RNGE _ 0 			; end the coro and its goroutine, freeing resources as required (may reach this line from a break, so the coro may still be alive). Panics cause the coros to be terminated automatically, by a defer statement in the `run` method.
+
+The `break` and `continue` loop keywords are handled as follows:
+
+`break` : JMP Jf n+2 	; jump to the RNGE instruction, clearing the coro.
+
+`continue` : JMP Jb 0 ; jump back to instruction 0, which is different from a normal 3-part loop, because in the case of a range, the init and post statements are necessarily the same (call the coro to get the new value).
