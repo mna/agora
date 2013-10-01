@@ -210,16 +210,22 @@ func (vm *funcVM) pushRange(args ...Val) {
 			inc = args[2].Int()
 		}
 		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			var val int64
 			for i := start; i < max; i += inc {
-				y.Yield(i)
+				// Needs to yield previous value, so that the return returns the last value
+				if i != start {
+					y.Yield(val)
+				}
+				val = i
 			}
-			// TODO : Temp...
-			return 0
+			return val
 		})
 	default:
 		panic(NewTypeError(t, "", "range"))
 	}
 	if vm.rsp == len(vm.rstack) {
+		// TODO : Compile and store required rstack size in bytecode, so that
+		// it doesn't need to expand?
 		if vm.debug && vm.rsp == cap(vm.rstack) {
 			fmt.Fprintf(vm.proto.ctx.Stdout, "DEBUG expanding range stack of func %s, current size: %d\n", vm.val.name, len(vm.rstack))
 		}

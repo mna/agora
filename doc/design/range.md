@@ -54,7 +54,7 @@ Here is the tentative implementation, that seems both simple and generic enough 
 
 -1 		: RNGS An N 		; create coro, pop n args and pass them to the range.
 
- 0 		: PUSH R  N 		; push n values - only 1 for now - from the coro on top of the range stack (the values) then push the condition bool value (true if coro is still alive, false if it ended).
+ 0 		: RNGP An N 		; push n values - only 1 for now - from the coro on top of the range stack (the values) then push the condition bool value (true if coro is still alive, false if it ended). Use RNGP instead of a normal PUSH with a new flag, so that the (frequent) PUSH instructions stay fast.
 
  1 		: TEST Jf N 		; test the condition value, jump forward n instructions if false, otherwise continue, pops the condition value from the stack.
 

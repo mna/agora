@@ -9,23 +9,18 @@ type Flag byte
 
 const (
 	// The possible values of Flag
-	FLG__  Flag = iota // Ignored
-	FLG_K              // Constant table index
-	FLG_V              // Variable table index
-	FLG_F              // Function prototype index
-	FLG_A              // Arguments array
-	FLG_N              // Nil value
-	FLG_T              // `this` keyword
-	FLG_An             // Args count in a CALL or CFLD instruction
-	FLG_Jf             // Jump forward over n instructions
-	FLG_Jb             // Jump back over n instructions
-	FLG_Sn             // Dump n frames
-	FLG_Fn             // Set n fields
-	// TODO : Instead of Rn and Rc, a single FLG_R that pushed both values (1 for now)
-	// and the condition, and the ordre in the stack make it all work (i.e.: val first, condition
-	// second, so the TEST op consumes the condition, and then the value is assigned?)
-	//FLG_Rn               // Number of values from the range coroutine
-	//FLG_Rc               // Result of the range condition
+	FLG__    Flag = iota // Ignored
+	FLG_K                // Constant table index
+	FLG_V                // Variable table index
+	FLG_F                // Function prototype index
+	FLG_A                // Arguments array
+	FLG_N                // Nil value
+	FLG_T                // `this` keyword
+	FLG_An               // Args count in a CALL or CFLD instruction
+	FLG_Jf               // Jump forward over n instructions
+	FLG_Jb               // Jump back over n instructions
+	FLG_Sn               // Dump n frames
+	FLG_Fn               // Set n fields
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
@@ -44,8 +39,6 @@ var (
 		FLG_Jb: "Jb",
 		FLG_Sn: "Sn",
 		FLG_Fn: "Fn",
-		FLG_Rn: "Rn",
-		FLG_Rc: "Rc",
 	}
 
 	// The lookup table of literal flag names to Flag values
@@ -62,8 +55,6 @@ var (
 		"Jb": FLG_Jb,
 		"Sn": FLG_Sn,
 		"Fn": FLG_Fn,
-		"Rn": FLG_Rn,
-		"Rc": FLG_Rc,
 	}
 )
 
