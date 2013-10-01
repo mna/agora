@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/PuerkitoBio/agora/bytecode"
+	"github.com/PuerkitoBio/gocoro"
 )
 
 // A funcVM is an instance of a function prototype. It holds the virtual machine
@@ -18,10 +19,12 @@ type funcVM struct {
 	proto *agoraFuncDef
 	debug bool
 
-	// Stack and counters
-	pc    int
-	stack []Val
-	sp    int
+	// Stacks and counters
+	pc     int   // program counter
+	stack  []Val // function stack
+	sp     int
+	rstack []gocoro.Caller // range native coroutine stack
+	rsp    int
 
 	// Variables
 	vars map[string]Val
@@ -191,9 +194,65 @@ func (vm *funcVM) createLocals() {
 	}
 }
 
+func (vm *funcVM) pushRange(args ...Val) {
+	var coro gocoro.Caller
+	l := len(args)
+	switch t := Type(args[0]); t {
+	case "number":
+		start := int64(0)
+		max := args[0].Int()
+		inc := int64(1)
+		if l > 1 {
+			start = max
+			max = args[1].Int()
+		}
+		if l > 2 {
+			inc = args[2].Int()
+		}
+		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			for i := start; i < max; i += inc {
+				y.Yield(i)
+			}
+			// TODO : Temp...
+			return 0
+		})
+	default:
+		panic(NewTypeError(t, "", "range"))
+	}
+	if vm.rsp == len(vm.rstack) {
+		if vm.debug && vm.rsp == cap(vm.rstack) {
+			fmt.Fprintf(vm.proto.ctx.Stdout, "DEBUG expanding range stack of func %s, current size: %d\n", vm.val.name, len(vm.rstack))
+		}
+		vm.rstack = append(vm.rstack, coro)
+	} else {
+		vm.rstack[vm.rsp] = coro
+	}
+	vm.rsp++
+}
+
+func (vm *funcVM) popRange() {
+	vm.rsp--
+	coro := vm.rstack[vm.rsp]
+	vm.rstack[vm.rsp] = nil
+	if coro.Status() == gocoro.StSuspended {
+		coro.Cancel()
+	}
+}
+
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
 func (f *funcVM) run(args ...Val) Val {
+	// Register the defer to release all `for range` coroutines created
+	// by the VM and possibly still alive from a resume of this VM.
+	clearRange := true
+	defer func() {
+		if clearRange {
+			for i := 0; i < f.rsp; i++ {
+				f.rstack[i].Cancel()
+			}
+		}
+	}()
+
 	// Keep reference to arithmetic and comparer
 	arith := f.proto.ctx.Arithmetic
 	cmp := f.proto.ctx.Comparer
@@ -241,6 +300,7 @@ func (f *funcVM) run(args ...Val) Val {
 		case bytecode.OP_YLD:
 			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
+			clearRange = false // Keep active range coros, so that they can continue on a resume
 			return f.pop()
 
 		case bytecode.OP_PUSH:
@@ -373,6 +433,19 @@ func (f *funcVM) run(args ...Val) Val {
 			// TODO : Do not push returned value if unused (grow stack for nothing). When multiple return values
 			// are added, add intelligence to know how many are used/discarded.
 			f.push(fn.Call(nil, args...))
+
+		case bytecode.OP_RNGS:
+			// Pop the arguments in reverse order
+			args := make([]Val, ix)
+			for j := ix; j > 0; j-- {
+				args[j-1] = f.pop()
+			}
+			// Create the range coroutine
+			f.pushRange(args...)
+
+		case bytecode.OP_RNGE:
+			// Release the range coroutine
+			f.popRange()
 
 		case bytecode.OP_DUMP:
 			if f.debug {

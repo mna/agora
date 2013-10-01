@@ -30,6 +30,8 @@ The range could take one, two and three-args.
 
 A two-arg form could be used to loop over all key-value pairs regardless of the "__keys" metamethod. Not sure about this one.
 
+Support a `__range` meta-method to implement and iterator on the object, giving a result very similar to range with a func.
+
 ## Funcs
 
 Functions can be used to create iterators, using coroutines. `for v := range(fn) {}` is equivalent to `reset(fn); for v := fn(); true; v = fn() { ... body ... if status(fn) == "func" { break } }`. Meaning it always loops at least once (over the value returned by the function), and exits if there are no more values to be returned from the coroutine (status is now "func"). That's because all functions return at least one value (nil or other).
@@ -42,5 +44,8 @@ There is no range over those type of values, there is no natural loop for those 
 
 ## Implementation
 
-Use a built-in coroutine implementation for numbers, strings and objects, so that the `for..range` is ultimately always like the `for..range` over iterator funcs?
+* Use a built-in coroutine implementation for numbers, strings and objects, so that the `for..range` is ultimately always like the `for..range` over iterator funcs?
 
+* Or try a full agora implementation, provided as a builtin and stored in the Go code as embedded resource?
+
+* Or treat the for loop body as a function, so that a `for v := range(fn) {body}` is syntactic sugar for `fn(func(){body})`, where `fn` calls the provided func once for each iteration?
