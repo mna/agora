@@ -82,7 +82,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 
 // Run executes the module and returns its return value, or an error.
 func (m *agoraModule) Run(args ...Val) (v Val, err error) {
-	defer PanicToError(&err)
+	//defer PanicToError(&err)
 	if len(m.fns) == 0 {
 		return Nil, NewEmptyModuleError(m.ID())
 	}

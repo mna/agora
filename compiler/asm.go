@@ -68,7 +68,7 @@ func (a *Asm) readFn() {
 
 func (a *Asm) readKs(fn *bytecode.Fn) {
 	// While the L section is not reached
-	for l, ok := a.getLine(true); ok && !strings.HasPrefix(l, "[l]"); l, ok = a.getLine(true) {
+	for l, ok := a.getLine(true); ok && l != "[l]"; l, ok = a.getLine(true) {
 		var err error
 		k := new(bytecode.K)
 		// The K Type is the first character of the line
@@ -95,8 +95,10 @@ func (a *Asm) readKs(fn *bytecode.Fn) {
 
 func (a *Asm) readLs(fn *bytecode.Fn) {
 	// While the L section is not reached
-	for l, ok := a.getLine(false); ok && !strings.HasPrefix(l, "[i]"); l, ok = a.getLine(false) {
-		fn.Ls = append(fn.Ls, a.getInt64())
+	for l, ok := a.getLine(false); ok && l != "[i]"; l, ok = a.getLine(false) {
+		var i int64
+		i, a.err = strconv.ParseInt(l, 10, 64)
+		fn.Ls = append(fn.Ls, i)
 	}
 	a.readIs(fn)
 }

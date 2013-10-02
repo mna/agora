@@ -210,13 +210,13 @@ func (vm *funcVM) pushRange(args ...Val) {
 			inc = args[2].Int()
 		}
 		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
-			var val int64
+			var val Number
 			for i := start; i < max; i += inc {
 				// Needs to yield previous value, so that the return returns the last value
 				if i != start {
 					y.Yield(val)
 				}
-				val = i
+				val = Number(i)
 			}
 			return val
 		})
@@ -448,6 +448,30 @@ func (f *funcVM) run(args ...Val) Val {
 			}
 			// Create the range coroutine
 			f.pushRange(args...)
+
+		case bytecode.OP_RNGP:
+			coro := f.rstack[f.rsp-1]
+			v, e := coro.Resume()
+			var vals []interface{}
+			if sl, ok := v.([]interface{}); ok {
+				vals = sl
+			} else {
+				vals = []interface{}{v}
+			}
+			// Push the values
+			if e == nil {
+				for j := uint64(0); j < ix; j++ {
+					if j < uint64(len(vals)) {
+						f.push(vals[j].(Val))
+					} else {
+						f.push(Nil)
+					}
+				}
+			} else if e != gocoro.ErrEndOfCoro {
+				panic(e)
+			}
+			// Push the condition
+			f.push(Bool(e == nil))
 
 		case bytecode.OP_RNGE:
 			// Release the range coroutine

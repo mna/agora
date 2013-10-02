@@ -34,6 +34,7 @@ const (
 	OP_CALL               // call a function, push the result, using 1 value + n arguments from the stack
 	OP_YLD                // yield a value for coroutine cooperative threading
 	OP_RNGS               // range start
+	OP_RNGP               // range push
 	OP_RNGE               // range end
 	op_dbgstart
 	OP_DUMP               // print the execution context, if the Ctx is in debug mode
@@ -69,6 +70,7 @@ var (
 		OP_CALL: "CALL",
 		OP_YLD:  "YLD",
 		OP_RNGS: "RNGS",
+		OP_RNGP: "RNGP",
 		OP_RNGE: "RNGE",
 		OP_DUMP: "DUMP",
 	}
@@ -100,6 +102,7 @@ var (
 		"CALL": OP_CALL,
 		"YLD":  OP_YLD,
 		"RNGS": OP_RNGS,
+		"RNGP": OP_RNGP,
 		"RNGE": OP_RNGE,
 		"DUMP": OP_DUMP,
 	}
