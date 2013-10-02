@@ -86,6 +86,7 @@ const (
 	BREAK
 	CONTINUE
 	YIELD
+	RANGE
 	keyword_end
 )
 
@@ -151,6 +152,7 @@ var tokens = [...]string{
 	BREAK:    "break",
 	CONTINUE: "continue",
 	YIELD:    "yield",
+	RANGE:    "range",
 }
 
 // String returns the string corresponding to the token tok.

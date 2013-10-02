@@ -84,6 +84,22 @@ func (p *Parser) defineGrammar() {
 		return sym
 	})
 
+	// The range keyword expression
+	p.prefix("range", func(sym *Symbol) *Symbol {
+		// Must have a list of arguments
+		p.isRange = true
+		var args []*Symbol
+		for {
+			args = append(args, p.expression(0))
+			if p.tkn.Id != "," {
+				break
+			}
+			p.advance(",")
+		}
+		sym.First = args
+		return sym
+	})
+
 	// The assignment operators
 	p.assignment("=")
 	p.assignment("+=")
@@ -113,8 +129,12 @@ func (p *Parser) defineGrammar() {
 		// sym.First is nil, while sym.Second holds the body.
 		sym.First = nil
 		if p.tkn.Id != "{" {
+			p.isRange = false
 			f := p.expression(0)
-			if p.tkn.Id == "{" {
+			if p.isRange {
+				sym.First = f
+				sym.Id = "forr" // Different symbol ID for range notation
+			} else if p.tkn.Id == "{" {
 				// Single expression form (i.e. `while`)
 				sym.First = f
 			} else {

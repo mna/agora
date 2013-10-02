@@ -210,15 +210,16 @@ func (vm *funcVM) pushRange(args ...Val) {
 			inc = args[2].Int()
 		}
 		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
-			var val Number
-			for i := start; i < max; i += inc {
-				// Needs to yield previous value, so that the return returns the last value
-				if i != start {
-					y.Yield(val)
+			if inc >= 0 {
+				for i := start; i < max; i += inc {
+					y.Yield(Number(i))
 				}
-				val = Number(i)
+			} else {
+				for i := start; i > max; i += inc {
+					y.Yield(Number(i))
+				}
 			}
-			return val
+			panic(gocoro.ErrEndOfCoro)
 		})
 	default:
 		panic(NewTypeError(t, "", "range"))
