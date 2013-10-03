@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"sort"
+	"strings"
 
 	"github.com/PuerkitoBio/agora/bytecode"
 	"github.com/PuerkitoBio/gocoro"
@@ -221,6 +222,49 @@ func (vm *funcVM) pushRange(args ...Val) {
 			}
 			panic(gocoro.ErrEndOfCoro)
 		})
+
+	case "string":
+		src := args[0].String()
+		sep := ""
+		if len(args) > 1 {
+			sep = args[1].String()
+		}
+		max := int64(-1)
+		if len(args) > 2 {
+			max = args[2].Int()
+		}
+		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			if max == 0 {
+				panic(gocoro.ErrEndOfCoro)
+			}
+			if sep == "" {
+				cnt := int64(len(src))
+				if max >= 0 && max < cnt {
+					cnt = max
+				}
+				for i := int64(0); i < cnt; i++ {
+					y.Yield(String(src[i]))
+				}
+			} else {
+				cnt := int64(0)
+				for max < 0 || cnt < max {
+					splits := strings.SplitN(src, sep, 2)
+					if len(splits) == 0 {
+						break
+					}
+					y.Yield(String(splits[0]))
+					cnt++
+					if len(splits) == 1 {
+						break
+					}
+					src = splits[1]
+				}
+			}
+			panic(gocoro.ErrEndOfCoro)
+		})
+
+	case "object":
+
 	default:
 		panic(NewTypeError(t, "", "range"))
 	}
