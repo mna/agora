@@ -264,6 +264,18 @@ func (vm *funcVM) pushRange(args ...Val) {
 		})
 
 	case "object":
+		ob := args[0].(Object)
+		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			ks := ob.Keys().(Object)
+			for i := int64(0); i < ks.Len().Int(); i++ {
+				val := NewObject()
+				key := ks.Get(Number(i))
+				val.Set(String("k"), key)
+				val.Set(String("v"), ob.Get(key))
+				y.Yield(val)
+			}
+			panic(gocoro.ErrEndOfCoro)
+		})
 
 	default:
 		panic(NewTypeError(t, "", "range"))

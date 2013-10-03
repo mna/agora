@@ -30,7 +30,7 @@ The range could take one, two and three-args.
 
 A two-arg form could be used to loop over all key-value pairs regardless of the "__keys" metamethod. Not sure about this one.
 
-Support a `__range` meta-method to implement and iterator on the object, giving a result very similar to range with a func.
+Support a `__range` meta-method to implement and iterator on the object, giving a result very similar to range with a func? No, not sure right now, there is a meta-method to control the keys, range is expected to loop over keys.
 
 ## Funcs
 
