@@ -128,6 +128,7 @@ func (p *Parser) defineGrammar() {
 		// Check for the infinite loop form (i.e. `for {}`). If this is the case,
 		// sym.First is nil, while sym.Second holds the body.
 		sym.First = nil
+		sym.Id = "for"
 		if p.tkn.Id != "{" {
 			p.isRange = false
 			f := p.expression(0)
