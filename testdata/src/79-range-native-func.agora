@@ -1,0 +1,6 @@
+/*---
+error: type error: range not allowed with type native func
+---*/
+for a := range import {
+
+}

@@ -91,3 +91,21 @@ func (a *agoraFuncVal) Call(this Val, args ...Val) Val {
 func (a *agoraFuncVal) Native() interface{} {
 	return a
 }
+
+func (a *agoraFuncVal) status() string {
+	if a.ctx.IsRunning(a) {
+		return "running"
+	} else if a.coroState != nil {
+		return "suspended"
+	}
+	return ""
+}
+
+func (a *agoraFuncVal) reset() {
+	if a.coroState != nil {
+		for a.coroState.rsp > 0 {
+			a.coroState.popRange()
+		}
+		a.coroState = nil
+	}
+}

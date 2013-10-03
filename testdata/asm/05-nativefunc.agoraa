@@ -1,27 +1,29 @@
-//
-// import "fmt" // implicit fmt variable
-// fmt.Println("Hello ", "world")
-//
+// Generated from the disassembler, v0.1
 [f]
 05-nativefunc.agora
-4
+3
 0
-1
 0
-1
+0
+0
 [k]
 sfmt
-sPrintln
+simport
+sf
 sHello 
 sworld
+sPrintln
+[l]
+2
 [i]
-LOAD K 0 // <-fmt
-POP V 0 // ->fmt
-PUSH K 2 // <-"Hello "
-PUSH K 3 // <-"world"
-PUSH K 1 // <-"Println"
-PUSH V 0 // <-"fmt"
-CFLD A 2
-PUSH N 0 // <-Nil
-DUMP S 3
+PUSH K 0
+PUSH V 1
+CALL An 1
+POP V 2
+PUSH K 3
+PUSH K 4
+PUSH K 5
+PUSH V 2
+CFLD An 2
+PUSH N 0
 RET _ 0

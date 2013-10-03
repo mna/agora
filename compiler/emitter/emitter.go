@@ -319,6 +319,45 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			// Update the jump instruction now that we know how many instrs to jump over
 			e.updateJumpfInstr(fn, jmpIx)
 		}
+	case "forr":
+		// For-range notation, distinct from regular for
+		// First must be either a `=` or a `:=`
+		assign := sym.First.(*parser.Symbol)
+		e.assert(assign.Id == "=" || assign.Id == ":=", errors.New("left hand side of `for...range` must be `=` or `:=`"))
+		rng := assign.Second.(*parser.Symbol)
+		e.assert(rng.Id == "range", errors.New("right hand side of `for...range` must be the `range` keyword"))
+		// Push `range` args onto the stack
+		args := rng.First.([]*parser.Symbol)
+		e.emitBlock(f, fn, args)
+		// Start the `range` coroutine
+		e.addInstr(fn, bytecode.OP_RNGS, bytecode.FLG_An, uint64(len(args)))
+		// For loop officially starts here
+		start := len(fn.Is)
+		// Push one value from the coro (until multiple vals are supported), + condition
+		e.addInstr(fn, bytecode.OP_RNGP, bytecode.FLG_An, 1)
+		// Test the end of loop
+		tstIx := e.addTempInstr(fn)
+		// Pop the top value from the stack into the iteration var
+		if assign.Id == "=" {
+			e.emitSymbol(f, fn, assign.First.(*parser.Symbol), atTrue)
+		} else {
+			e.emitSymbol(f, fn, assign.First.(*parser.Symbol), atDefine)
+		}
+		// Emit the body
+		e.startFor(fn)
+		e.emitAny(f, fn, sym, sym.Second)
+		// Update the continue statements (must jump to the next statement)
+		e.updateForJmp(fn, false)
+		// Add the jump back to RNGP instruction
+		e.addInstr(fn, bytecode.OP_JMP, bytecode.FLG_Jb, uint64(len(fn.Is)-start))
+		// Break statements must jump to the next statement (RNGE)
+		e.updateForJmp(fn, true)
+		// Update the test instruction to jump to the next statement (RNGE)
+		e.updateTestInstr(fn, tstIx)
+		e.endFor(fn)
+		// Emit the range end (clear coroutine) statement
+		e.addInstr(fn, bytecode.OP_RNGE, bytecode.FLG__, 0)
+
 	case "for":
 		var tstIx int
 		var parts []interface{}

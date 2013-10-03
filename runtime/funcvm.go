@@ -6,8 +6,10 @@ import (
 	"io"
 	"math"
 	"sort"
+	"strings"
 
 	"github.com/PuerkitoBio/agora/bytecode"
+	"github.com/PuerkitoBio/gocoro"
 )
 
 // A funcVM is an instance of a function prototype. It holds the virtual machine
@@ -18,10 +20,12 @@ type funcVM struct {
 	proto *agoraFuncDef
 	debug bool
 
-	// Stack and counters
-	pc    int
-	stack []Val
-	sp    int
+	// Stacks and counters
+	pc     int   // program counter
+	stack  []Val // function stack
+	sp     int
+	rstack []gocoro.Caller // range native coroutine stack
+	rsp    int
 
 	// Variables
 	vars map[string]Val
@@ -191,9 +195,141 @@ func (vm *funcVM) createLocals() {
 	}
 }
 
+func (vm *funcVM) pushRange(args ...Val) {
+	var coro gocoro.Caller
+	l := len(args)
+	switch t := Type(args[0]); t {
+	case "number":
+		start := int64(0)
+		max := args[0].Int()
+		inc := int64(1)
+		if l > 1 {
+			start = max
+			max = args[1].Int()
+		}
+		if l > 2 {
+			inc = args[2].Int()
+		}
+		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			if inc >= 0 {
+				for i := start; i < max; i += inc {
+					y.Yield(Number(i))
+				}
+			} else {
+				for i := start; i > max; i += inc {
+					y.Yield(Number(i))
+				}
+			}
+			panic(gocoro.ErrEndOfCoro)
+		})
+
+	case "string":
+		src := args[0].String()
+		sep := ""
+		if len(args) > 1 {
+			sep = args[1].String()
+		}
+		max := int64(-1)
+		if len(args) > 2 {
+			max = args[2].Int()
+		}
+		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			if max == 0 {
+				panic(gocoro.ErrEndOfCoro)
+			}
+			if sep == "" {
+				cnt := int64(len(src))
+				if max >= 0 && max < cnt {
+					cnt = max
+				}
+				for i := int64(0); i < cnt; i++ {
+					y.Yield(String(src[i]))
+				}
+			} else {
+				cnt := int64(0)
+				for max < 0 || cnt < max {
+					splits := strings.SplitN(src, sep, 2)
+					if len(splits) == 0 {
+						break
+					}
+					y.Yield(String(splits[0]))
+					cnt++
+					if len(splits) == 1 {
+						break
+					}
+					src = splits[1]
+				}
+			}
+			panic(gocoro.ErrEndOfCoro)
+		})
+
+	case "object":
+		ob := args[0].(Object)
+		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
+			ks := ob.Keys().(Object)
+			for i := int64(0); i < ks.Len().Int(); i++ {
+				val := NewObject()
+				key := ks.Get(Number(i))
+				val.Set(String("k"), key)
+				val.Set(String("v"), ob.Get(key))
+				y.Yield(val)
+			}
+			panic(gocoro.ErrEndOfCoro)
+		})
+
+	case "func":
+		fn := args[0].(Func)
+		if afn, ok := fn.(*agoraFuncVal); ok {
+			afn.reset()
+			coro = gocoro.New(func(y gocoro.Yielder, _ ...interface{}) interface{} {
+				for v := afn.Call(Nil, args[1:]...); afn.status() == "suspended"; v = afn.Call(Nil) {
+					y.Yield(v)
+				}
+				panic(gocoro.ErrEndOfCoro)
+			})
+		} else {
+			panic(NewTypeError("native func", "", "range"))
+		}
+
+	default:
+		panic(NewTypeError(t, "", "range"))
+	}
+	if vm.rsp == len(vm.rstack) {
+		// TODO : Compile and store required rstack size in bytecode, so that
+		// it doesn't need to expand?
+		if vm.debug && vm.rsp == cap(vm.rstack) {
+			fmt.Fprintf(vm.proto.ctx.Stdout, "DEBUG expanding range stack of func %s, current size: %d\n", vm.val.name, len(vm.rstack))
+		}
+		vm.rstack = append(vm.rstack, coro)
+	} else {
+		vm.rstack[vm.rsp] = coro
+	}
+	vm.rsp++
+}
+
+func (vm *funcVM) popRange() {
+	vm.rsp--
+	coro := vm.rstack[vm.rsp]
+	vm.rstack[vm.rsp] = nil
+	if coro.Status() == gocoro.StSuspended {
+		coro.Cancel()
+	}
+}
+
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
 func (f *funcVM) run(args ...Val) Val {
+	// Register the defer to release all `for range` coroutines created
+	// by the VM and possibly still alive from a resume of this VM.
+	clearRange := true
+	defer func() {
+		if clearRange {
+			for f.rsp > 0 {
+				f.popRange()
+			}
+		}
+	}()
+
 	// Keep reference to arithmetic and comparer
 	arith := f.proto.ctx.Arithmetic
 	cmp := f.proto.ctx.Comparer
@@ -241,6 +377,7 @@ func (f *funcVM) run(args ...Val) Val {
 		case bytecode.OP_YLD:
 			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
+			clearRange = false // Keep active range coros, so that they can continue on a resume
 			return f.pop()
 
 		case bytecode.OP_PUSH:
@@ -373,6 +510,43 @@ func (f *funcVM) run(args ...Val) Val {
 			// TODO : Do not push returned value if unused (grow stack for nothing). When multiple return values
 			// are added, add intelligence to know how many are used/discarded.
 			f.push(fn.Call(nil, args...))
+
+		case bytecode.OP_RNGS:
+			// Pop the arguments in reverse order
+			args := make([]Val, ix)
+			for j := ix; j > 0; j-- {
+				args[j-1] = f.pop()
+			}
+			// Create the range coroutine
+			f.pushRange(args...)
+
+		case bytecode.OP_RNGP:
+			coro := f.rstack[f.rsp-1]
+			v, e := coro.Resume()
+			var vals []interface{}
+			if sl, ok := v.([]interface{}); ok {
+				vals = sl
+			} else {
+				vals = []interface{}{v}
+			}
+			// Push the values
+			if e == nil {
+				for j := uint64(0); j < ix; j++ {
+					if j < uint64(len(vals)) {
+						f.push(vals[j].(Val))
+					} else {
+						f.push(Nil)
+					}
+				}
+			} else if e != gocoro.ErrEndOfCoro {
+				panic(e)
+			}
+			// Push the condition
+			f.push(Bool(e == nil))
+
+		case bytecode.OP_RNGE:
+			// Release the range coroutine
+			f.popRange()
 
 		case bytecode.OP_DUMP:
 			if f.debug {

@@ -1,0 +1,98 @@
+// Generated from the disassembler, v0.1
+[f]
+71-coro-method.agora
+2
+0
+0
+0
+0
+[k]
+sfmt
+simport
+sfn
+sob
+i1
+sPrintln
+i2
+sa
+i3
+i4
+i5
+[l]
+0
+3
+7
+[i]
+PUSH K 0
+PUSH V 1
+CALL An 1
+POP V 0
+PUSH F 1
+PUSH K 2
+NEW _ 1
+POP V 3
+PUSH K 4
+PUSH K 2
+PUSH V 3
+CFLD An 1
+PUSH K 5
+PUSH V 0
+CFLD An 1
+PUSH K 6
+PUSH K 2
+PUSH V 3
+CFLD An 1
+PUSH K 5
+PUSH V 0
+CFLD An 1
+PUSH K 2
+PUSH V 3
+GFLD _ 0
+POP V 7
+PUSH K 8
+PUSH V 7
+CALL An 1
+PUSH K 5
+PUSH V 0
+CFLD An 1
+PUSH K 9
+PUSH K 2
+PUSH V 3
+CFLD An 1
+PUSH K 5
+PUSH V 0
+CFLD An 1
+PUSH K 10
+PUSH V 7
+CALL An 1
+PUSH K 5
+PUSH V 0
+CFLD An 1
+PUSH N 0
+RET _ 0
+[f]
+<anon>
+2
+1
+0
+0
+0
+[k]
+sn
+si
+[l]
+0
+1
+[i]
+PUSH V 0
+YLD _ 0
+POP V 1
+PUSH V 0
+PUSH V 1
+ADD _ 0
+YLD _ 0
+POP V 1
+PUSH V 0
+PUSH V 1
+ADD _ 0
+RET _ 0

@@ -33,10 +33,11 @@ type Parser struct {
 	scn *scanner.Scanner // the Scanner
 
 	// Parse state reinitialized at each .Parse() call
-	tkn *Symbol            // current token in Symbol representation
-	tbl map[string]*Symbol // Symbol table
-	scp *Scope             // the top-level (universe) scope
-	err *scanner.ErrorList // the error handler
+	tkn     *Symbol            // current token in Symbol representation
+	tbl     map[string]*Symbol // Symbol table
+	scp     *Scope             // the top-level (universe) scope
+	err     *scanner.ErrorList // the error handler
+	isRange bool
 
 	// Exported fields
 	Debug bool
@@ -55,6 +56,7 @@ func (p *Parser) Parse(filename string, src []byte) ([]*Symbol, *Scope, error) {
 	// Initialize parsing state
 	p.tbl = make(map[string]*Symbol)
 	p.err = new(scanner.ErrorList)
+	p.isRange = false
 	u := p.newScope()
 	p.defineRequiredSymbols()
 	p.defineGrammar()

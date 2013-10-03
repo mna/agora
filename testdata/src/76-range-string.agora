@@ -1,0 +1,30 @@
+fmt := import("fmt")
+
+fmt.Println("range `test`")
+for s := range "test" {
+	fmt.Println(s)
+}
+fmt.Println("\nrange `this is a word`, ` `")
+for s = range "this is a word", " " {
+	fmt.Println(s)
+}
+fmt.Println("\nrange `this is a word`, ` `, 2")
+for s = range "this is a word", " ", 2 {
+	fmt.Println(s)
+}
+fmt.Println("\nrange `xxx`, `y`")
+for s = range "xxx", "y" {
+	fmt.Println(s)
+}
+fmt.Println("\nrange `xxx`, `y`, 3")
+for s = range "xxx", "y", 3 {
+	fmt.Println(s)
+}
+fmt.Println("\nrange `this is a word`, ` `, 0")
+for s = range "this is a word", " ", 0 {
+	fmt.Println(s)
+}
+fmt.Println("\nrange `xxx`, ``, 1")
+for s = range "xxx", "", 1 {
+	fmt.Println(s)
+}

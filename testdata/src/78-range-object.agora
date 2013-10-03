@@ -1,0 +1,30 @@
+fmt := import("fmt")
+
+fmt.Println("range {}")
+for kv := range {} {
+	fmt.Println(kv.k, kv.v)
+}
+fmt.Println("\nrange{a: 0}")
+for kv = range {a: 0} {
+	fmt.Println(kv.k, kv.v)
+}
+fmt.Println("\nrange{a: 0, b: `ok`, c: true, d: {e: 1}}")
+for kv = range {a: 0, b: "ok", c: true, d: {e: 1}} {
+	fmt.Println(kv.k, kv.v)
+}
+fmt.Println("\nrange custom")
+ob := {
+	a: "ok",
+	b: 5,
+	c: true,
+	d: {e: 1},
+	__keys: func() {
+		ks := {}
+		ks[0] = "a"
+		ks[1] = "c"
+		return ks
+	},
+}
+for kv = range ob {
+	fmt.Println(kv.k, kv.v)
+}
