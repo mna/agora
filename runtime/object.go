@@ -38,11 +38,11 @@ func NewObject() Object {
 	}
 }
 
-// dump pretty-prints the content of the object.
-func (o *object) dump() string {
+// Dump pretty-prints the content of the object.
+func (o *object) Dump() string {
 	buf := bytes.NewBuffer(nil)
 	for k, v := range o.m {
-		buf.WriteString(fmt.Sprintf(" %s: %s, ", k.dump(), v.dump()))
+		buf.WriteString(fmt.Sprintf(" %s: %s, ", dumpVal(k), dumpVal(v)))
 	}
 	return fmt.Sprintf("{%s} (Object)", buf)
 }

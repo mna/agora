@@ -240,7 +240,7 @@ func (c *Ctx) dump(n int) {
 		if frm := c.frames[i-1]; frm.fvm != nil {
 			fmt.Fprintln(c.Stdout, frm.fvm.dump())
 		} else {
-			fmt.Fprintln(c.Stdout, frm.f.(dumper).dump())
+			fmt.Fprintln(c.Stdout, dumpVal(frm.f))
 		}
 	}
 }

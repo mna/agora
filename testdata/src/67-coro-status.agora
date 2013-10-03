@@ -1,6 +1,6 @@
 /*---
 result: 4
-output: func\nrunning\nsuspended\nfunc\n
+output: \nrunning\nsuspended\n\n
 ---*/
 
 fmt := import("fmt")

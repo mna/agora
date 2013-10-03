@@ -11,7 +11,7 @@ type funcVal struct {
 	name string
 }
 
-func (f *funcVal) dump() string {
+func (f *funcVal) Dump() string {
 	return fmt.Sprintf("%s (Func)", f.name)
 }
 

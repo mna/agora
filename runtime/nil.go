@@ -15,7 +15,7 @@ var (
 // the Val interface so that it is a valid agora value.
 type null struct{}
 
-func (n null) dump() string {
+func (n null) Dump() string {
 	return "[Nil]"
 }
 

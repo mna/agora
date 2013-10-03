@@ -96,11 +96,12 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 	switch i.Flag() {
 	case bytecode.FLG_K:
-		fmt.Fprintf(w, " ; %s", f.proto.kTable[i.Index()].dump())
+		v := f.proto.kTable[i.Index()]
+		fmt.Fprintf(w, " ; %s", dumpVal(v))
 	case bytecode.FLG_V:
 		fmt.Fprintf(w, " ; var %s", f.proto.kTable[i.Index()])
 	case bytecode.FLG_N:
-		fmt.Fprintf(w, " ; %s", Nil.dump())
+		fmt.Fprintf(w, " ; %s", Nil.Dump())
 	case bytecode.FLG_T:
 		fmt.Fprint(w, " ; [this]")
 	case bytecode.FLG_F:
@@ -113,19 +114,19 @@ func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 // Pretty-print a function's execution context.
 func (f *funcVM) dump() string {
 	buf := bytes.NewBuffer(nil)
-	fmt.Fprintf(buf, "\n> %s\n", f.val.dump())
+	fmt.Fprintf(buf, "\n> %s\n", f.val.Dump())
 	// Constants
 	fmt.Fprintf(buf, "  Constants:\n")
 	for i, v := range f.proto.kTable {
-		fmt.Fprintf(buf, "    [%3d] %s\n", i, v.dump())
+		fmt.Fprintf(buf, "    [%3d] %s\n", i, dumpVal(v))
 	}
 	// Variables
 	fmt.Fprintf(buf, "\n  Variables:\n")
 	if f.this != nil {
-		fmt.Fprintf(buf, "    [this] = %s\n", f.this.dump())
+		fmt.Fprintf(buf, "    [this] = %s\n", dumpVal(f.this))
 	}
 	if f.args != nil {
-		fmt.Fprintf(buf, "    [args] = %s\n", f.args.dump())
+		fmt.Fprintf(buf, "    [args] = %s\n", dumpVal(f.args))
 	}
 	// Sort the vars for deterministic output
 	sortedVars := make([]string, len(f.vars))
@@ -136,7 +137,7 @@ func (f *funcVM) dump() string {
 	}
 	sort.Strings(sortedVars)
 	for _, k := range sortedVars {
-		fmt.Fprintf(buf, "    %s = %s\n", k, f.vars[k].dump())
+		fmt.Fprintf(buf, "    %s = %s\n", k, dumpVal(f.vars[k]))
 	}
 	// Stack
 	fmt.Fprintf(buf, "\n  Stack:\n")
@@ -151,7 +152,7 @@ func (f *funcVM) dump() string {
 		if i < len(f.stack) {
 			v = f.stack[i]
 		}
-		fmt.Fprintf(buf, "[%3d] %s\n", i, v.dump())
+		fmt.Fprintf(buf, "[%3d] %s\n", i, dumpVal(v))
 		i++
 	}
 	// Instructions

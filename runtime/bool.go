@@ -8,7 +8,7 @@ import (
 // to Go's bool type.
 type Bool bool
 
-func (b Bool) dump() string {
+func (b Bool) Dump() string {
 	return fmt.Sprintf("%v (Bool)", bool(b))
 }
 

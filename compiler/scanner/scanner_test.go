@@ -211,7 +211,7 @@ for i := range 10 {
 				token.FOR,
 				token.IDENT,
 				token.DEFINE,
-				token.IDENT,
+				token.RANGE,
 				token.INT,
 				token.LBRACE,
 				token.IDENT,

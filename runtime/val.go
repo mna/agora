@@ -114,7 +114,7 @@ func (ar defaultArithmetic) Unm(l Val) Val {
 }
 
 // Comparer defines the method required to compare two Values.
-// Cmp() returns 1 if the method receiver value is greater, 0 if
+// Cmp() returns 1 if the first value is greater, 0 if
 // it is equal, and -1 if it is lower.
 type Comparer interface {
 	Cmp(Val, Val) int
@@ -214,7 +214,7 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 			if lb == rb {
 				return 0
 			} else if lb {
-				return 1 // true is greater than false (0)
+				return 1 // true (1) is greater than false (0)
 			} else {
 				return -1
 			}
@@ -277,28 +277,33 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 	}
 }
 
-// The dumper interface defines the required behaviour to pretty-print
-// the values.
-// TODO : Should provide a default impl or make it public, so that custom types
-// can actually be built from outside the package.
-type dumper interface {
-	dump() string
+// The Dumper interface defines the required behaviour to pretty-print
+// the values in debug logs.
+type Dumper interface {
+	Dump() string
 }
 
 // Val is the representation of a value, any value, in the language.
 // The supported value types are the following:
 // * Number (float64)
 // * String
-// * Boolean (Bool)
+// * Bool (bool)
 // * Nil (null)
-// * Object
-// * Func
+// * Object (interface)
+// * Func (interface)
 // * Custom (any other Val impl)
 type Val interface {
 	Converter
-	dumper
 }
 
+// Type returns the type of the value, which can be one of the following strings:
+// * string
+// * number
+// * bool
+// * func
+// * object
+// * nil
+// * custom
 func Type(v Val) string {
 	switch v.(type) {
 	case String:
@@ -318,4 +323,11 @@ func Type(v Val) string {
 			return "custom"
 		}
 	}
+}
+
+func dumpVal(v Val) string {
+	if dmp, ok := v.(Dumper); ok {
+		return dmp.Dump()
+	}
+	return fmt.Sprintf("%v", v)
 }

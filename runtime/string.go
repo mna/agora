@@ -10,7 +10,7 @@ import (
 type String string
 
 // Pretty-prints the string value.
-func (s String) dump() string {
+func (s String) Dump() string {
 	return fmt.Sprintf("\"%s\" (String)", string(s))
 }
 
