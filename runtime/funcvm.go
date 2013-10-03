@@ -277,6 +277,20 @@ func (vm *funcVM) pushRange(args ...Val) {
 			panic(gocoro.ErrEndOfCoro)
 		})
 
+	case "func":
+		fn := args[0].(Func)
+		if afn, ok := fn.(*agoraFuncVal); ok {
+			afn.reset()
+			coro = gocoro.New(func(y gocoro.Yielder, _ ...interface{}) interface{} {
+				for v := afn.Call(Nil, args[1:]...); afn.status() == "suspended"; v = afn.Call(Nil) {
+					y.Yield(v)
+				}
+				panic(gocoro.ErrEndOfCoro)
+			})
+		} else {
+			panic(NewTypeError("native func", "", "range"))
+		}
+
 	default:
 		panic(NewTypeError(t, "", "range"))
 	}
@@ -310,8 +324,8 @@ func (f *funcVM) run(args ...Val) Val {
 	clearRange := true
 	defer func() {
 		if clearRange {
-			for i := 0; i < f.rsp; i++ {
-				f.rstack[i].Cancel()
+			for f.rsp > 0 {
+				f.popRange()
 			}
 		}
 	}()

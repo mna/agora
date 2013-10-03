@@ -1,0 +1,19 @@
+fmt := import("fmt")
+
+fmt.Println("rangeFn")
+func rangeFn(n) {
+	for i := 0; i < n; i++ {
+		yield i
+	}
+}
+for i := range rangeFn, 4 {
+	fmt.Println(i)
+}
+
+fmt.Println("noRange")
+func noRange() {
+	return false
+}
+for i = range noRange, 10, "test" {
+	fmt.Println(i)
+}

@@ -132,24 +132,19 @@ func (b *builtinMod) _status(args ...Val) Val {
 	if v, ok := args[0].(*agoraFuncVal); ok {
 		// If v is in the frame stack, return `running`
 		// If v.coroState is not nil, return `suspended`
-		// Else, return `func` (meaning next call is an initial call)
-		if b.ctx.IsRunning(v) {
-			return String("running")
-		} else if v.coroState != nil {
-			return String("suspended")
-		}
+		// Else return empty string
+		return String(v.status())
 	} else if _, ok := args[0].(Func); !ok {
 		// Can only be called on a Func
 		panic(NewTypeError(Type(args[0]), "", "status"))
 	}
-	return String("func")
+	return String("")
 }
 
 func (b *builtinMod) _reset(args ...Val) Val {
 	ExpectAtLeastNArgs(1, args)
 	if v, ok := args[0].(*agoraFuncVal); ok {
-		// Clear the coro state, so next call will be with a new VM
-		v.coroState = nil
+		v.reset()
 	} else if _, ok := args[0].(Func); !ok {
 		// Can only be called on a Func
 		panic(NewTypeError(Type(args[0]), "", "reset"))
