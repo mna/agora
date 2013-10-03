@@ -34,11 +34,11 @@ Support a `__range` meta-method to implement and iterator on the object, giving 
 
 ## Funcs
 
-Functions can be used to create iterators, using coroutines. `for v := range(fn) {}` is equivalent to `reset(fn); for v := fn(); true; v = fn() { ... body ... if status(fn) == "func" { break } }`. Meaning it always loops at least once (over the value returned by the function), and exits if there are no more values to be returned from the coroutine (status is now "func"). That's because all functions return at least one value (nil or other).
+Functions can be used to create iterators, using coroutines. ~~`for v := range(fn) {}` is equivalent to `reset(fn); for v := fn(); true; v = fn() { ... body ... if status(fn) == "func" { break } }`. Meaning it always loops at least once (over the value returned by the function), and exits if there are no more values to be returned from the coroutine (status is now "func"). That's because all functions return at least one value (nil or other).~~
 
 Scratch that, actually the last return value is ignored, thanks to the loop being constructed like this: `for v := fn(); status(fn) == "suspended"; v = fn() {}`. So if the function doesn't yield (if it is a "standard" function with only return statements), it doesn't range at all.
 
-Maybe a two-arg form to allow a "continue" from an existing coroutine, which would not run reset?
+Maybe a two-arg form to allow a "continue" from an existing coroutine, which would not run reset? Not for now, we'll see it this can be useful.
 
 ## Bools, Nil, Custom
 
