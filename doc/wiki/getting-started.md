@@ -6,7 +6,7 @@ Provided you already have the [Go language][go] installed and [your `$GOPATH` en
 
 `go get -t github.com/PuerkitoBio/agora/...`
 
-The three dots at the end are part of the command, literally. The agora repository is a collection of multiple packages, and this command will instruct `go get` to install all of them. The `-t` flag instructs go to also install packages required for tests (requires Go tip - Go's development version).
+The three dots at the end are part of the command, literally. The agora repository is a collection of multiple packages, and this command will instruct `go get` to install all of them. The `-t` flag instructs go to also install packages required for tests (requires Go 1.2).
 
 To test the installation, run the following command (`$` represents the command prompt):
 
@@ -31,6 +31,7 @@ This means that variables, parameters and functions (the return value) have no t
 * Function, i.e. `func add(x, y) { return x + y }`
 * Object, i.e. `{name: "Martin", age: 38}`
 * Nil, i.e. `nil`
+* Custom, any other type implementing the `runtime.Val` interface
 
 ### Agora is embeddable
 
@@ -74,21 +75,21 @@ The tool supports many sub-commands, but for this *getting started* article, we 
 Let's write a simple program that converts the case of its command-line arguments based on the case of the first letter. If the word starts with an uppercase, the whole word is converted to lowercase, and vice-versa. Admittedly, this is not terribly useful, but the goal is to get acquainted with the language.
 
 ```
-// Import the required modules
+// This program modifies the case of each word received as argument.
+// If the first letter is uppercase, it makes the whole word lowercase,
+// and vice-versa.
 s := import("strings")
 f := import("fmt")
 
-// Declare a function to change the case of a word
 func changeCase(word) {
 	if word >= "a" {
 		return s.ToUpper(word)
 	}
-	return s.ToLower(word)
+  return s.ToLower(word)
 }
 
-// Loop over all received arguments
 l := len(args)
-for i := 0; i < l; i++ {
+for i := range l {
 	f.Println(changeCase(args[i]))
 }
 ```
@@ -107,9 +108,11 @@ Then, the source code imports two stdlib modules, `strings` to convert to upper-
 
 The `changeCase` function takes a single word as argument, and checks if it is greater to or equal to "a". This is a simple way to check if it starts with a lowercase letter. If this is the case, it returns the word converted to uppercase. Otherwise it returns the word converted to lowercase.
 
-Then there is a loop over all received arguments (obtained via the `args` reserved identifier). Each blank-separated word is sent to `changeCase` for conversion, and printed on the screen, one per line. The result of `agora run` also displays `= <nil> (runtime.null)`, because each function has an explicit `return nil` statement added if it doesn't end with a `return`.
+Then there is a loop over all received arguments (obtained via the `args` reserved identifier). Each blank-separated word is sent to `changeCase` for conversion, and printed on the screen, one per line. The result of `agora run` also displays `= nil (runtime.null)`, because each function has an explicit `return nil` statement added if it doesn't end with a `return`.
 
-That's it! In future versions, a `for range` construct will likely be available, and possibly a functional-style `map`, but for v0.1, that's the way to do it. Note that the `changeCase` function could also be written using the ternary `?:` operator. This is left as an exercise for the reader.
+The `for i := range l` simply loops over integers from 0 up to but not including `l`. This is an example of the flexible nature of the `range` keyword in agora, in this case it is equivalent to `for i := 0; i < l, i++`.
+
+That's it! Note that the `changeCase` function could also be written using the ternary `?:` operator. This is left as an exercise for the reader.
 
 ## More resources
 

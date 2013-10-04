@@ -141,5 +141,5 @@ The time object provides the following fields and operations:
 * **__int** : overrides the integer conversion, returns the Unix time, which is the number of seconds since January 1, 1970 UTC.
 * **__string** : overrides the string conversion, formats the time in RFC3339 format.
 
-Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
+Next: [Command-line tool](https://github.com/PuerkitoBio/agora/wiki/Command-line-tool)
 
