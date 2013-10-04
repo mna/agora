@@ -203,6 +203,21 @@ Most operators have the obvious meaning.
 * `++` : adds 1 to an existing variable, and assigns it to itself
 * `--` : subtracts 1 from an existing variable, and assigns it to itself
 
+### Arithmetic and comparison operations
+
+All binary arithmetic operations (`+`, `-`, `*`, `/`, `%`) are defined on numbers. The `+` is also defined on strings, resulting in a concatenation of both values. The unary minus operation is defined on numbers.
+
+Also, all arithmetic operations can be defined on objects, using the relevant meta-method (i.e. `__div` for `/`). If any of the operands is an object with the correct meta-method, the operation will be executed via this meta-method, using the left operand's meta-method if applicable, otherwise the right operand's.
+
+Using arithmetic operations with any other value type results in a runtime error.
+
+All types of values can be compared. For values of the same type, numbers, strings and booleans have the expected ordering (for booleans, `true` is greater than `false`). Nil can only be equal to itself. Objects without the `__cmp` meta-method, functions and custom values can be equal, but always return the first operand as `lower than` if `<` or `>` is requested (there is no logical ordering possible).
+
+As for arithmetic operations, if an object with the `__cmp` meta-method is an operand, this function is called to execute the comparison, regardless of the type of the other value. The left operand's meta-method is called if applicable, otherwise the right operand's.
+
+The full matrix of arithmetic and comparison behaviour is available in this spreadsheet:
+https://docs.google.com/spreadsheet/ccc?key=0Atx1KnJmATDcdEV1TGhYTmxGWjRTbjBvdy00aWczRHc&usp=sharing
+
 ## Statements
 
 ### Increment and decrement
@@ -289,6 +304,16 @@ for {
 A `continue` statement skips the rest of the `for` body and jumps to the execution of the `post` statement of the 3-part `for`, or to the execution of the `condition` in a `while`-equivalent `for` loop (or a `for range` loop), or to the first statement of the `for` body in an infinite loop.
 
 It is an invalid statement outside a `for` loop.
+
+### The range statement
+
+The `range` statement is used in `for` loops and is explained in the `for` statement section.
+
+### The yield statement
+
+The `yield` statement is used to return values to the caller and suspend a function's execution, while waiting to resume after this statement. This effectively turns the function into a coroutine. `yield` returns a value to the caller, but also returns a value to the coroutine once it is resumed.
+
+A coroutine is resumed simply by calling the function again.
 
 ## Built-in functions
 
