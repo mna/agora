@@ -259,7 +259,6 @@ type version struct{}
 func (v *version) Execute(args []string) error {
 	maj, min := bytecode.Version()
 	fmt.Printf("agora version %d.%d (git revision %s)\n", maj, min, bytecode.AGORA_BUILD)
-	fmt.Printf("built with %s\n", bytecode.GO_BUILD)
 	return nil
 }
 
