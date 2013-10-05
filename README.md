@@ -38,9 +38,19 @@ A few things to note:
 
 ## Changelog
 
+### v0.2.0 / 2013-10-07?
+
+* Coroutines, closures, for..range
+    - Closed issues: https://github.com/PuerkitoBio/agora/issues?milestone=2&page=1&state=closed
+    - Wiki: https://github.com/PuerkitoBio/agora/wiki#v02
+    - Blog post: 
+
 ### v0.1.0 / 2013-09-17
 
 * Initial release
+    - Closed issues: https://github.com/PuerkitoBio/agora/issues?milestone=1&state=closed
+    - Wiki: https://github.com/PuerkitoBio/agora/wiki#v01
+    - Blog post: http://0value.com/introducing-agora--a-dynamic--embeddable-programming-language-built-with-Go
 
 ## License
 
