@@ -191,9 +191,8 @@ func TestEmit(t *testing.T) {
 	}
 }
 
-// TODO : Duplicate from decode_test.go in bytecode package, cannot put it in
-// bytecode/testing because it would need circular reference.
-// But different equal checks, here I don't care about Header and such
+// Duplicate from decode_test.go in bytecode package, but different
+// equal checks, here I don't care about Header and such
 func equal(c int, f1, f2 *bytecode.File) bool {
 	if f1 == nil && f2 == nil {
 		return true

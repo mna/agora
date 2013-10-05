@@ -46,15 +46,15 @@ Agora is syntactically very similar to Go. But its goal is obviously not to be a
 
 * The `panic` built-in function takes a value and raises an error with it. However, it *doesn't* raise if the value is falsy. This is symmetric with the behaviour of `recover`.
 
-* The `recover` built-in function takes a function as parameter, and executes it in protected mode. By default, a runtime error is a panic, and stops all agora code execution to return the error to the Go host program (the second value returned from `module.Run()`). To *catch* errors in agora code, the `recover` function must be used, this is what is called the protected mode (similar to Lua error handling). `recover` runs the provided function, and if an error occurs, it catches it and returns it. Otherwise it returns `nil`.
+* The `recover` built-in function takes a function as parameter, and executes it in protected mode. By default, a runtime error is a panic, and stops all agora code execution to return the error to the Go host program (the second value returned from `module.Run()`). To *catch* errors in agora code, the `recover` function must be used, this is what is called the protected mode (similar to Lua error handling). `recover` runs the provided function, and if an error occurs, it catches it and returns it. Otherwise it returns `nil` (see /testdata/src/42-recover-ex.agora for an example).
 
 * Field access can *also* be done using an array-like syntax, `object["key"] = value`. Any type except `nil` can be used as the key, and when assigning to a field using the `.` operator, the key is implicitly a string (denoted by the identifier of the field), so `object.key` is equivalent to `object["key"]`.
 
 * There are no bitwise operators.
 
-* There is no multi-thread (goroutine) or channel support. Agora code must be single-threaded, although different execution contexts *can* be run in parallel.
+* There is no goroutine or channel support. Agora code must be single-threaded, although different execution contexts *can* be run in parallel.
 
-* Although there are no goroutines, agora supports *coroutines*, cooperative multi-threading. Any agora function can use the `yield` keyword to return a value, and may continue after the `yield` with a subsequent call.
+* Although there are no goroutines, agora supports *coroutines*, cooperative multitasking. Any agora function can use the `yield` keyword to return a value, and may continue after the `yield` with a subsequent call (see /testdata/src/68-cons-prod.agora for a consumer-producer example using coroutines).
 
 * There are no slices or maps, the only compound data structure is the object. It can represent a slice and a map, and eventually will be optimized for when used as a slice/array.
 

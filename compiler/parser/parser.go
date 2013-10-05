@@ -278,8 +278,6 @@ func (p *Parser) assignment(id string) *Symbol {
 	})
 }
 
-// TODO : For now, it doesn't support a list of vars followed by a
-// matching list of expressions (a, b, c := 1, 2, 3)
 func (p *Parser) define(id string) *Symbol {
 	return p.infixr(id, 10, func(sym, left *Symbol) *Symbol {
 		if left.Ar != ArName {

@@ -126,8 +126,6 @@ func (c *Ctx) Load(id string) (Module, error) {
 	// If already bytecode, just decode
 	var f *bytecode.File
 	if rs, ok := r.(io.ReadSeeker); ok && bytecode.IsBytecode(rs) {
-		// TODO : Eventually come up with a better solution, or at least a
-		// failover if r is not a ReadSeeker.
 		dec := bytecode.NewDecoder(r)
 		f, err = dec.Decode()
 	} else {

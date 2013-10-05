@@ -296,8 +296,6 @@ func (vm *funcVM) pushRange(args ...Val) {
 		panic(NewTypeError(t, "", "range"))
 	}
 	if vm.rsp == len(vm.rstack) {
-		// TODO : Compile and store required rstack size in bytecode, so that
-		// it doesn't need to expand?
 		if vm.debug && vm.rsp == cap(vm.rstack) {
 			fmt.Fprintf(vm.proto.ctx.Stdout, "DEBUG expanding range stack of func %s, current size: %d\n", vm.val.name, len(vm.rstack))
 		}

@@ -80,7 +80,6 @@ func (a *agoraFuncVal) Call(this Val, args ...Val) Val {
 		vm = newFuncVM(a)
 	}
 	// Set the `this` each time, the same value may have been assigned to an object and called
-	// TODO : Is this the desired behaviour?
 	vm.this = this
 	a.ctx.pushFn(a, vm)
 	defer a.ctx.popFn()
