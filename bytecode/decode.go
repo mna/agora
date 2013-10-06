@@ -65,6 +65,7 @@ func (dec *Decoder) Decode() (*File, error) {
 	return f, dec.err
 }
 
+// Prevent further reading once an error is encountered.
 func (dec *Decoder) guard(fn func()) {
 	if dec.err != nil {
 		return

@@ -9,19 +9,28 @@ import (
 )
 
 type (
-	ModuleNotFoundError   string
+	// Error raised when a module ID is not found
+	ModuleNotFoundError string
+	// Error raised when a cyclic dependency is detected
 	CyclicDependencyError string
 )
 
+// Error interface implementation.
 func (e ModuleNotFoundError) Error() string {
 	return string(e)
 }
+
+// Create a new ModuleNotFoundError.
 func NewModuleNotFoundError(id string) ModuleNotFoundError {
 	return ModuleNotFoundError(fmt.Sprintf("module not found: %s", id))
 }
+
+// Error interface implementation.
 func (e CyclicDependencyError) Error() string {
 	return string(e)
 }
+
+// Create a new CyclicDependencyError.
 func NewCyclicDependencyError(id string) CyclicDependencyError {
 	return CyclicDependencyError(fmt.Sprintf("cyclic dependency: %s already being loaded", id))
 }
@@ -31,6 +40,8 @@ type Compiler interface {
 	Compile(string, io.Reader) (*bytecode.File, error)
 }
 
+// A frame represents a currently executing function. A native function has no
+// VM.
 type frame struct {
 	f   Func
 	fvm *funcVM
@@ -77,10 +88,11 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		loadingMods: make(map[string]bool),
 		loadedMods:  make(map[string]Module),
 	}
+	// Automatically add the built-in functions
 	b := new(builtinMod)
 	b.SetCtx(c)
 	if v, err := b.Run(); err != nil {
-		panic("error loading angora builtin module: " + err.Error())
+		panic("error loading agora builtin module: " + err.Error())
 	} else {
 		c.builtin = v.(Object)
 	}
@@ -94,12 +106,11 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 // following:
 //
 // * If id is empty string, return error.
-// * If this identifier is currently being loaded, there is a cyclic dependency, return error.
 // * If module is cached (ctx.loadedMods), return the Module, done.
 // * If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
 // * If Resolve returns an error, return nil, error, done.
 // * If file is already bytecode, just load it into memory using a decoder
-// * If decoder returns an error, return ni, error, done.
+// * If decoder returns an error, return nil, error, done.
 // * Otherwise (if not bytecode) call Compiler.Compile(id string, r io.Reader) (*bytecode.File, error)
 // * If Compile returns an error, return nil, error, done.
 // * Create module from *bytecode.File

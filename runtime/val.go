@@ -4,12 +4,15 @@ import (
 	"fmt"
 )
 
+// The TypeError is raised if an invalid type is used for a specific action.
 type TypeError string
 
+// Error interface implementation.
 func (te TypeError) Error() string {
 	return string(te)
 }
 
+// Create a new TypeError.
 func NewTypeError(t1, t2, op string) TypeError {
 	if t2 != "" {
 		return TypeError(fmt.Sprintf("type error: %s not allowed with types %s and %s", op, t1, t2))
@@ -38,6 +41,7 @@ type Arithmetic interface {
 	Unm(Val) Val
 }
 
+// The default, standard agora arithmetic implementation.
 type defaultArithmetic struct{}
 
 func (ar defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val {
@@ -182,6 +186,7 @@ var (
 	}
 )
 
+// The default, standard agora comparer implementation.
 type defaultComparer struct{}
 
 func (dc defaultComparer) Cmp(l, r Val) int {
@@ -325,6 +330,7 @@ func Type(v Val) string {
 	}
 }
 
+// Helper function to pretty-print a value for debugging purpose.
 func dumpVal(v Val) string {
 	if dmp, ok := v.(Dumper); ok {
 		return dmp.Dump()

@@ -58,7 +58,7 @@ var (
 	}
 )
 
-// NewFlat returns the Flag value identified by the provided literal name, or the
+// NewFlag returns the Flag value identified by the provided literal name, or the
 // invalid Flag value if the name is unknown.
 func NewFlag(nm string) Flag {
 	t, ok := FlagLookup[nm]

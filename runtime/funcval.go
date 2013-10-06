@@ -11,6 +11,7 @@ type funcVal struct {
 	name string
 }
 
+// Dump pretty-prints the value for debugging purpose.
 func (f *funcVal) Dump() string {
 	return fmt.Sprintf("%s (Func)", f.name)
 }
@@ -91,6 +92,7 @@ func (a *agoraFuncVal) Native() interface{} {
 	return a
 }
 
+// Get the coroutine status of the function.
 func (a *agoraFuncVal) status() string {
 	if a.ctx.IsRunning(a) {
 		return "running"
@@ -100,6 +102,7 @@ func (a *agoraFuncVal) status() string {
 	return ""
 }
 
+// Reset the coroutine state of the function.
 func (a *agoraFuncVal) reset() {
 	if a.coroState != nil {
 		for a.coroState.rsp > 0 {

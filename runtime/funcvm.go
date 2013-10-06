@@ -12,7 +12,7 @@ import (
 	"github.com/PuerkitoBio/gocoro"
 )
 
-// A funcVM is an instance of a function prototype. It holds the virtual machine
+// A funcVM is a runnable instance of a function value. It holds the virtual machine
 // required to execute the instructions.
 type funcVM struct {
 	// Func info
@@ -89,7 +89,7 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	case bytecode.FLG_A:
 		return f.args
 	}
-	panic(fmt.Sprintf("Func.getVal() - invalid flag value %d", flg))
+	panic(fmt.Sprintf("invalid flag value %d", flg))
 }
 
 // Pretty-print an instruction.

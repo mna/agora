@@ -9,11 +9,15 @@ import (
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
+// Error raised when a module has no function defined.
 type EmptyModuleError string
 
+// Error interface implementation.
 func (e EmptyModuleError) Error() string {
 	return string(e)
 }
+
+// Create a new EmptyModuleError
 func NewEmptyModuleError(id string) EmptyModuleError {
 	return EmptyModuleError(fmt.Sprintf("empty module: %s", id))
 }

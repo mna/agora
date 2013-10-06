@@ -15,6 +15,7 @@ var (
 // the Val interface so that it is a valid agora value.
 type null struct{}
 
+// Dump pretty-prints the value for debugging purpose.
 func (n null) Dump() string {
 	return "[Nil]"
 }

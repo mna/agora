@@ -60,10 +60,6 @@ func (b *builtinMod) _panic(args ...Val) Val {
 func (b *builtinMod) _recover(args ...Val) (ret Val) {
 	// Do not catch panics if args are invalid
 	ExpectAtLeastNArgs(1, args)
-	f, ok := args[0].(Func)
-	if !ok {
-		panic("first parameter must be a function")
-	}
 	// Catch panics in running the function. Cannot use PanicToError, because
 	// it needs the true type of the panic'd value.
 	ret = Nil
@@ -79,6 +75,11 @@ func (b *builtinMod) _recover(args ...Val) (ret Val) {
 			}
 		}
 	}()
+	// The value must be a function
+	f, ok := args[0].(Func)
+	if !ok {
+		panic(NewTypeError(Type(args[0]), "", "recover"))
+	}
 	// Return value is discarded, because recover returns the error, if any, or Nil.
 	// The function to run in recovery mode must be a closure or assign its return
 	// value to an outer-scope variable.

@@ -32,7 +32,7 @@ const (
 	OP_GFLD               // get the value of an object's field, push the result, using 2 values from the stack (object variable and key)
 	OP_CFLD               // call a method on an object, push the result, using 2 values + n arguments from the stack (object variable and key)
 	OP_CALL               // call a function, push the result, using 1 value + n arguments from the stack
-	OP_YLD                // yield a value for coroutine cooperative threading
+	OP_YLD                // yield a value for coroutine cooperative multitasking
 	OP_RNGS               // range start
 	OP_RNGP               // range push
 	OP_RNGE               // range end

@@ -8,6 +8,7 @@ import (
 // to Go's bool type.
 type Bool bool
 
+// Dump pretty-prints the value for debugging purpose.
 func (b Bool) Dump() string {
 	return fmt.Sprintf("%v (Bool)", bool(b))
 }

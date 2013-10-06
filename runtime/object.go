@@ -6,16 +6,23 @@ import (
 )
 
 type (
+	// This error is raised if a non-existing method is called.
 	NoSuchMethodError string
 )
 
+// Error interface implementation.
 func (e NoSuchMethodError) Error() string {
 	return string(e)
 }
+
+// Create a new NoSuchMethodError.
 func NewNoSuchMethodError(m string) NoSuchMethodError {
 	return NoSuchMethodError(fmt.Sprintf("no such method: %s", m))
 }
 
+// The Object interface represents an agora object, which is an associative array.
+// It can get and set keys, retrieve the length, the list of keys, and call methods
+// and meta-methods.
 type Object interface {
 	Val
 	Get(Val) Val

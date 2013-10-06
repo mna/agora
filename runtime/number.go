@@ -10,6 +10,7 @@ import (
 // to Go's float64 type.
 type Number float64
 
+// Dump pretty-prints the value for debugging purpose.
 func (f Number) Dump() string {
 	return fmt.Sprintf("%s (Number)", strconv.FormatFloat(float64(f), 'f', -1, 64))
 }
