@@ -44,7 +44,7 @@ type Compiler interface {
 // VM.
 type frame struct {
 	f   Func
-	fvm *funcVM
+	fvm *agoraFuncVM
 }
 
 // A Ctx represents the execution context. It is self-contained, share-nothing
@@ -173,7 +173,7 @@ func (c *Ctx) popModule(id string) {
 }
 
 // Push a function onto the frame stack.
-func (c *Ctx) pushFn(f Func, fvm *funcVM) {
+func (c *Ctx) pushFn(f Func, fvm *agoraFuncVM) {
 	// Stack has to grow as needed
 	if c.frmsp == len(c.frames) {
 		if c.Debug && c.frmsp == cap(c.frames) {
@@ -204,7 +204,7 @@ func (c *Ctx) IsRunning(f Func) bool {
 
 // Get the variable identified by name, looking up the lexical scope stack and ultimately the
 // built-ins.
-func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
+func (c *Ctx) getVar(nm string, fvm *agoraFuncVM) (Val, bool) {
 	// First look in locals
 	if v, ok := fvm.vars[nm]; ok {
 		return v, true
@@ -223,7 +223,7 @@ func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
 
 // Set the value of the variable identified by the provided name, looking up the
 // frame stack if necessary. Returns true if the variable was found.
-func (c *Ctx) setVar(nm string, v Val, fvm *funcVM) bool {
+func (c *Ctx) setVar(nm string, v Val, fvm *agoraFuncVM) bool {
 	// First attempt to set as local var
 	if _, ok := fvm.vars[nm]; ok {
 		fvm.vars[nm] = v

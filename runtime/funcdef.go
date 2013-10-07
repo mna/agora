@@ -15,7 +15,7 @@ type Func interface {
 	Call(this Val, args ...Val) Val
 }
 
-// An agoraFunc represents an agora function's prototype.
+// An agoraFuncDef represents an agora function's prototype.
 type agoraFuncDef struct {
 	ctx *Ctx
 	mod *agoraModule

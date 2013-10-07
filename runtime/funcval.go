@@ -47,12 +47,12 @@ type agoraFuncVal struct {
 	*funcVal
 	proto     *agoraFuncDef
 	env       *env
-	coroState *funcVM
+	coroState *agoraFuncVM
 }
 
 // Create a new function value from the specified function prototype,
 // with the given function instance (VM) as environment.
-func newAgoraFuncVal(def *agoraFuncDef, vm *funcVM) *agoraFuncVal {
+func newAgoraFuncVal(def *agoraFuncDef, vm *agoraFuncVM) *agoraFuncVal {
 	var e *env
 	if vm != nil {
 		e = &env{

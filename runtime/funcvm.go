@@ -12,9 +12,9 @@ import (
 	"github.com/PuerkitoBio/gocoro"
 )
 
-// A funcVM is a runnable instance of a function value. It holds the virtual machine
+// An agoraFuncVM is a runnable instance of a function value. It holds the virtual machine
 // required to execute the instructions.
-type funcVM struct {
+type agoraFuncVM struct {
 	// Func info
 	val   *agoraFuncVal
 	proto *agoraFuncDef
@@ -34,9 +34,9 @@ type funcVM struct {
 }
 
 // Instantiate a runnable representation of the function prototype.
-func newFuncVM(fv *agoraFuncVal) *funcVM {
+func newFuncVM(fv *agoraFuncVal) *agoraFuncVM {
 	p := fv.proto
-	return &funcVM{
+	return &agoraFuncVM{
 		val:   fv,
 		proto: p,
 		debug: p.ctx.Debug,
@@ -46,7 +46,7 @@ func newFuncVM(fv *agoraFuncVal) *funcVM {
 }
 
 // Push a value onto the stack.
-func (f *funcVM) push(v Val) {
+func (f *agoraFuncVM) push(v Val) {
 	// Stack has to grow as needed, StackSz doesn't take into account the loops
 	if f.sp == len(f.stack) {
 		if f.debug && f.sp == cap(f.stack) {
@@ -60,7 +60,7 @@ func (f *funcVM) push(v Val) {
 }
 
 // Pop a value from the stack.
-func (f *funcVM) pop() Val {
+func (f *agoraFuncVM) pop() Val {
 	f.sp--
 	v := f.stack[f.sp]
 	f.stack[f.sp] = Nil // free this reference for gc
@@ -68,7 +68,7 @@ func (f *funcVM) pop() Val {
 }
 
 // Get a value from *somewhere*, depending on the flag.
-func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
+func (f *agoraFuncVM) getVal(flg bytecode.Flag, ix uint64) Val {
 	switch flg {
 	case bytecode.FLG_K:
 		return f.proto.kTable[ix]
@@ -93,7 +93,7 @@ func (f *funcVM) getVal(flg bytecode.Flag, ix uint64) Val {
 }
 
 // Pretty-print an instruction.
-func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
+func (f *agoraFuncVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 	switch i.Flag() {
 	case bytecode.FLG_K:
 		v := f.proto.kTable[i.Index()]
@@ -112,7 +112,7 @@ func (f *funcVM) dumpInstrInfo(w io.Writer, i bytecode.Instr) {
 }
 
 // Pretty-print a function's execution context.
-func (f *funcVM) dump() string {
+func (f *agoraFuncVM) dump() string {
 	buf := bytes.NewBuffer(nil)
 	fmt.Fprintf(buf, "\n> %s\n", f.val.Dump())
 	// Constants
@@ -178,7 +178,7 @@ func (f *funcVM) dump() string {
 }
 
 // Create the reserved identifier `args` value, as an Object.
-func (vm *funcVM) createArgsVal(args []Val) Val {
+func (vm *agoraFuncVM) createArgsVal(args []Val) Val {
 	if len(args) == 0 {
 		return Nil
 	}
@@ -190,13 +190,13 @@ func (vm *funcVM) createArgsVal(args []Val) Val {
 }
 
 // Create the local variables all initialized to nil
-func (vm *funcVM) createLocals() {
+func (vm *agoraFuncVM) createLocals() {
 	for _, s := range vm.proto.lTable {
 		vm.vars[s] = Nil
 	}
 }
 
-func (vm *funcVM) pushRange(args ...Val) {
+func (vm *agoraFuncVM) pushRange(args ...Val) {
 	var coro gocoro.Caller
 	l := len(args)
 	switch t := Type(args[0]); t {
@@ -306,7 +306,7 @@ func (vm *funcVM) pushRange(args ...Val) {
 	vm.rsp++
 }
 
-func (vm *funcVM) popRange() {
+func (vm *agoraFuncVM) popRange() {
 	vm.rsp--
 	coro := vm.rstack[vm.rsp]
 	vm.rstack[vm.rsp] = nil
@@ -317,7 +317,7 @@ func (vm *funcVM) popRange() {
 
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
-func (f *funcVM) run(args ...Val) Val {
+func (f *agoraFuncVM) run(args ...Val) Val {
 	// Register the defer to release all `for range` coroutines created
 	// by the VM and possibly still alive from a resume of this VM.
 	clearRange := true
