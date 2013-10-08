@@ -15,6 +15,26 @@ type Func interface {
 	Call(this Val, args ...Val) Val
 }
 
+// An agoraFuncDef represents an agora function's prototype.
+type agoraFuncDef struct {
+	ctx *Ctx
+	mod *agoraModule
+	// Internal fields filled by the compiler
+	name    string
+	stackSz int64
+	expArgs int64
+	kTable  []Val
+	lTable  []string
+	code    []bytecode.Instr
+}
+
+func newAgoraFuncDef(mod *agoraModule, c *Ctx) *agoraFuncDef {
+	return &agoraFuncDef{
+		ctx: c,
+		mod: mod,
+	}
+}
+
 // NewNativeFunc returns a native function initialized with the specified context,
 // name and function implementation.
 func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
@@ -27,63 +47,10 @@ func NewNativeFunc(ctx *Ctx, nm string, fn FuncFn) *NativeFunc {
 	}
 }
 
-// An agoraFunc represents an agora function.
-type agoraFunc struct {
-	// Expose the default Func value's behaviour
-	*funcVal
-
-	// Internal fields filled by the compiler
-	mod     *agoraModule
-	stackSz int64
-	expArgs int64
-	parent  *agoraFunc
-	kTable  []Val
-	lTable  []string
-	code    []bytecode.Instr
-}
-
-func newAgoraFunc(mod *agoraModule, c *Ctx) *agoraFunc {
-	return &agoraFunc{
-		&funcVal{ctx: c},
-		mod,
-		0,
-		0,
-		nil,
-		nil,
-		nil,
-		nil,
-	}
-}
-
-// Native returns the Go native representation of an agora function.
-func (a *agoraFunc) Native() interface{} {
-	return a
-}
-
-// Cmp compares an Agora function to another value.
-func (a *agoraFunc) Cmp(v Val) int {
-	if a == v {
-		return 0
-	}
-	return -1
-}
-
-// Call instantiates an executable function intance from this agora function
-// prototype, sets the `this` value and executes the function's instructions.
-// It returns the agora function's return value.
-func (a *agoraFunc) Call(this Val, args ...Val) Val {
-	vm := newFuncVM(a)
-	vm.this = this
-	a.ctx.pushFn(a, vm)
-	defer a.ctx.popFn()
-	return vm.run(args...)
-}
-
 // A NativeFunc represents a Go function exposed to agora.
 type NativeFunc struct {
 	// Expose the default Func value's behaviour
 	*funcVal
-
 	// Internal fields
 	fn FuncFn
 }
@@ -100,14 +67,6 @@ func ExpectAtLeastNArgs(n int, args []Val) {
 // Native returns the Go native representation of the native function type.
 func (n *NativeFunc) Native() interface{} {
 	return n
-}
-
-// Cmp compares the native function with another value.
-func (n *NativeFunc) Cmp(v Val) int {
-	if n == v {
-		return 0
-	}
-	return -1
 }
 
 // Call executes the native function and returns its return value.

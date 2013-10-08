@@ -1,0 +1,29 @@
+range := import("72-range-impl")
+fmt := import("fmt")
+
+func forLoop(fn) {
+	// TODO : Status return empty string instead of "func"? So that it can be used as bool?
+	for v := fn(); status(fn) == "suspended"; v = fn() {
+		fmt.Println(v)
+	}
+	if status(fn) != "func" {
+		panic("expected status to be back to func")
+	}
+}
+
+fmt.Println("range(6)")
+forLoop(range(6))
+fmt.Println("range(0)")
+forLoop(range(0))
+fmt.Println("range(2, 7)")
+forLoop(range(2, 7))
+fmt.Println("range(2, 7, 3)")
+forLoop(range(2, 7, 3))
+fmt.Println("range(2, -4)")
+forLoop(range(2, -4))
+fmt.Println("range(2, -4, -1)")
+forLoop(range(2, -4, -1))
+fmt.Println("range(-2, 4)")
+forLoop(range(-2, 4))
+fmt.Println("range(-2, 4, -1)")
+forLoop(range(-2, 4, -1))

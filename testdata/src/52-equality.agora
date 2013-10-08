@@ -1,0 +1,26 @@
+f := import("fmt")
+conv := import("conv")
+
+cases := {
+	empty: "",
+	nilstr: "nil",
+	zero: 0,
+	boolfalse: false,
+}
+
+ops := {}
+ops[true] = "=="
+ops[false] = "!="
+
+k := keys(cases)
+l := len(k)
+for i := 0; i < l; i++ {
+	val := cases[k[i]]
+	err := recover(func() {
+		f.Println(k[i], ops[val == nil], "nil")
+		f.Println("nil", ops[nil == val], k[i])
+	})
+	if err {
+		f.Println("err:", k[i], err)
+	}
+}

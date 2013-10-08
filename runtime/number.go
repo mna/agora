@@ -10,7 +10,8 @@ import (
 // to Go's float64 type.
 type Number float64
 
-func (f Number) dump() string {
+// Dump pretty-prints the value for debugging purpose.
+func (f Number) Dump() string {
 	return fmt.Sprintf("%s (Number)", strconv.FormatFloat(float64(f), 'f', -1, 64))
 }
 
@@ -37,51 +38,4 @@ func (f Number) Bool() bool {
 // Native returns the Go native representation of the value.
 func (f Number) Native() interface{} {
 	return float64(f)
-}
-
-// Cmp compares the Number value to the provided value.
-func (f Number) Cmp(v Val) int {
-	if vf := v.Float(); float64(f) > vf {
-		return 1
-	} else if float64(f) < vf {
-		return -1
-	} else {
-		return 0
-	}
-}
-
-// Add performs the addition of the float value to another Val value, converted
-// to a float.
-func (f Number) Add(v Val) Val {
-	return Number(float64(f) + v.Float())
-}
-
-// Sub performs the subtraction of another Val value, converted
-// to a float, from the float value.
-func (f Number) Sub(v Val) Val {
-	return Number(float64(f) - v.Float())
-}
-
-// Mul performs the multiplication of the float value with another Val value,
-// converted to a float.
-func (f Number) Mul(v Val) Val {
-	return Number(float64(f) * v.Float())
-}
-
-// Div performs the division of the float value by another Val value,
-// converted to a float.
-func (f Number) Div(v Val) Val {
-	return Number(float64(f) / v.Float())
-}
-
-// Mod returns the modulo (remainder) of the division of the float value by
-// another Val value, converted to a float.
-func (f Number) Mod(v Val) Val {
-	return Number(math.Mod(float64(f), v.Float()))
-}
-
-// Unm returns the unary minus operation applied to the float value.
-// It switches the sign of the value.
-func (f Number) Unm() Val {
-	return Number(-float64(f))
 }

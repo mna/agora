@@ -105,7 +105,6 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		new(runtime.FileResolver),
 	}, new(compiler.Compiler))
 	ctx.Stdout = buf
-	ctx.RegisterNativeModule(new(stdlib.ConvMod))
 	ctx.RegisterNativeModule(new(stdlib.FilepathMod))
 	ctx.RegisterNativeModule(new(stdlib.FmtMod))
 	ctx.RegisterNativeModule(new(stdlib.MathMod))
@@ -114,18 +113,18 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	ctx.RegisterNativeModule(new(stdlib.TimeMod))
 
 	mod, err := ctx.Load(id)
-	if err != nil {
-		panic(err)
-	}
-	var args []runtime.Val
-	if v, ok := m["args"]; ok {
-		s := strings.Split(v, " ")
-		args = make([]runtime.Val, len(s))
-		for i, arg := range s {
-			args[i] = runtime.String(arg)
+	var ret runtime.Val
+	if err == nil {
+		var args []runtime.Val
+		if v, ok := m["args"]; ok {
+			s := strings.Split(v, " ")
+			args = make([]runtime.Val, len(s))
+			for i, arg := range s {
+				args[i] = runtime.String(arg)
+			}
 		}
+		ret, err = mod.Run(args...)
 	}
-	ret, err := mod.Run(args...)
 
 	assert := false
 	if v, ok := m["error"]; ok {
@@ -141,9 +140,10 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	if v, ok := m["result"]; ok {
 		assert = true
 		v = strings.Replace(v, "\\n", "\n", -1)
+		v = strings.Replace(v, "\\t", "\t", -1)
 		switch retv := ret.(type) {
 		case runtime.Object, runtime.Func:
-			str := fmt.Sprintf("%v", retv.Native())
+			str := fmt.Sprintf("%s", retv)
 			if str != v {
 				t.Errorf("[%s] - expected result '%s', got '%s'", id, v, str)
 			}
@@ -156,6 +156,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	if v, ok := m["output"]; ok {
 		assert = true
 		v = strings.Replace(v, "\\n", "\n", -1)
+		v = strings.Replace(v, "\\t", "\t", -1)
 		if got := buf.String(); got != v {
 			t.Errorf("[%s] - expected output '%s', got '%s'", id, v, got)
 		}

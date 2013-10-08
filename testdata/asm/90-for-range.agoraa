@@ -1,0 +1,41 @@
+// Generated from the disassembler, v0.1
+//
+// sum := 0
+// for i := range 5 {
+//   sum += i
+// }
+// return sum
+//
+[f]
+90-for-range
+1
+0
+0
+0
+0
+[k]
+ssum
+i0
+si
+i5
+[l]
+0
+2
+[i]
+PUSH K 1
+POP V 0
+PUSH K 3
+RNGS An 1
+RNGP An 1
+TEST Jf 7
+POP V 2
+PUSH V 0
+PUSH V 2
+ADD _ 0
+POP V 0
+JMP Jb 7
+RNGE _ 0
+DUMP Sn 1
+PUSH V 0
+RET _ 0
+

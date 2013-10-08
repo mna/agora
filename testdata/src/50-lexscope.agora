@@ -1,3 +1,6 @@
+/*---
+output: in f1 1\nin f2 2\nin f1 3\nin f2 4\nin f1 5\nin f2 6\nin f1 7\nin f2 8\nin f1 9\nin f2 10\n
+---*/
 // http://play.golang.org/p/Othby3aniF
 
 fmt := import("fmt")

@@ -1,0 +1,11 @@
+/*---
+result: !=
+---*/
+f := import("fmt")
+
+b := {c: false}
+a := {}
+a[false] = "!="
+f.Println(a[false])
+
+return a[false]

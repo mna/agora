@@ -1,7 +1,7 @@
 // Agora is a dynamically typed, garbage collected, embeddable programming language.
 //
 // It is built in the Go programming language, and is meant to provide a syntactically
-// similar, loose, dynamic and fun companion to the statically typed, machine compiled
+// similar, loose, dynamic companion to the statically typed, machine compiled
 // Go language - somewhat like Lua is to C.
 //
 // Installation

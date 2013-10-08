@@ -1,0 +1,6 @@
+func useB() {
+	b := import("81-circular-b")
+	return b()
+}
+
+return useB

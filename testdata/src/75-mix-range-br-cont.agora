@@ -1,0 +1,34 @@
+fmt := import("fmt")
+fmt.Println("i")
+for i := range 5 {
+	fmt.Println("i", i)
+	if i == 3 {
+		fmt.Println("i", "continue")
+		continue
+	}
+	fmt.Println("j")
+	for j := 0; j < i; j++ {
+		fmt.Println("j", j)
+		if j > 2 {
+			fmt.Println("j", "break")
+			break
+		}
+		fmt.Println("k")
+		for k := range 0, i - j {
+			fmt.Println("k", k)
+			if k > 1 {
+				fmt.Println("k", "break")
+				break
+			}
+		}
+		fmt.Println("k", "end")
+	}
+	fmt.Println("j", "end")
+}
+fmt.Println("i", "end")
+
+fmt.Println("l")
+for l := range 2 {
+	fmt.Println("l", l)
+}
+fmt.Println("l", "end")

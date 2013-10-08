@@ -1,7 +1,6 @@
 package runtime
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,21 +8,43 @@ import (
 	"github.com/PuerkitoBio/agora/bytecode"
 )
 
-var (
-	// Predefined errors
-	ErrModuleNotFound  = errors.New("module not found")
-	ErrModuleHasNoFunc = errors.New("module has no function")
-	ErrCyclicDepFound  = errors.New("cyclic module dependency found")
+type (
+	// Error raised when a module ID is not found
+	ModuleNotFoundError string
+	// Error raised when a cyclic dependency is detected
+	CyclicDependencyError string
 )
+
+// Error interface implementation.
+func (e ModuleNotFoundError) Error() string {
+	return string(e)
+}
+
+// Create a new ModuleNotFoundError.
+func NewModuleNotFoundError(id string) ModuleNotFoundError {
+	return ModuleNotFoundError(fmt.Sprintf("module not found: %s", id))
+}
+
+// Error interface implementation.
+func (e CyclicDependencyError) Error() string {
+	return string(e)
+}
+
+// Create a new CyclicDependencyError.
+func NewCyclicDependencyError(id string) CyclicDependencyError {
+	return CyclicDependencyError(fmt.Sprintf("cyclic dependency: %s already being loaded", id))
+}
 
 // The Compiler interface defines the required behaviour for a Compiler.
 type Compiler interface {
 	Compile(string, io.Reader) (*bytecode.File, error)
 }
 
+// A frame represents a currently executing function. A native function has no
+// VM.
 type frame struct {
 	f   Func
-	fvm *funcVM
+	fvm *agoraFuncVM
 }
 
 // A Ctx represents the execution context. It is self-contained, share-nothing
@@ -34,20 +55,18 @@ type frame struct {
 // thread-safe way.
 type Ctx struct {
 	// Public fields
-	Stdout   io.ReadWriter  // The standard streams
-	Stdin    io.ReadWriter  // ...
-	Stderr   io.ReadWriter  // ...
-	Logic    LogicProcessor // The boolean logic processor (And, Or, Not)
-	Resolver ModuleResolver // The module loading resolver (match a module to a string literal)
-	Compiler Compiler       // The source code compiler
-	Debug    bool           // Debug mode outputs helpful messages
+	Stdout     io.ReadWriter  // The standard streams
+	Stdin      io.ReadWriter  // ...
+	Stderr     io.ReadWriter  // ...
+	Arithmetic Arithmetic     // The arithmetic processor
+	Comparer   Comparer       // The comparison processor
+	Resolver   ModuleResolver // The module loading resolver (match a module to a string literal)
+	Compiler   Compiler       // The source code compiler
+	Debug      bool           // Debug mode outputs helpful messages
 
 	// Call stack
 	frames []*frame
 	frmsp  int
-
-	// Lexical scope map, a func may have many instances in execution
-	scope map[*agoraFunc][]*funcVM
 
 	// Modules management
 	loadingMods map[string]bool // Modules currently being loaded
@@ -62,17 +81,18 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 		Stdout:      os.Stdout,
 		Stdin:       os.Stdin,
 		Stderr:      os.Stderr,
-		Logic:       defaultLogic{},
+		Arithmetic:  defaultArithmetic{},
+		Comparer:    defaultComparer{},
 		Resolver:    resolver,
 		Compiler:    comp,
-		scope:       make(map[*agoraFunc][]*funcVM),
 		loadingMods: make(map[string]bool),
 		loadedMods:  make(map[string]Module),
 	}
+	// Automatically add the built-in functions
 	b := new(builtinMod)
 	b.SetCtx(c)
 	if v, err := b.Run(); err != nil {
-		panic("error loading angora builtin module: " + err.Error())
+		panic("error loading agora builtin module: " + err.Error())
 	} else {
 		c.builtin = v.(Object)
 	}
@@ -86,12 +106,11 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 // following:
 //
 // * If id is empty string, return error.
-// * If this identifier is currently being loaded, there is a cyclic dependency, return error.
 // * If module is cached (ctx.loadedMods), return the Module, done.
 // * If module is not cached, call ModuleResolver.Resolve(id string) (io.Reader, error)
 // * If Resolve returns an error, return nil, error, done.
 // * If file is already bytecode, just load it into memory using a decoder
-// * If decoder returns an error, return ni, error, done.
+// * If decoder returns an error, return nil, error, done.
 // * Otherwise (if not bytecode) call Compiler.Compile(id string, r io.Reader) (*bytecode.File, error)
 // * If Compile returns an error, return nil, error, done.
 // * Create module from *bytecode.File
@@ -99,7 +118,7 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 //
 func (c *Ctx) Load(id string) (Module, error) {
 	if id == "" {
-		return nil, ErrModuleNotFound
+		return nil, NewModuleNotFoundError(id)
 	}
 	// If already loaded, return from cache
 	if m, ok := c.loadedMods[id]; ok {
@@ -118,8 +137,6 @@ func (c *Ctx) Load(id string) (Module, error) {
 	// If already bytecode, just decode
 	var f *bytecode.File
 	if rs, ok := r.(io.ReadSeeker); ok && bytecode.IsBytecode(rs) {
-		// TODO : Eventually come up with a better solution, or at least a
-		// failover if r is not a ReadSeeker.
 		dec := bytecode.NewDecoder(r)
 		f, err = dec.Decode()
 	} else {
@@ -145,7 +162,7 @@ func (c *Ctx) RegisterNativeModule(m NativeModule) {
 // Mark the specified module as currently executing
 func (c *Ctx) pushModule(id string) {
 	if c.loadingMods[id] {
-		panic(ErrCyclicDepFound)
+		panic(NewCyclicDependencyError(id))
 	}
 	c.loadingMods[id] = true
 }
@@ -156,7 +173,7 @@ func (c *Ctx) popModule(id string) {
 }
 
 // Push a function onto the frame stack.
-func (c *Ctx) pushFn(f Func, fvm *funcVM) {
+func (c *Ctx) pushFn(f Func, fvm *agoraFuncVM) {
 	// Stack has to grow as needed
 	if c.frmsp == len(c.frames) {
 		if c.Debug && c.frmsp == cap(c.frames) {
@@ -167,56 +184,36 @@ func (c *Ctx) pushFn(f Func, fvm *funcVM) {
 		c.frames[c.frmsp] = &frame{f, fvm}
 	}
 	c.frmsp++
-
-	// If this is an agora function, keep in lexical scope
-	if af, ok := f.(*agoraFunc); ok {
-		vms, ok := c.scope[af]
-		if !ok {
-			vms = make([]*funcVM, 1)
-		}
-		c.scope[af] = append(vms, fvm)
-	}
 }
 
 // Pop the top function from the frame stack.
 func (c *Ctx) popFn() {
 	c.frmsp--
-	frm := c.frames[c.frmsp]
 	c.frames[c.frmsp] = nil // free this reference for gc
-	if af, ok := frm.f.(*agoraFunc); ok {
-		vms := c.scope[af]
-		vms[len(vms)-1] = nil // For GC, don't just reslice
-		vms = vms[:len(vms)-1]
-		if len(vms) == 0 {
-			delete(c.scope, af)
-		} else {
-			c.scope[af] = vms
-		}
-	}
 }
 
-func (c *Ctx) findVarVm(nm string, fvm *funcVM) *funcVM {
-	for fvm != nil {
-		if _, ok := fvm.vars[nm]; ok {
-			return fvm
-		}
-		parent := fvm.proto.parent
-		fvm = nil
-		if parent != nil {
-			vms := c.scope[parent]
-			if len(vms) > 0 {
-				fvm = vms[len(vms)-1]
-			}
+// IsRunning returns true if the specified function is currently executing.
+func (c *Ctx) IsRunning(f Func) bool {
+	for i := c.frmsp - 1; i >= 0; i-- {
+		if c.frames[i].f == f {
+			return true
 		}
 	}
-	return nil
+	return false
 }
 
 // Get the variable identified by name, looking up the lexical scope stack and ultimately the
 // built-ins.
-func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
-	if vm := c.findVarVm(nm, fvm); vm != nil {
-		return vm.vars[nm], true
+func (c *Ctx) getVar(nm string, fvm *agoraFuncVM) (Val, bool) {
+	// First look in locals
+	if v, ok := fvm.vars[nm]; ok {
+		return v, true
+	}
+	// Then recursively in parent environments
+	for parent := fvm.val.env; parent != nil; parent = parent.parent {
+		if v, ok := parent.upvals[nm]; ok {
+			return v, true
+		}
 	}
 	// Finally, look if the identifier refers to a built-in function.
 	// This will return Nil if it doesn't match any built-in.
@@ -226,10 +223,18 @@ func (c *Ctx) getVar(nm string, fvm *funcVM) (Val, bool) {
 
 // Set the value of the variable identified by the provided name, looking up the
 // frame stack if necessary. Returns true if the variable was found.
-func (c *Ctx) setVar(nm string, v Val, fvm *funcVM) bool {
-	if vm := c.findVarVm(nm, fvm); vm != nil {
-		vm.vars[nm] = v
+func (c *Ctx) setVar(nm string, v Val, fvm *agoraFuncVM) bool {
+	// First attempt to set as local var
+	if _, ok := fvm.vars[nm]; ok {
+		fvm.vars[nm] = v
 		return true
+	}
+	// Then recursively in parent environments
+	for parent := fvm.val.env; parent != nil; parent = parent.parent {
+		if _, ok := parent.upvals[nm]; ok {
+			parent.upvals[nm] = v
+			return true
+		}
 	}
 	return false
 }
@@ -244,7 +249,7 @@ func (c *Ctx) dump(n int) {
 		if frm := c.frames[i-1]; frm.fvm != nil {
 			fmt.Fprintln(c.Stdout, frm.fvm.dump())
 		} else {
-			fmt.Fprintln(c.Stdout, frm.f.(dumper).dump())
+			fmt.Fprintln(c.Stdout, dumpVal(frm.f))
 		}
 	}
 }

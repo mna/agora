@@ -71,6 +71,35 @@ func (p *Parser) defineGrammar() {
 		return e
 	})
 
+	// The yield keyword expression
+	p.prefix("yield", func(sym *Symbol) *Symbol {
+		// Is there an expression following the yield keyword?
+		if p.tkn.Id != ";" && p.tkn.Id != "," && p.tkn.Id != ")" && p.tkn.Id != "}" && p.tkn.Id != "]" {
+			e := p.expression(0)
+			sym.First = e
+		} else {
+			// Equivalent of yield nil
+			sym.First = p.makeSymbol("nil", 0).clone()
+		}
+		return sym
+	})
+
+	// The range keyword expression
+	p.prefix("range", func(sym *Symbol) *Symbol {
+		// Must have a list of arguments
+		p.isRange = true
+		var args []*Symbol
+		for {
+			args = append(args, p.expression(0))
+			if p.tkn.Id != "," {
+				break
+			}
+			p.advance(",")
+		}
+		sym.First = args
+		return sym
+	})
+
 	// The assignment operators
 	p.assignment("=")
 	p.assignment("+=")
@@ -99,9 +128,14 @@ func (p *Parser) defineGrammar() {
 		// Check for the infinite loop form (i.e. `for {}`). If this is the case,
 		// sym.First is nil, while sym.Second holds the body.
 		sym.First = nil
+		sym.Id = "for"
 		if p.tkn.Id != "{" {
+			p.isRange = false
 			f := p.expression(0)
-			if p.tkn.Id == "{" {
+			if p.isRange {
+				sym.First = f
+				sym.Id = "forr" // Different symbol ID for range notation
+			} else if p.tkn.Id == "{" {
 				// Single expression form (i.e. `while`)
 				sym.First = f
 			} else {
@@ -177,7 +211,12 @@ func (p *Parser) defineGrammar() {
 
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
-		sym.First = p.expression(0)
+		if p.tkn.Id == ";" {
+			// Empty return, treat as return nil
+			sym.First = p.makeSymbol("nil", 0).clone()
+		} else {
+			sym.First = p.expression(0)
+		}
 		p.advance(";")
 		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")
@@ -192,6 +231,12 @@ func (p *Parser) defineGrammar() {
 	p.builtin("recover")
 	p.builtin("len")
 	p.builtin("keys")
+	p.builtin("number")
+	p.builtin("string")
+	p.builtin("bool")
+	p.builtin("type")
+	p.builtin("status")
+	p.builtin("reset")
 
 	// func can be both an expression prefix:
 	//   fnAdd := func(x, y) {return x+y}
@@ -223,7 +268,7 @@ func (p *Parser) defineGrammar() {
 			sym.First = left
 			sym.Second = a
 			sym.Third = nil
-			if (left.Ar != ArUnary || left.Id != "func") &&
+			if left.Ar != ArUnary && (left.Id != "func" || left.Name != "") &&
 				left.Ar != ArName && left.Id != "(" &&
 				left.Id != "&&" && left.Id != "||" && left.Id != "?" {
 				p.error(left, "expected a variable name")
@@ -263,6 +308,9 @@ func (p *Parser) defineGrammar() {
 					break
 				}
 				p.advance(",")
+				if p.tkn.Id == "}" {
+					break
+				}
 			}
 		}
 		p.advance("}")

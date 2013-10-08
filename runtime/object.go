@@ -2,28 +2,27 @@ package runtime
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 )
 
-var (
-	// Predefined errors
-	ErrInvalidConvObjToInt    = errors.New("cannot convert Object to Int")
-	ErrInvalidConvObjToFloat  = errors.New("cannot convert Object to Float")
-	ErrInvalidConvObjToString = errors.New("cannot convert Object to String")
-
-	ErrInvalidOpAddOnObj = errors.New("cannot apply Add on this Object")
-	ErrInvalidOpSubOnObj = errors.New("cannot apply Sub on this Object")
-	ErrInvalidOpMulOnObj = errors.New("cannot apply Mul on this Object")
-	ErrInvalidOpDivOnObj = errors.New("cannot apply Div on this Object")
-	ErrInvalidOpModOnObj = errors.New("cannot apply Mod on this Object")
-	ErrInvalidOpUnmOnObj = errors.New("cannot apply Unm on this Object")
-
-	ErrNoSuchMethod     = errors.New("method does not exist")
-	ErrFieldNotFunction = errors.New("field is not a function")
-	ErrInvalidNilKey    = errors.New("field key cannot be nil")
+type (
+	// This error is raised if a non-existing method is called.
+	NoSuchMethodError string
 )
 
+// Error interface implementation.
+func (e NoSuchMethodError) Error() string {
+	return string(e)
+}
+
+// Create a new NoSuchMethodError.
+func NewNoSuchMethodError(m string) NoSuchMethodError {
+	return NoSuchMethodError(fmt.Sprintf("no such method: %s", m))
+}
+
+// The Object interface represents an agora object, which is an associative array.
+// It can get and set keys, retrieve the length, the list of keys, and call methods
+// and meta-methods.
 type Object interface {
 	Val
 	Get(Val) Val
@@ -31,6 +30,7 @@ type Object interface {
 	Len() Val
 	Keys() Val
 	callMethod(Val, ...Val) Val
+	callMetaMethod(string, ...Val) (Val, bool)
 }
 
 // An object is a map of values, an associative array.
@@ -45,55 +45,70 @@ func NewObject() Object {
 	}
 }
 
-// dump pretty-prints the content of the object.
-func (o *object) dump() string {
+// Dump pretty-prints the content of the object.
+func (o *object) Dump() string {
 	buf := bytes.NewBuffer(nil)
 	for k, v := range o.m {
-		buf.WriteString(fmt.Sprintf(" %s: %s, ", k.dump(), v.dump()))
+		buf.WriteString(fmt.Sprintf(" %s: %s, ", dumpVal(k), dumpVal(v)))
 	}
 	return fmt.Sprintf("{%s} (Object)", buf)
+}
+
+func (o *object) callMetaMethod(nm string, args ...Val) (Val, bool) {
+	if mm, ok := o.m[String(nm)]; ok {
+		if f, ok := mm.(Func); ok {
+			return f.Call(o, args...), true
+		}
+	}
+	return nil, false
 }
 
 // Int returns the integer value of the object. Such behaviour can be defined
 // if a `__int` method is available on the object.
 func (o *object) Int() int64 {
-	if i, ok := o.m[String("__int")]; ok {
-		if f, ok := i.(Func); ok {
-			return f.Call(o).Int()
-		}
+	if v, ok := o.callMetaMethod("__int"); ok {
+		return v.Int()
 	}
-	panic(ErrInvalidConvObjToInt)
+	panic(NewTypeError(Type(o), "", "int"))
 }
 
 // Float returns the float value of the object. Such behaviour can be defined
 // if a `__float` method is available on the object.
 func (o *object) Float() float64 {
-	if l, ok := o.m[String("__float")]; ok {
-		if f, ok := l.(Func); ok {
-			return f.Call(o).Float()
-		}
+	if v, ok := o.callMetaMethod("__float"); ok {
+		return v.Float()
 	}
-	panic(ErrInvalidConvObjToFloat)
+	panic(NewTypeError(Type(o), "", "float"))
 }
 
-// String returns the string value of the object. Such behaviour can be defined
+// String returns the string value of the object. Such behaviour can be overridden
 // if a `__string` method is available on the object.
 func (o *object) String() string {
-	if s, ok := o.m[String("__string")]; ok {
-		if f, ok := s.(Func); ok {
-			return f.Call(o).String()
-		}
+	if v, ok := o.callMetaMethod("__string"); ok {
+		return v.String()
 	}
-	panic(ErrInvalidConvObjToString)
+	// Otherwise print the object's contents
+	buf := bytes.NewBuffer(nil)
+	buf.WriteByte('{')
+	keys := o.Keys().(Object)
+	for i, l := int64(0), keys.Len().Int(); i < l; i++ {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+		ival := Number(i)
+		buf.WriteString(keys.Get(ival).String())
+		buf.WriteByte(':')
+		buf.WriteString(o.Get(keys.Get(ival)).String())
+	}
+	buf.WriteByte('}')
+	return buf.String()
 }
 
 // Bool returns the boolean value of the object. Such behaviour can be defined
 // if a `__bool` method is available on the object. Otherwise it returns true.
 func (o *object) Bool() bool {
-	if b, ok := o.m[String("__bool")]; ok {
-		if f, ok := b.(Func); ok {
-			return f.Call(o).Bool()
-		}
+	if v, ok := o.callMetaMethod("__bool"); ok {
+		return v.Bool()
 	}
 	// If __bool is not defined, object returns true (since it is not nil)
 	return true
@@ -102,88 +117,18 @@ func (o *object) Bool() bool {
 // Native returns the Go native value of the object. Such behaviour can be defined
 // if a `__native` method is available on the object.
 func (o *object) Native() interface{} {
-	if n, ok := o.m[String("__native")]; ok {
-		if f, ok := n.(Func); ok {
-			return f.Call(o).Native()
-		}
+	if v, ok := o.callMetaMethod("__native"); ok {
+		return v.Native()
 	}
+	// Defaults to returning the internal map
 	return o.m
-}
-
-// Cmp compares the object to another value. Such behaviour can be defined
-// if a `__cmp` method is available on the object. Otherwise it returns 0 if
-// the compared value is the object, or -1 otherwise.
-func (o *object) Cmp(v Val) int {
-	// First check for a custom Cmp method
-	if c, ok := o.m[String("__cmp")]; ok {
-		if f, ok := c.(Func); ok {
-			return int(f.Call(o, v).Int())
-		}
-	}
-	// Else, default Cmp - if same reference as v, return 0 (equal)
-	if o == v {
-		return 0
-	}
-	return -1
-}
-
-func (ø *object) callBinaryMethod(nm String, err error, v Val) Val {
-	if m, ok := ø.m[nm]; ok {
-		if f, ok := m.(Func); ok {
-			return f.Call(ø, v)
-		}
-	}
-	panic(err)
-}
-
-// Add performs addition. Such behaviour can be defined
-// if a `__add` method is available on the object.
-func (o *object) Add(v Val) Val {
-	return o.callBinaryMethod(String("__add"), ErrInvalidOpAddOnObj, v)
-}
-
-// Sub performs subtraction. Such behaviour can be defined
-// if a `__sub` method is available on the object.
-func (o *object) Sub(v Val) Val {
-	return o.callBinaryMethod(String("__sub"), ErrInvalidOpSubOnObj, v)
-}
-
-// Mul performs multiplication. Such behaviour can be defined
-// if a `__mul` method is available on the object.
-func (o *object) Mul(v Val) Val {
-	return o.callBinaryMethod(String("__mul"), ErrInvalidOpMulOnObj, v)
-}
-
-// Div performs division. Such behaviour can be defined
-// if a `__div` method is available on the object.
-func (o *object) Div(v Val) Val {
-	return o.callBinaryMethod(String("__div"), ErrInvalidOpDivOnObj, v)
-}
-
-// Mod computes the modulo. Such behaviour can be defined
-// if a `__mod` method is available on the object.
-func (o *object) Mod(v Val) Val {
-	return o.callBinaryMethod(String("__mod"), ErrInvalidOpModOnObj, v)
-}
-
-// Unm computes the unary minus. Such behaviour can be defined
-// if a `__unm` method is available on the object.
-func (o *object) Unm() Val {
-	if m, ok := o.m[String("__unm")]; ok {
-		if f, ok := m.(Func); ok {
-			return f.Call(o)
-		}
-	}
-	panic(ErrInvalidOpUnmOnObj)
 }
 
 // Get the length of the object. The behaviour can be overridden
 // if a `__len` method is available on the object.
 func (o *object) Len() Val {
-	if m, ok := o.m[String("__len")]; ok {
-		if f, ok := m.(Func); ok {
-			return f.Call(o)
-		}
+	if v, ok := o.callMetaMethod("__len"); ok {
+		return v
 	}
 	return Number(len(o.m))
 }
@@ -193,10 +138,8 @@ func (o *object) Len() Val {
 // of the object's implementation to return coherent values for Len()
 // and Keys(). The list of keys is unordered.
 func (o *object) Keys() Val {
-	if m, ok := o.m[String("__keys")]; ok {
-		if f, ok := m.(Func); ok {
-			return f.Call(o)
-		}
+	if v, ok := o.callMetaMethod("__keys"); ok {
+		return v
 	}
 	ob := NewObject()
 	i := 0
@@ -223,7 +166,7 @@ func (o *object) Set(key Val, v Val) {
 	if v == Nil {
 		delete(o.m, key)
 	} else if key == Nil {
-		panic(ErrInvalidNilKey)
+		panic(NewTypeError(Type(key), "", "key"))
 	} else {
 		o.m[key] = v
 	}
@@ -238,16 +181,12 @@ func (o *object) callMethod(nm Val, args ...Val) Val {
 		if f, ok := v.(Func); ok {
 			return f.Call(o, args...)
 		} else {
-			panic(ErrFieldNotFunction)
+			panic(NewNoSuchMethodError(nm.String()))
 		}
-	} else {
+	} else if v, ok := o.callMetaMethod("__noSuchMethod", append([]Val{nm}, args...)...); ok {
 		// Method not found - call __noSuchMethod if it exists, otherwise panic
-		if m, ok := o.m[String("__noSuchMethod")]; ok {
-			if f, ok := m.(Func); ok {
-				args = append([]Val{nm}, args...)
-				return f.Call(o, args...)
-			}
-		}
-		panic(ErrNoSuchMethod)
+		return v
+	} else {
+		panic(NewNoSuchMethodError(nm.String()))
 	}
 }

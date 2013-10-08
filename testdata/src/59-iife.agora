@@ -1,0 +1,8 @@
+/*---
+result: 3
+---*/
+a := func() {
+	return 3
+}()
+
+return a

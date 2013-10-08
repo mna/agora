@@ -12,4 +12,4 @@ not := !a
 unm := -a
 debug
 
-return a + b + add + sub + mul + div + mod + not + unm
+return a + b + add + sub + mul + div + mod + number(not) + unm

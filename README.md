@@ -6,11 +6,11 @@ Agora is a dynamically typed, garbage collected, embeddable programming language
 
 `go get -t github.com/PuerkitoBio/agora/...`
 
-This will install the agora packages as well as the `agora` command-line tool. See `agora -h` for help, provided the `$GOPATH/bin` path is in your exported path. The `-t` flag installs the test dependencies, it works only on Go tip (latest development version), ignore it otherwise.
+This will install the agora packages as well as the `agora` command-line tool. See `agora -h` for help, provided the `$GOPATH/bin` path is in your exported path. The `-t` flag installs the test dependencies, it works only on Go 1.2 and later, omit it otherwise.
 
 ## Example
 
-More examples are available in the wiki and the source code under /testdata/src, but to give a taste of the syntax, here is the usual `hello world`:
+Much more examples are available in the wiki and the source code under /testdata/src, but to give a taste of the syntax, here is the mandatory `hello world`:
 
 ```
 // Output: Hello, Agora !
@@ -38,9 +38,19 @@ A few things to note:
 
 ## Changelog
 
+### v0.2.0 / 2013-10-07?
+
+* Coroutines, closures, for..range
+    - Closed issues: https://github.com/PuerkitoBio/agora/issues?milestone=2&page=1&state=closed
+    - Wiki: https://github.com/PuerkitoBio/agora/wiki#v02
+    - Blog post: 
+
 ### v0.1.0 / 2013-09-17
 
 * Initial release
+    - Closed issues: https://github.com/PuerkitoBio/agora/issues?milestone=1&state=closed
+    - Wiki: https://github.com/PuerkitoBio/agora/wiki#v01
+    - Blog post: http://0value.com/introducing-agora--a-dynamic--embeddable-programming-language-built-with-Go
 
 ## License
 

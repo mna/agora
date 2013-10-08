@@ -38,6 +38,7 @@ func (s *StringsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		s.ob.Set(runtime.String("Split"), runtime.NewNativeFunc(s.ctx, "strings.Split", s.strings_Split))
 		s.ob.Set(runtime.String("Join"), runtime.NewNativeFunc(s.ctx, "strings.Join", s.strings_Join))
 		s.ob.Set(runtime.String("Replace"), runtime.NewNativeFunc(s.ctx, "strings.Replace", s.strings_Replace))
+		s.ob.Set(runtime.String("Repeat"), runtime.NewNativeFunc(s.ctx, "strings.Repeat", s.strings_Repeat))
 		s.ob.Set(runtime.String("Trim"), runtime.NewNativeFunc(s.ctx, "strings.Trim", s.strings_Trim))
 	}
 	return s.ob, nil
@@ -113,6 +114,13 @@ func (s *StringsMod) strings_HasSuffix(args ...runtime.Val) runtime.Val {
 		}
 	}
 	return runtime.Bool(false)
+}
+
+func (s *StringsMod) strings_Repeat(args ...runtime.Val) runtime.Val {
+	runtime.ExpectAtLeastNArgs(2, args)
+	src := args[0].String()
+	n := int(args[1].Int())
+	return runtime.String(strings.Repeat(src, n))
 }
 
 // Args:

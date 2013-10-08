@@ -24,8 +24,6 @@ var (
 		">=": bytecode.OP_GTE,
 		"==": bytecode.OP_EQ,
 		"!=": bytecode.OP_NEQ,
-		"&&": bytecode.OP_AND,
-		"||": bytecode.OP_OR,
 	}
 	binAsgSym2op = map[string]bytecode.Opcode{
 		"+=": bytecode.OP_ADD,
@@ -135,6 +133,23 @@ func (e *Emitter) emitBlock(f *bytecode.File, fn *bytecode.Fn, syms []*parser.Sy
 	}
 }
 
+func (e *Emitter) emitShortcutIf(f *bytecode.File, fn *bytecode.Fn, parent *parser.Symbol, cond, truePart, falsePart interface{}) {
+	// Emit the condition
+	e.emitAny(f, fn, parent, cond)
+	// Next comes the TEST
+	tstIx := e.addTempInstr(fn)
+	// Then the true expression
+	e.emitAny(f, fn, parent, truePart)
+	// Then a jump over the false expression
+	jmpIx := e.addTempInstr(fn)
+	// Update the test instruction, here starts the false part
+	e.updateTestInstr(fn, tstIx)
+	// Emit the false expression
+	e.emitAny(f, fn, parent, falsePart)
+	// Update the jump instruction, to after the false part
+	e.updateJumpfInstr(fn, jmpIx)
+}
+
 func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symbol, asg asgType) {
 	if e.err != nil {
 		return
@@ -143,7 +158,8 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "nil":
 		e.assert(asg == atFalse, errors.New("invalid assignment to nil"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_N, 0)
-	case "(name)", "import", "panic", "recover", "len", "keys": // TODO : Cleaner way to handle all builtins?
+	case "(name)", "import", "panic", "recover", "len", "keys", "string", "number",
+		"bool", "type", "status", "reset": // TODO : Cleaner way to handle all builtins
 		// Register the symbol, may or may not be a local
 		e.assert(sym.Ar == parser.ArName || sym.Ar == parser.ArLiteral, errors.New("expected `"+sym.Id+"` to have name or literal arity"))
 		kix := e.registerK(fn, sym.Val, true, asg == atDefine)
@@ -197,11 +213,15 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
 	case "&&", "||":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
-		e.emitAny(f, fn, sym, sym.First)
-		e.emitAny(f, fn, sym, sym.Second)
-		e.addInstr(fn, binSym2op[sym.Id], bytecode.FLG__, 0)
+		if sym.Id == "&&" {
+			// Equivalent to if <first> then <second> else <first>
+			e.emitShortcutIf(f, fn, sym, sym.First, sym.Second, sym.First)
+		} else {
+			// Equivalent to if <first> then <first> else <second>
+			e.emitShortcutIf(f, fn, sym, sym.First, sym.First, sym.Second)
+		}
 	case "=":
-		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `+` to have binary arity"))
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `=` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		left := sym.First.(*parser.Symbol)
 		if left.Id == "." {
@@ -275,20 +295,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "?":
 		// Similar to if, but yields a value
 		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))
-		// First is the condition, always a *Symbol
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
-		// Next comes the TEST
-		tstIx := e.addTempInstr(fn)
-		// Then the true expression, always a *Symbol
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
-		// Then a jump over the false expression
-		jmpIx := e.addTempInstr(fn)
-		// Update the test instruction, here starts the false part
-		e.updateTestInstr(fn, tstIx)
-		// Emit the false expression, always a *Symbol
-		e.emitSymbol(f, fn, sym.Third.(*parser.Symbol), atFalse)
-		// Update the jump instruction, to after the false part
-		e.updateJumpfInstr(fn, jmpIx)
+		e.emitShortcutIf(f, fn, sym, sym.First, sym.Second, sym.Third)
 	case "if":
 		e.assert(sym.Ar == parser.ArStatement, errors.New("expected `if` to have statement arity"))
 		// First is the condition, always a *Symbol
@@ -312,6 +319,45 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			// Update the jump instruction now that we know how many instrs to jump over
 			e.updateJumpfInstr(fn, jmpIx)
 		}
+	case "forr":
+		// For-range notation, distinct from regular for
+		// First must be either a `=` or a `:=`
+		assign := sym.First.(*parser.Symbol)
+		e.assert(assign.Id == "=" || assign.Id == ":=", errors.New("left hand side of `for...range` must be `=` or `:=`"))
+		rng := assign.Second.(*parser.Symbol)
+		e.assert(rng.Id == "range", errors.New("right hand side of `for...range` must be the `range` keyword"))
+		// Push `range` args onto the stack
+		args := rng.First.([]*parser.Symbol)
+		e.emitBlock(f, fn, args)
+		// Start the `range` coroutine
+		e.addInstr(fn, bytecode.OP_RNGS, bytecode.FLG_An, uint64(len(args)))
+		// For loop officially starts here
+		start := len(fn.Is)
+		// Push one value from the coro (until multiple vals are supported), + condition
+		e.addInstr(fn, bytecode.OP_RNGP, bytecode.FLG_An, 1)
+		// Test the end of loop
+		tstIx := e.addTempInstr(fn)
+		// Pop the top value from the stack into the iteration var
+		if assign.Id == "=" {
+			e.emitSymbol(f, fn, assign.First.(*parser.Symbol), atTrue)
+		} else {
+			e.emitSymbol(f, fn, assign.First.(*parser.Symbol), atDefine)
+		}
+		// Emit the body
+		e.startFor(fn)
+		e.emitAny(f, fn, sym, sym.Second)
+		// Update the continue statements (must jump to the next statement)
+		e.updateForJmp(fn, false)
+		// Add the jump back to RNGP instruction
+		e.addInstr(fn, bytecode.OP_JMP, bytecode.FLG_Jb, uint64(len(fn.Is)-start))
+		// Break statements must jump to the next statement (RNGE)
+		e.updateForJmp(fn, true)
+		// Update the test instruction to jump to the next statement (RNGE)
+		e.updateTestInstr(fn, tstIx)
+		e.endFor(fn)
+		// Emit the range end (clear coroutine) statement
+		e.addInstr(fn, bytecode.OP_RNGE, bytecode.FLG__, 0)
+
 	case "for":
 		var tstIx int
 		var parts []interface{}
@@ -370,6 +416,12 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "continue":
 		e.assert(len(e.forNest[fn]) > 0, errors.New("invalid continue statement outside any `for` loop"))
 		e.addForData(fn, false, e.addTempInstr(fn))
+	case "yield":
+		e.assert(len(e.fnIx) > 1, errors.New("cannot yield from the top-level module function"))
+		// Push the value to yield
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		// Yield
+		e.addInstr(fn, bytecode.OP_YLD, bytecode.FLG__, 0)
 	case "return":
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
@@ -454,7 +506,7 @@ func (e *Emitter) addInstr(fn *bytecode.Fn, op bytecode.Opcode, flg bytecode.Fla
 		e.stackSz[fn] += (1 - (2 * int64(ix)))
 	case bytecode.OP_POP, bytecode.OP_RET, bytecode.OP_UNM, bytecode.OP_NOT, bytecode.OP_TEST,
 		bytecode.OP_LT, bytecode.OP_LTE, bytecode.OP_GT, bytecode.OP_GTE, bytecode.OP_EQ,
-		bytecode.OP_AND, bytecode.OP_OR, bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,
+		bytecode.OP_ADD, bytecode.OP_SUB, bytecode.OP_MUL,
 		bytecode.OP_DIV, bytecode.OP_MOD, bytecode.OP_GFLD, bytecode.OP_NEQ:
 		e.stackSz[fn] -= 1
 	case bytecode.OP_SFLD:
@@ -478,8 +530,10 @@ func (e *Emitter) registerK(fn *bytecode.Fn, val interface{}, isName bool, local
 			val = s
 			kt = bytecode.KtString
 		} else if s[0] == '"' || s[0] == '`' {
-			// Strip the quotes
-			s = s[1 : len(s)-1]
+			// Unquote the string, keeping escaped characters
+			var err error
+			s, err = strconv.Unquote(s)
+			e.assert(err == nil, err)
 			val = s
 			kt = bytecode.KtString
 		} else if strings.Index(s, ".") >= 0 {

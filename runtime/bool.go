@@ -1,25 +1,15 @@
 package runtime
 
 import (
-	"errors"
 	"fmt"
-)
-
-var (
-	// Predefined errors
-	ErrInvalidOpAddOnBool = errors.New("cannot apply Add on a Bool value")
-	ErrInvalidOpSubOnBool = errors.New("cannot apply Sub on a Bool value")
-	ErrInvalidOpMulOnBool = errors.New("cannot apply Mul on a Bool value")
-	ErrInvalidOpDivOnBool = errors.New("cannot apply Div on a Bool value")
-	ErrInvalidOpModOnBool = errors.New("cannot apply Mod on a Bool value")
-	ErrInvalidOpUnmOnBool = errors.New("cannot apply Unm on a Bool value")
 )
 
 // Bool is the representation of the Boolean type. It is equivalent
 // to Go's bool type.
 type Bool bool
 
-func (b Bool) dump() string {
+// Dump pretty-prints the value for debugging purpose.
+func (b Bool) Dump() string {
 	return fmt.Sprintf("%v (Bool)", bool(b))
 }
 
@@ -52,49 +42,7 @@ func (b Bool) Bool() bool {
 	return bool(b)
 }
 
+// Native returns the bool native Go representation.
 func (b Bool) Native() interface{} {
 	return bool(b)
-}
-
-// Cmp compares two values as booleans.
-func (b Bool) Cmp(v Val) int {
-	if bool(b) == v.Bool() {
-		return 0
-	} else if bool(b) {
-		// If it is true, other is necessarily false, so this one is greater
-		return 1
-	} else {
-		// Necessarily smaller
-		return -1
-	}
-}
-
-// Add is an invalid operation.
-func (b Bool) Add(v Val) Val {
-	panic(ErrInvalidOpAddOnBool)
-}
-
-// Sub is an invalid operation.
-func (b Bool) Sub(v Val) Val {
-	panic(ErrInvalidOpSubOnBool)
-}
-
-// Mul is an invalid operation.
-func (b Bool) Mul(v Val) Val {
-	panic(ErrInvalidOpMulOnBool)
-}
-
-// Div is an invalid operation.
-func (b Bool) Div(v Val) Val {
-	panic(ErrInvalidOpDivOnBool)
-}
-
-// Mod is an invalid operation.
-func (b Bool) Mod(v Val) Val {
-	panic(ErrInvalidOpModOnBool)
-}
-
-// Unm is an invalid operation.
-func (b Bool) Unm() Val {
-	panic(ErrInvalidOpUnmOnBool)
 }

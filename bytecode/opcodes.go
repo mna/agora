@@ -25,8 +25,6 @@ const (
 	OP_LTE                // lower than or equal on two values from the stack, push the result
 	OP_GT                 // greater than on two values from the stack, push the result
 	OP_GTE                // greater than or equal on two values from the stack, push the result
-	OP_AND                // boolean `and` on two values from the stack, push the result
-	OP_OR                 // boolean `or` on two values from the stack, push the result
 	OP_TEST               // check the boolean value on top of the stack, if false jump n instructions
 	OP_JMP                // perform an unconditional jump (forward or backward, depending on the flag)
 	OP_NEW                // create and initialize a new object, push the result
@@ -34,6 +32,10 @@ const (
 	OP_GFLD               // get the value of an object's field, push the result, using 2 values from the stack (object variable and key)
 	OP_CFLD               // call a method on an object, push the result, using 2 values + n arguments from the stack (object variable and key)
 	OP_CALL               // call a function, push the result, using 1 value + n arguments from the stack
+	OP_YLD                // yield a value for coroutine cooperative multitasking
+	OP_RNGS               // range start
+	OP_RNGP               // range push
+	OP_RNGE               // range end
 	op_dbgstart
 	OP_DUMP               // print the execution context, if the Ctx is in debug mode
 	op_max                // Indicates the maximum legal opcode
@@ -59,8 +61,6 @@ var (
 		OP_LTE:  "LTE",
 		OP_GT:   "GT",
 		OP_GTE:  "GTE",
-		OP_AND:  "AND",
-		OP_OR:   "OR",
 		OP_TEST: "TEST",
 		OP_JMP:  "JMP",
 		OP_NEW:  "NEW",
@@ -68,6 +68,10 @@ var (
 		OP_GFLD: "GFLD",
 		OP_CFLD: "CFLD",
 		OP_CALL: "CALL",
+		OP_YLD:  "YLD",
+		OP_RNGS: "RNGS",
+		OP_RNGP: "RNGP",
+		OP_RNGE: "RNGE",
 		OP_DUMP: "DUMP",
 	}
 
@@ -89,8 +93,6 @@ var (
 		"LTE":  OP_LTE,
 		"GT":   OP_GT,
 		"GTE":  OP_GTE,
-		"AND":  OP_AND,
-		"OR":   OP_OR,
 		"TEST": OP_TEST,
 		"JMP":  OP_JMP,
 		"NEW":  OP_NEW,
@@ -98,6 +100,10 @@ var (
 		"GFLD": OP_GFLD,
 		"CFLD": OP_CFLD,
 		"CALL": OP_CALL,
+		"YLD":  OP_YLD,
+		"RNGS": OP_RNGS,
+		"RNGP": OP_RNGP,
+		"RNGE": OP_RNGE,
 		"DUMP": OP_DUMP,
 	}
 )

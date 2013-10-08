@@ -1,5 +1,5 @@
 /*---
-result: map[4:override-string-4 4:int-4]
+result: {4:override-string-4,4:int-4}
 ---*/
 obj := {4: "string-4"}
 obj[4] = "int-4"

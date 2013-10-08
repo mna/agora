@@ -1,0 +1,18 @@
+/*---
+output: 1\n3\n4\n4\n9\n
+---*/
+fmt := import("fmt")
+ob := {
+	fn: func(n) {
+		i := yield n
+		i = yield n + i
+		return n + i
+	},
+}
+
+fmt.Println(ob.fn(1))
+fmt.Println(ob.fn(2))
+a := ob.fn
+fmt.Println(a(3))
+fmt.Println(ob.fn(4))
+fmt.Println(a(5))

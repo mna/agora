@@ -1,0 +1,26 @@
+/*---
+output: 1\n3\n
+---*/
+// http://play.golang.org/p/qhiXgw9Bfn
+fmt := import("fmt")
+
+func f1() {
+	i := 0
+
+	ob := {}
+	ob.f2 = func() {
+		i++
+	}
+	ob.f3 = func() {
+		fmt.Println(i)
+	}
+	return ob
+}
+
+ob := f1()
+ob.f2()
+ob.f3()
+ob.f2()
+ob.f2()
+ob.f3()
+

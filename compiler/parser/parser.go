@@ -33,10 +33,11 @@ type Parser struct {
 	scn *scanner.Scanner // the Scanner
 
 	// Parse state reinitialized at each .Parse() call
-	tkn *Symbol            // current token in Symbol representation
-	tbl map[string]*Symbol // Symbol table
-	scp *Scope             // the top-level (universe) scope
-	err *scanner.ErrorList // the error handler
+	tkn     *Symbol            // current token in Symbol representation
+	tbl     map[string]*Symbol // Symbol table
+	scp     *Scope             // the top-level (universe) scope
+	err     *scanner.ErrorList // the error handler
+	isRange bool
 
 	// Exported fields
 	Debug bool
@@ -55,6 +56,7 @@ func (p *Parser) Parse(filename string, src []byte) ([]*Symbol, *Scope, error) {
 	// Initialize parsing state
 	p.tbl = make(map[string]*Symbol)
 	p.err = new(scanner.ErrorList)
+	p.isRange = false
 	u := p.newScope()
 	p.defineRequiredSymbols()
 	p.defineGrammar()
@@ -276,8 +278,6 @@ func (p *Parser) assignment(id string) *Symbol {
 	})
 }
 
-// TODO : For now, it doesn't support a list of vars followed by a
-// matching list of expressions (a, b, c := 1, 2, 3)
 func (p *Parser) define(id string) *Symbol {
 	return p.infixr(id, 10, func(sym, left *Symbol) *Symbol {
 		if left.Ar != ArName {
@@ -323,7 +323,7 @@ func (p *Parser) statement() interface{} {
 		return n.std()
 	}
 	v := p.expression(0)
-	if !v.asg && v.Id != "(" && v.Id != ":=" {
+	if !v.asg && v.Id != "(" && v.Id != ":=" && v.Id != "yield" {
 		p.error(v, "bad expression statement")
 	}
 	p.advance(";")

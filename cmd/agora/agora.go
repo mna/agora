@@ -138,7 +138,6 @@ func (r *run) Execute(args []string) error {
 		// Register the standard lib's Fmt package
 		ctx.RegisterNativeModule(new(stdlib.FmtMod))
 		ctx.RegisterNativeModule(new(stdlib.FilepathMod))
-		ctx.RegisterNativeModule(new(stdlib.ConvMod))
 		ctx.RegisterNativeModule(new(stdlib.StringsMod))
 		ctx.RegisterNativeModule(new(stdlib.MathMod))
 		ctx.RegisterNativeModule(new(stdlib.OsMod))
@@ -166,7 +165,7 @@ func (r *run) Execute(args []string) error {
 	}
 	res, err := m.Run(vals...)
 	if err == nil && !r.NoResult {
-		fmt.Fprintf(outf, "\n= %v (%T)\n", res.Native(), res)
+		fmt.Fprintf(outf, "\n= %s (%T)\n", res, res)
 	}
 	return err
 }
@@ -260,7 +259,6 @@ type version struct{}
 func (v *version) Execute(args []string) error {
 	maj, min := bytecode.Version()
 	fmt.Printf("agora version %d.%d (git revision %s)\n", maj, min, bytecode.AGORA_BUILD)
-	fmt.Printf("built with %s\n", bytecode.GO_BUILD)
 	return nil
 }
 

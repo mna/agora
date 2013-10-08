@@ -1,21 +1,13 @@
 The standard library is voluntarily small and minimal for this early release. As the language gains features and stabilizes, the right way to offer APIs will become more obvious, and the major use-cases of the language will be better known, allowing for better decisions regarding what makes sense to include in the stdlib.
 
-There are currently seven (7) stdlib modules:
+There are currently six (6) stdlib modules:
 
-* **conv** to provide value conversions and type inspection.
 * **filepath** to provide file path manipulation functions, a subset of Go's `path/filepath` package.
 * **fmt** to provide formatted I/O, a subset of Go's `fmt` package.
 * **math** to provide the usual mathematical functions, a subset of Go's `math` and `math/rand` packages.
 * **os** to provide file access and process manipulation, a subset of Go's `os`, `os/exec` and `io/ioutil` packages.
 * **strings** to provide string manipulation functions and regular expressions, a subset of Go's `strings` and `regexp` packages.
 * **time** to provide date and time functions and types, a subset of Go's `time` package.
-
-## conv
-
-* **Number(val)** : converts val to a number, returns the number.
-* **String(val)** : converts val to a string, returns the string.
-* **Bool(val)** : converts val to a boolean, returns the boolean.
-* **Type(val)** : checks the type of val, returns a string representing the type. The possible return values are `string`, `number`, `bool`, `func`, `object` or `nil`.
 
 ## filepath
 
@@ -110,6 +102,7 @@ There are currently seven (7) stdlib modules:
 * **Join(ob[, sep])** : takes an array-like object and joins each part using the separator sep, or empty string by default. Returns the resulting string.
 * **LastIndex(val[, start], vals...)** : same as Index but returns the last index of vals instead of the first encounter.
 * **Matches(s, pat[, n])** : returns the matches of regular expression pat applied to the source string s. If n is provided, a maximum of n matches are returned. The return value is an array-like object holding all matches or nil if there is none (see the *match* object definition below).
+* **Repeat(s, n)** : returns a string consisting of `n` times the string `s`.
 * **Replace(s, old[, new][, n])** : replaces occurrences of old in s with new, or empty string if new is not provided. If n is provided, replaces a maximum of n occurrences. If the third argument is a number, it is considered to be n and new defaults to empty string.
 * **Slice(s, start[, end])** : returns a slice of string s start at start and ending at end (or the end of s if end is not provided). Is equivalent to Go's s[start:end] notation. 
 * **Split(s, sep[, n])** : returns an array-like object holding the parts of string s split at separator sep. If n is provided, a maximum of n parts are returned, the last part holding the rest of s if required.
@@ -141,5 +134,5 @@ The time object provides the following fields and operations:
 * **__int** : overrides the integer conversion, returns the Unix time, which is the number of seconds since January 1, 1970 UTC.
 * **__string** : overrides the string conversion, formats the time in RFC3339 format.
 
-Next: [Native Go API](https://github.com/PuerkitoBio/agora/wiki/Native-Go-API)
+Next: [Command-line tool](https://github.com/PuerkitoBio/agora/wiki/Command-line-tool)
 

@@ -32,7 +32,7 @@ b := 10
 add := a + b
 sub := a - b
 mul := a * b
-div := a / b // TODO : Should div return a float even for Int?
+div := a / b // Comment
 mod := b % a
 not := !a
 unm := -a`),
@@ -211,7 +211,7 @@ for i := range 10 {
 				token.FOR,
 				token.IDENT,
 				token.DEFINE,
-				token.IDENT,
+				token.RANGE,
 				token.INT,
 				token.LBRACE,
 				token.IDENT,

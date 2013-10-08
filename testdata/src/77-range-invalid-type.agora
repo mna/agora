@@ -1,0 +1,8 @@
+/*---
+error: type error: range not allowed with type bool
+---*/
+a := true
+
+for x := range a {
+	
+}

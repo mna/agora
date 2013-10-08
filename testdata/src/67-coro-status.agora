@@ -1,0 +1,21 @@
+/*---
+result: 4
+output: \nrunning\nsuspended\n\n
+---*/
+
+fmt := import("fmt")
+
+func fn(n) {
+	fmt.Println(status(fn))
+	i := yield
+	i = yield
+	return (n + i)
+}
+
+fmt.Println(status(fn))
+fn(1)
+fmt.Println(status(fn))
+fn(2)
+a := fn(3)
+fmt.Println(status(fn))
+return a

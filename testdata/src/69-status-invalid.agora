@@ -1,0 +1,5 @@
+/*---
+error: type error: status not allowed with type string
+---*/
+a := "test"
+status(a)
