@@ -10,6 +10,12 @@ for i := range rangeFn, 4 {
 	fmt.Println(i)
 }
 
+fmt.Println("manual rangeFn")
+reset(rangeFn)
+for i = rangeFn(4); status(rangeFn) == "suspended"; i = rangeFn() {
+	fmt.Println(i)
+}
+
 fmt.Println("noRange")
 func noRange() {
 	return false

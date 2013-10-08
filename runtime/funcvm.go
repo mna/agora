@@ -227,7 +227,7 @@ func (vm *agoraFuncVM) pushRange(args ...Val) {
 	case "string":
 		src := args[0].String()
 		sep := ""
-		if len(args) > 1 {
+		if len(args) > 1 && args[1].Bool() {
 			sep = args[1].String()
 		}
 		max := int64(-1)
