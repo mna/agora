@@ -1,4 +1,4 @@
 package bytecode
 const (
-	AGORA_BUILD = "fd20f8d"
+	AGORA_BUILD = "8405c1e"
 )
