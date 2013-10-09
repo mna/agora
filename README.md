@@ -38,12 +38,12 @@ A few things to note:
 
 ## Changelog
 
-### v0.2.0 / 2013-10-07?
+### v0.2.0 / 2013-10-08
 
 * Coroutines, closures, for..range
     - Closed issues: https://github.com/PuerkitoBio/agora/issues?milestone=2&page=1&state=closed
     - Wiki: https://github.com/PuerkitoBio/agora/wiki#v02
-    - Blog post: 
+    - Blog post: http://0value.com/agora-v0-2--closures--coroutines-and-for--range
 
 ### v0.1.0 / 2013-09-17
 
