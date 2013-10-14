@@ -36,6 +36,8 @@ const (
 	OP_RNGS               // range start
 	OP_RNGP               // range push
 	OP_RNGE               // range end
+	OP_BKMS               // bookmark start, to indicate the need for multiple values from the stack
+	OP_BKME               // bookmark end, to adjust the number of values to pop from the stack
 	op_dbgstart
 	OP_DUMP               // print the execution context, if the Ctx is in debug mode
 	op_max                // Indicates the maximum legal opcode
