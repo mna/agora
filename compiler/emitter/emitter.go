@@ -191,10 +191,14 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		} else {
 			e.addInstr(fn, bytecode.OP_GFLD, bytecode.FLG__, 0)
 		}
-	case ":=":
-		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `:=` to have binary arity"))
+	case ":=", "=":
+		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atDefine)
+		at := atTrue
+		if sym.Id == ":=" {
+			at = atDefine
+		}
+		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), at)
 	case "!":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `!` to have unary arity"))
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
@@ -219,17 +223,6 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		} else {
 			// Equivalent to if <first> then <first> else <second>
 			e.emitShortcutIf(f, fn, sym, sym.First, sym.First, sym.Second)
-		}
-	case "=":
-		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `=` to have binary arity"))
-		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
-		left := sym.First.(*parser.Symbol)
-		if left.Id == "." {
-			// Emit left, which will generate a SFLD
-			e.emitSymbol(f, fn, left, atTrue)
-		} else {
-			// Emit a standard POP instruction
-			e.emitSymbol(f, fn, left, atTrue)
 		}
 	case "+=", "-=", "*=", "/=", "%=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))

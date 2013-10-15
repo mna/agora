@@ -74,6 +74,8 @@ var (
 		OP_RNGS: "RNGS",
 		OP_RNGP: "RNGP",
 		OP_RNGE: "RNGE",
+		OP_BKMS: "BKMS",
+		OP_BKME: "BKME",
 		OP_DUMP: "DUMP",
 	}
 
@@ -106,6 +108,8 @@ var (
 		"RNGS": OP_RNGS,
 		"RNGP": OP_RNGP,
 		"RNGE": OP_RNGE,
+		"BKMS": OP_BKMS,
+		"BKME": OP_BKME,
 		"DUMP": OP_DUMP,
 	}
 )
