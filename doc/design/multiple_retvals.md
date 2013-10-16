@@ -42,7 +42,7 @@ anyArgs(5, "test", {b: 3}, false)
 
 ## Implementation
 
-All *producers* of value (rhs) push their values on the stack, regardless of how many will actually be used and discarded. That is because it is impossible to know at compile-time how many values from a specific function call will be required, and it would be possible but at a high complexity cost to do at runtime. This proposed solution looks simple and appears to cover all cases the same way.
+All *producers* of value (expressions, rhs) push their values on the stack, regardless of how many will actually be used and discarded. That is because it is impossible to know at compile-time how many values from a specific function call will be required, and it would be possible but at a high complexity cost to do at runtime. This proposed solution looks simple and appears to cover all cases the same way.
 
 Then, before assigning the values to their variables (before the POP instructions), the stack is adjusted so that only relevant values are kept, and the other ones are discarded. If there are missing values, Nils are pushed on the stack.
 
@@ -56,4 +56,4 @@ For `return`, `yield`, `range` and function call statements, the emitted code is
 
 The signature of functions will change to return `[]Val` instead of `Val`. This means `runtime.agoraFuncVM.run()`, `runtime.Func.Call()` and `runtime.Module.Run()`, at a minimum.
 
-It also means that functions could now return no value, so that the implicit `return nil` could be dropped. This should be investigated.
+It also means that functions could now return no value, so that the implicit `return nil` could be dropped (it would be changed for an implicit naked `return` instead). This should be investigated.

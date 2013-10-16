@@ -6,7 +6,6 @@ import (
 	"io"
 	"math"
 	"sort"
-	"strings"
 
 	"github.com/PuerkitoBio/agora/bytecode"
 	"github.com/PuerkitoBio/gocoro"
@@ -21,11 +20,10 @@ type agoraFuncVM struct {
 	debug bool
 
 	// Stacks and counters
-	pc     int   // program counter
-	stack  []Val // function stack
-	sp     int
-	rstack []gocoro.Caller // range native coroutine stack
-	rsp    int
+	pc    int   // program counter
+	stack []Val // function stack
+	sp    int
+	rng   rangeStack
 
 	// Variables
 	vars map[string]Val
@@ -41,6 +39,7 @@ func newFuncVM(fv *agoraFuncVal) *agoraFuncVM {
 		proto: p,
 		debug: p.ctx.Debug,
 		stack: make([]Val, 0, p.stackSz),
+		rng:   rangeStack{},
 		vars:  make(map[string]Val, len(p.lTable)),
 	}
 }
@@ -196,125 +195,6 @@ func (vm *agoraFuncVM) createLocals() {
 	}
 }
 
-func (vm *agoraFuncVM) pushRange(args ...Val) {
-	var coro gocoro.Caller
-	l := len(args)
-	switch t := Type(args[0]); t {
-	case "number":
-		start := int64(0)
-		max := args[0].Int()
-		inc := int64(1)
-		if l > 1 {
-			start = max
-			max = args[1].Int()
-		}
-		if l > 2 {
-			inc = args[2].Int()
-		}
-		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
-			if inc >= 0 {
-				for i := start; i < max; i += inc {
-					y.Yield(Number(i))
-				}
-			} else {
-				for i := start; i > max; i += inc {
-					y.Yield(Number(i))
-				}
-			}
-			panic(gocoro.ErrEndOfCoro)
-		})
-
-	case "string":
-		src := args[0].String()
-		sep := ""
-		if len(args) > 1 && args[1].Bool() {
-			sep = args[1].String()
-		}
-		max := int64(-1)
-		if len(args) > 2 {
-			max = args[2].Int()
-		}
-		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
-			if max == 0 {
-				panic(gocoro.ErrEndOfCoro)
-			}
-			if sep == "" {
-				cnt := int64(len(src))
-				if max >= 0 && max < cnt {
-					cnt = max
-				}
-				for i := int64(0); i < cnt; i++ {
-					y.Yield(String(src[i]))
-				}
-			} else {
-				cnt := int64(0)
-				for max < 0 || cnt < max {
-					splits := strings.SplitN(src, sep, 2)
-					if len(splits) == 0 {
-						break
-					}
-					y.Yield(String(splits[0]))
-					cnt++
-					if len(splits) == 1 {
-						break
-					}
-					src = splits[1]
-				}
-			}
-			panic(gocoro.ErrEndOfCoro)
-		})
-
-	case "object":
-		ob := args[0].(Object)
-		coro = gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
-			ks := ob.Keys().(Object)
-			for i := int64(0); i < ks.Len().Int(); i++ {
-				val := NewObject()
-				key := ks.Get(Number(i))
-				val.Set(String("k"), key)
-				val.Set(String("v"), ob.Get(key))
-				y.Yield(val)
-			}
-			panic(gocoro.ErrEndOfCoro)
-		})
-
-	case "func":
-		fn := args[0].(Func)
-		if afn, ok := fn.(*agoraFuncVal); ok {
-			afn.reset()
-			coro = gocoro.New(func(y gocoro.Yielder, _ ...interface{}) interface{} {
-				for v := afn.Call(Nil, args[1:]...); afn.status() == "suspended"; v = afn.Call(Nil) {
-					y.Yield(v)
-				}
-				panic(gocoro.ErrEndOfCoro)
-			})
-		} else {
-			panic(NewTypeError("native func", "", "range"))
-		}
-
-	default:
-		panic(NewTypeError(t, "", "range"))
-	}
-	if vm.rsp == len(vm.rstack) {
-		if vm.debug && vm.rsp == cap(vm.rstack) {
-			fmt.Fprintf(vm.proto.ctx.Stdout, "DEBUG expanding range stack of func %s, current size: %d\n", vm.val.name, len(vm.rstack))
-		}
-		vm.rstack = append(vm.rstack, coro)
-	} else {
-		vm.rstack[vm.rsp] = coro
-	}
-	vm.rsp++
-}
-
-func (vm *agoraFuncVM) popRange() {
-	vm.rsp--
-	coro := vm.rstack[vm.rsp]
-	vm.rstack[vm.rsp] = nil
-	if coro.Status() == gocoro.StSuspended {
-		coro.Cancel()
-	}
-}
-
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
 func (f *agoraFuncVM) run(args ...Val) Val {
@@ -323,9 +203,7 @@ func (f *agoraFuncVM) run(args ...Val) Val {
 	clearRange := true
 	defer func() {
 		if clearRange {
-			for f.rsp > 0 {
-				f.popRange()
-			}
+			f.rng.clear()
 		}
 	}()
 
@@ -517,10 +395,10 @@ func (f *agoraFuncVM) run(args ...Val) Val {
 				args[j-1] = f.pop()
 			}
 			// Create the range coroutine
-			f.pushRange(args...)
+			f.rng.push(args...)
 
 		case bytecode.OP_RNGP:
-			coro := f.rstack[f.rsp-1]
+			coro := f.rng.st[f.rng.sp-1]
 			v, e := coro.Resume()
 			var vals []interface{}
 			if sl, ok := v.([]interface{}); ok {
@@ -545,7 +423,7 @@ func (f *agoraFuncVM) run(args ...Val) Val {
 
 		case bytecode.OP_RNGE:
 			// Release the range coroutine
-			f.popRange()
+			f.rng.pop()
 
 		case bytecode.OP_DUMP:
 			if f.debug {

@@ -105,9 +105,7 @@ func (a *agoraFuncVal) status() string {
 // Reset the coroutine state of the function.
 func (a *agoraFuncVal) reset() {
 	if a.coroState != nil {
-		for a.coroState.rsp > 0 {
-			a.coroState.popRange()
-		}
+		a.coroState.rng.clear()
 		a.coroState = nil
 	}
 }
