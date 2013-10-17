@@ -73,8 +73,8 @@ func newAgoraFuncVal(def *agoraFuncDef, vm *agoraFuncVM) *agoraFuncVal {
 
 // Call instantiates an executable function instance from this agora function
 // value, sets the `this` value and executes the function's instructions.
-// It returns the agora function's return value.
-func (a *agoraFuncVal) Call(this Val, args ...Val) Val {
+// It returns the agora function's return value(s).
+func (a *agoraFuncVal) Call(this Val, args ...Val) []Val {
 	// If the function value already has a vm, reuse it, this is a coroutine
 	vm := a.coroState
 	if vm == nil {

@@ -13,7 +13,7 @@ func (b *builtinMod) ID() string {
 	return "<builtin>"
 }
 
-func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
+func (b *builtinMod) Run(_ ...Val) (v []Val, err error) {
 	defer PanicToError(&err)
 	if b.ob == nil {
 		b.ob = NewObject()
@@ -29,14 +29,14 @@ func (b *builtinMod) Run(_ ...Val) (v Val, err error) {
 		b.ob.Set(String("status"), NewNativeFunc(b.ctx, "status", b._status))
 		b.ob.Set(String("reset"), NewNativeFunc(b.ctx, "reset", b._reset))
 	}
-	return b.ob, nil
+	return []Val{b.ob}, nil
 }
 
 func (b *builtinMod) SetCtx(c *Ctx) {
 	b.ctx = c
 }
 
-func (b *builtinMod) _import(args ...Val) Val {
+func (b *builtinMod) _import(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
 	m, err := b.ctx.Load(args[0].String())
 	if err != nil {
@@ -49,29 +49,29 @@ func (b *builtinMod) _import(args ...Val) Val {
 	return v
 }
 
-func (b *builtinMod) _panic(args ...Val) Val {
+func (b *builtinMod) _panic(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
 	if args[0].Bool() {
 		panic(args[0])
 	}
-	return Nil
+	return nil
 }
 
-func (b *builtinMod) _recover(args ...Val) (ret Val) {
+func (b *builtinMod) _recover(args ...Val) (ret []Val) {
 	// Do not catch panics if args are invalid
 	ExpectAtLeastNArgs(1, args)
 	// Catch panics in running the function. Cannot use PanicToError, because
 	// it needs the true type of the panic'd value.
-	ret = Nil
+	ret = []Val{Nil}
 	defer func() {
 		if err := recover(); err != nil {
 			switch v := err.(type) {
 			case Val:
-				ret = v
+				ret = []Val{v}
 			case error:
-				ret = String(v.Error())
+				ret = []Val{String(v.Error())}
 			default:
-				ret = String(fmt.Sprintf("%v", v))
+				ret = []Val{String(fmt.Sprintf("%v", v))}
 			}
 		}
 	}()
@@ -90,59 +90,59 @@ func (b *builtinMod) _recover(args ...Val) (ret Val) {
 	return ret
 }
 
-func (b *builtinMod) _len(args ...Val) Val {
+func (b *builtinMod) _len(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
 	switch v := args[0].(type) {
 	case Object:
-		return v.Len()
+		return []Val{v.Len()}
 	case null:
-		return Number(0)
+		return []Val{Number(0)}
 	default:
-		return Number(len(v.String()))
+		return []Val{Number(len(v.String()))}
 	}
 }
 
-func (b *builtinMod) _keys(args ...Val) Val {
+func (b *builtinMod) _keys(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
 	ob := args[0].(Object)
-	return ob.Keys()
+	return []Val{ob.Keys()}
 }
 
-func (b *builtinMod) _number(args ...Val) Val {
+func (b *builtinMod) _number(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
-	return Number(args[0].Float())
+	return []Val{Number(args[0].Float())}
 }
 
-func (b *builtinMod) _string(args ...Val) Val {
+func (b *builtinMod) _string(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
-	return String(args[0].String())
+	return []Val{String(args[0].String())}
 }
 
-func (b *builtinMod) _bool(args ...Val) Val {
+func (b *builtinMod) _bool(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
-	return Bool(args[0].Bool())
+	return []Val{Bool(args[0].Bool())}
 }
 
-func (b *builtinMod) _type(args ...Val) Val {
+func (b *builtinMod) _type(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
-	return String(Type(args[0]))
+	return []Val{String(Type(args[0]))}
 }
 
-func (b *builtinMod) _status(args ...Val) Val {
+func (b *builtinMod) _status(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
 	if v, ok := args[0].(*agoraFuncVal); ok {
 		// If v is in the frame stack, return `running`
 		// If v.coroState is not nil, return `suspended`
 		// Else return empty string
-		return String(v.status())
+		return []Val{String(v.status())}
 	} else if _, ok := args[0].(Func); !ok {
 		// Can only be called on a Func
 		panic(NewTypeError(Type(args[0]), "", "status"))
 	}
-	return String("")
+	return []Val{String("")}
 }
 
-func (b *builtinMod) _reset(args ...Val) Val {
+func (b *builtinMod) _reset(args ...Val) []Val {
 	ExpectAtLeastNArgs(1, args)
 	if v, ok := args[0].(*agoraFuncVal); ok {
 		v.reset()
@@ -150,5 +150,5 @@ func (b *builtinMod) _reset(args ...Val) Val {
 		// Can only be called on a Func
 		panic(NewTypeError(Type(args[0]), "", "reset"))
 	}
-	return Nil
+	return nil
 }

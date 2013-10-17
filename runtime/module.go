@@ -25,7 +25,7 @@ func NewEmptyModuleError(id string) EmptyModuleError {
 // The Module interface defines the required behaviours for a Module.
 type Module interface {
 	ID() string
-	Run(...Val) (Val, error)
+	Run(...Val) ([]Val, error)
 }
 
 // A NativeModule is a Module with added behaviour required for supporting
@@ -85,7 +85,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 }
 
 // Run executes the module and returns its return value, or an error.
-func (m *agoraModule) Run(args ...Val) (v Val, err error) {
+func (m *agoraModule) Run(args ...Val) (v []Val, err error) {
 	defer PanicToError(&err)
 	if len(m.fns) == 0 {
 		return Nil, NewEmptyModuleError(m.ID())

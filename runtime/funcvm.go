@@ -39,7 +39,6 @@ func newFuncVM(fv *agoraFuncVal) *agoraFuncVM {
 		proto: p,
 		debug: p.ctx.Debug,
 		stack: make([]Val, 0, p.stackSz),
-		rng:   rangeStack{},
 		vars:  make(map[string]Val, len(p.lTable)),
 	}
 }
@@ -197,7 +196,7 @@ func (vm *agoraFuncVM) createLocals() {
 
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
-func (f *agoraFuncVM) run(args ...Val) Val {
+func (f *agoraFuncVM) run(args ...Val) []Val {
 	// Register the defer to release all `for range` coroutines created
 	// by the VM and possibly still alive from a resume of this VM.
 	clearRange := true
@@ -249,13 +248,13 @@ func (f *agoraFuncVM) run(args ...Val) Val {
 			// End this function call, return the value on top of the stack and remove
 			// the vm if it was set on the value
 			f.val.coroState = nil
-			return f.pop()
+			return []Val{f.pop()}
 
 		case bytecode.OP_YLD:
 			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
 			clearRange = false // Keep active range coros, so that they can continue on a resume
-			return f.pop()
+			return []Val{f.pop()}
 
 		case bytecode.OP_PUSH:
 			f.push(f.getVal(flg, ix))

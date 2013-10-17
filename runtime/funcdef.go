@@ -7,12 +7,12 @@ import (
 )
 
 // FuncFn represents the Func signature for native functions.
-type FuncFn func(...Val) Val
+type FuncFn func(...Val) []Val
 
 // A Func value in Agora is a Val that also implements the Func interface.
 type Func interface {
 	Val
-	Call(this Val, args ...Val) Val
+	Call(this Val, args ...Val) []Val
 }
 
 // An agoraFuncDef represents an agora function's prototype.
@@ -70,7 +70,7 @@ func (n *NativeFunc) Native() interface{} {
 }
 
 // Call executes the native function and returns its return value.
-func (n *NativeFunc) Call(_ Val, args ...Val) Val {
+func (n *NativeFunc) Call(_ Val, args ...Val) []Val {
 	n.ctx.pushFn(n, nil)
 	defer n.ctx.popFn()
 	return n.fn(args...)
