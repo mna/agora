@@ -29,8 +29,8 @@ type Object interface {
 	Set(Val, Val)
 	Len() Val
 	Keys() Val
-	callMethod(Val, ...Val) Val
-	callMetaMethod(string, ...Val) (Val, bool)
+	callMethod(Val, ...Val) []Val
+	callMetaMethod(string, ...Val) ([]Val, bool)
 }
 
 // An object is a map of values, an associative array.
@@ -54,7 +54,7 @@ func (o *object) Dump() string {
 	return fmt.Sprintf("{%s} (Object)", buf)
 }
 
-func (o *object) callMetaMethod(nm string, args ...Val) (Val, bool) {
+func (o *object) callMetaMethod(nm string, args ...Val) ([]Val, bool) {
 	if mm, ok := o.m[String(nm)]; ok {
 		if f, ok := mm.(Func); ok {
 			return f.Call(o, args...), true
@@ -67,7 +67,9 @@ func (o *object) callMetaMethod(nm string, args ...Val) (Val, bool) {
 // if a `__int` method is available on the object.
 func (o *object) Int() int64 {
 	if v, ok := o.callMetaMethod("__int"); ok {
-		return v.Int()
+		if len(v) > 0 {
+			return v[0].Int()
+		}
 	}
 	panic(NewTypeError(Type(o), "", "int"))
 }
@@ -76,7 +78,9 @@ func (o *object) Int() int64 {
 // if a `__float` method is available on the object.
 func (o *object) Float() float64 {
 	if v, ok := o.callMetaMethod("__float"); ok {
-		return v.Float()
+		if len(v) > 0 {
+			return v[0].Float()
+		}
 	}
 	panic(NewTypeError(Type(o), "", "float"))
 }
@@ -85,7 +89,9 @@ func (o *object) Float() float64 {
 // if a `__string` method is available on the object.
 func (o *object) String() string {
 	if v, ok := o.callMetaMethod("__string"); ok {
-		return v.String()
+		if len(v) > 0 {
+			return v[0].String()
+		}
 	}
 	// Otherwise print the object's contents
 	buf := bytes.NewBuffer(nil)
@@ -108,7 +114,9 @@ func (o *object) String() string {
 // if a `__bool` method is available on the object. Otherwise it returns true.
 func (o *object) Bool() bool {
 	if v, ok := o.callMetaMethod("__bool"); ok {
-		return v.Bool()
+		if len(v) > 0 {
+			return v[0].Bool()
+		}
 	}
 	// If __bool is not defined, object returns true (since it is not nil)
 	return true
@@ -118,7 +126,9 @@ func (o *object) Bool() bool {
 // if a `__native` method is available on the object.
 func (o *object) Native() interface{} {
 	if v, ok := o.callMetaMethod("__native"); ok {
-		return v.Native()
+		if len(v) > 0 {
+			return v[0].Native()
+		}
 	}
 	// Defaults to returning the internal map
 	return o.m
@@ -128,7 +138,9 @@ func (o *object) Native() interface{} {
 // if a `__len` method is available on the object.
 func (o *object) Len() Val {
 	if v, ok := o.callMetaMethod("__len"); ok {
-		return v
+		if len(v) > 0 {
+			return v[0]
+		}
 	}
 	return Number(len(o.m))
 }
@@ -139,7 +151,9 @@ func (o *object) Len() Val {
 // and Keys(). The list of keys is unordered.
 func (o *object) Keys() Val {
 	if v, ok := o.callMetaMethod("__keys"); ok {
-		return v
+		if len(v) > 0 {
+			return v[0]
+		}
 	}
 	ob := NewObject()
 	i := 0
@@ -175,7 +189,7 @@ func (o *object) Set(key Val, v Val) {
 // callMethod calls the method identified by nm with the provided arguments.
 // It panics if the field does not hold a function. If the field does not
 // exist and a method named `__noSuchMethod` is defined, it is called instead.
-func (o *object) callMethod(nm Val, args ...Val) Val {
+func (o *object) callMethod(nm Val, args ...Val) []Val {
 	v, ok := o.m[nm]
 	if ok {
 		if f, ok := v.(Func); ok {

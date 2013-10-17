@@ -382,10 +382,11 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			for j := ix; j > 0; j-- {
 				args[j-1] = f.pop()
 			}
-			// Call the function, and store the return value on the stack
-			// TODO : Do not push returned value if unused (grow stack for nothing). When multiple return values
-			// are added, add intelligence to know how many are used/discarded.
-			f.push(fn.Call(nil, args...))
+			// Call the function, and store the return value(s) on the stack
+			vals := fn.Call(nil, args...)
+			for j := 0; j < len(vals); j++ {
+				f.push(vals[j])
+			}
 
 		case bytecode.OP_RNGS:
 			// Pop the arguments in reverse order

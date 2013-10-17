@@ -94,7 +94,7 @@ func NewCtx(resolver ModuleResolver, comp Compiler) *Ctx {
 	if v, err := b.Run(); err != nil {
 		panic("error loading agora builtin module: " + err.Error())
 	} else {
-		c.builtin = v.(Object)
+		c.builtin = v[0].(Object)
 	}
 	return c
 }

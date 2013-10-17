@@ -35,11 +35,11 @@ type NativeModule interface {
 	SetCtx(*Ctx)
 }
 
-// An agora module holds its ID, its function table, and the value it returned.
+// An agora module holds its ID, its function table, and the value(s) it returned.
 type agoraModule struct {
 	id  string
 	fns []*agoraFuncDef
-	v   Val
+	v   []Val
 }
 
 // Create a new agora module from the specified bytecode file and for the specified
@@ -88,7 +88,7 @@ func newAgoraModule(f *bytecode.File, c *Ctx) *agoraModule {
 func (m *agoraModule) Run(args ...Val) (v []Val, err error) {
 	defer PanicToError(&err)
 	if len(m.fns) == 0 {
-		return Nil, NewEmptyModuleError(m.ID())
+		return nil, NewEmptyModuleError(m.ID())
 	}
 	// Do not re-run a module if it has already been imported. Use the cached value.
 	if m.v == nil {
