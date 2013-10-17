@@ -18,7 +18,7 @@ func (f *FmtMod) ID() string {
 	return "fmt"
 }
 
-func (f *FmtMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
+func (f *FmtMod) Run(_ ...runtime.Val) (v []runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if f.ob == nil {
 		// Prepare the object
@@ -28,7 +28,7 @@ func (f *FmtMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		f.ob.Set(runtime.String("Scanln"), runtime.NewNativeFunc(f.ctx, "fmt.Scanln", f.fmt_Scanln))
 		f.ob.Set(runtime.String("Scanint"), runtime.NewNativeFunc(f.ctx, "fmt.Scanint", f.fmt_Scanint))
 	}
-	return f.ob, nil
+	return []runtime.Val{f.ob}, nil
 }
 
 func (f *FmtMod) SetCtx(c *runtime.Ctx) {
@@ -47,25 +47,25 @@ func toStringIface(args []runtime.Val) []interface{} {
 	return ifs
 }
 
-func (f *FmtMod) fmt_Print(args ...runtime.Val) runtime.Val {
+func (f *FmtMod) fmt_Print(args ...runtime.Val) []runtime.Val {
 	ifs := toStringIface(args)
 	n, err := fmt.Fprint(f.ctx.Stdout, ifs...)
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Number(n)
+	return []runtime.Val{runtime.Number(n)}
 }
 
-func (f *FmtMod) fmt_Println(args ...runtime.Val) runtime.Val {
+func (f *FmtMod) fmt_Println(args ...runtime.Val) []runtime.Val {
 	ifs := toStringIface(args)
 	n, err := fmt.Fprintln(f.ctx.Stdout, ifs...)
 	if err != nil {
 		panic(err)
 	}
-	return runtime.Number(n)
+	return []runtime.Val{runtime.Number(n)}
 }
 
-func (f *FmtMod) fmt_Scanln(args ...runtime.Val) runtime.Val {
+func (f *FmtMod) fmt_Scanln(args ...runtime.Val) []runtime.Val {
 	var (
 		b, l []byte
 		e    error
@@ -79,13 +79,13 @@ func (f *FmtMod) fmt_Scanln(args ...runtime.Val) runtime.Val {
 		panic(e)
 	}
 	b = append(b, l...)
-	return runtime.String(b)
+	return []runtime.Val{runtime.String(b)}
 }
 
-func (f *FmtMod) fmt_Scanint(args ...runtime.Val) runtime.Val {
+func (f *FmtMod) fmt_Scanint(args ...runtime.Val) []runtime.Val {
 	var i int
 	if _, e := fmt.Fscanf(f.ctx.Stdin, "%d", &i); e != nil {
 		panic(e)
 	}
-	return runtime.Number(i)
+	return []runtime.Val{runtime.Number(i)}
 }

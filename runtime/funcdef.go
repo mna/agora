@@ -64,6 +64,31 @@ func ExpectAtLeastNArgs(n int, args []Val) {
 	}
 }
 
+// Get1 is a utility function to extract a single Val from a slice of Vals.
+// Since many methods return a single value even though multiple return values
+// are supported, this is a convenient way to extract the single value.
+//
+// As a special case, if the slice is empty, it returns nil.
+func Get1(args []Val) Val {
+	if len(args) > 0 {
+		return args[0]
+	}
+	return nil
+}
+
+// Set1 is a utility function to return a single Val as a slice of Vals.
+// Since many methods return a single value even though multiple return values
+// are supported, this is a convenient way to wrap the single value in the format
+// expected by the function signature.
+//
+// As a special case, if there is no value to wrap (arg is nil), it returns nil.
+func Set1(arg Val) []Val {
+	if arg == nil {
+		return nil
+	}
+	return []Val{arg}
+}
+
 // Native returns the Go native representation of the native function type.
 func (n *NativeFunc) Native() interface{} {
 	return n

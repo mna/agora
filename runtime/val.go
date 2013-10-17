@@ -71,14 +71,18 @@ func (ar defaultArithmetic) binaryOp(l, r Val, op string, allowStrings bool) Val
 		// If left operand is an object with a meta-method
 		lo := l.(Object)
 		if v, ok := lo.callMetaMethod(mm, r, Bool(true)); ok {
-			return v
+			if len(v) > 0 {
+				return v[0]
+			}
 		}
 	}
 	// Last chance: if right operand is an object with a meta-method
 	if rt == "object" {
 		ro := r.(Object)
 		if v, ok := ro.callMetaMethod(mm, l, Bool(false)); ok {
-			return v
+			if len(v) > 0 {
+				return v[0]
+			}
 		}
 	}
 	panic(NewTypeError(lt, rt, op))
@@ -111,7 +115,9 @@ func (ar defaultArithmetic) Unm(l Val) Val {
 	} else if lt == "object" {
 		lo := l.(Object)
 		if v, ok := lo.callMetaMethod("__unm"); ok {
-			return v
+			if len(v) > 0 {
+				return v[0]
+			}
 		}
 	}
 	panic(NewTypeError(lt, "", "unm"))
@@ -235,10 +241,14 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 			// If left has meta method, use left, otherwise right, else compare
 			lo, ro := l.(Object), r.(Object)
 			if v, ok := lo.callMetaMethod("__cmp", r, Bool(true)); ok {
-				return int(v.Int())
+				if len(v) > 0 {
+					return int(v[0].Int())
+				}
 			}
 			if v, ok := ro.callMetaMethod("__cmp", l, Bool(false)); ok {
-				return int(v.Int())
+				if len(v) > 0 {
+					return int(v[0].Int())
+				}
 			}
 			if lo == ro {
 				return 0
@@ -274,7 +284,9 @@ func (dc defaultComparer) Cmp(l, r Val) int {
 		}
 		if o != nil {
 			if v, ok := o.callMetaMethod("__cmp", otherv, Bool(isLeft)); ok {
-				return int(v.Int())
+				if len(v) > 0 {
+					return int(v[0].Int())
+				}
 			}
 		}
 		// Else, return arbitrary but constant result

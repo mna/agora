@@ -248,13 +248,13 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			// End this function call, return the value on top of the stack and remove
 			// the vm if it was set on the value
 			f.val.coroState = nil
-			return []Val{f.pop()}
+			return Set1(f.pop())
 
 		case bytecode.OP_YLD:
 			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
 			clearRange = false // Keep active range coros, so that they can continue on a resume
-			return []Val{f.pop()}
+			return Set1(f.pop())
 
 		case bytecode.OP_PUSH:
 			f.push(f.getVal(flg, ix))
@@ -362,9 +362,10 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 				args[j-1] = f.pop()
 			}
 			if ob, ok := vr.(Object); ok {
-				// TODO : Do not push returned value if unused (grow stack for nothing). When multiple return values
-				// are added, add intelligence to know how many are used/discarded.
-				f.push(ob.callMethod(k, args...))
+				vals := ob.callMethod(k, args...)
+				for _, v := range vals {
+					f.push(v)
+				}
 			} else {
 				panic(NewTypeError(Type(vr), "", "object"))
 			}
@@ -384,8 +385,8 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			}
 			// Call the function, and store the return value(s) on the stack
 			vals := fn.Call(nil, args...)
-			for j := 0; j < len(vals); j++ {
-				f.push(vals[j])
+			for _, v := range vals {
+				f.push(v)
 			}
 
 		case bytecode.OP_RNGS:
