@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	gort "runtime"
 	"strings"
 	"testing"
 
@@ -38,10 +39,16 @@ func TestSourceFiles(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	if testing.Verbose() {
+		fmt.Printf("[%d goroutine(s) at startup]\n", gort.NumGoroutine())
+	}
 	for _, fi := range fis {
 		if filepath.Ext(fi.Name()) == ".agora" {
 			testFile(t, fi)
 		}
+	}
+	if testing.Verbose() {
+		fmt.Printf("[%d goroutine(s) after tests]\n", gort.NumGoroutine())
 	}
 }
 

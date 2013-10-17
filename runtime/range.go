@@ -11,13 +11,16 @@ type rangeStack struct {
 	sp int
 }
 
-var (
+var factory map[string]func(...Val) gocoro.Caller
+
+func init() {
 	factory = map[string]func(...Val) gocoro.Caller{
 		"number": newNumberCoro,
 		"string": newStringCoro,
 		"object": newObjectCoro,
+		"func":   newFuncCoro,
 	}
-)
+}
 
 func newNumberCoro(args ...Val) gocoro.Caller {
 	l := len(args)
@@ -27,9 +30,9 @@ func newNumberCoro(args ...Val) gocoro.Caller {
 	if l > 1 {
 		start = max
 		max = args[1].Int()
-	}
-	if l > 2 {
-		inc = args[2].Int()
+		if l > 2 {
+			inc = args[2].Int()
+		}
 	}
 	return gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
 		if inc >= 0 {
@@ -49,12 +52,14 @@ func newStringCoro(args ...Val) gocoro.Caller {
 	l := len(args)
 	src := args[0].String()
 	sep := ""
-	if l > 1 && args[1].Bool() {
-		sep = args[1].String()
-	}
 	max := int64(-1)
-	if l > 2 {
-		max = args[2].Int()
+	if l > 1 {
+		if args[1].Bool() {
+			sep = args[1].String()
+		}
+		if l > 2 {
+			max = args[2].Int()
+		}
 	}
 	return gocoro.New(func(y gocoro.Yielder, args ...interface{}) interface{} {
 		if max == 0 {
@@ -112,12 +117,11 @@ func newFuncCoro(args ...Val) gocoro.Caller {
 			}
 			panic(gocoro.ErrEndOfCoro)
 		})
-	} else {
-		panic(NewTypeError("native func", "", "range"))
 	}
+	panic(NewTypeError("native func", "", "range"))
 }
 
-func (rs rangeStack) push(args ...Val) {
+func (rs *rangeStack) push(args ...Val) {
 	ExpectAtLeastNArgs(1, args)
 	t := Type(args[0])
 	if fn, ok := factory[t]; !ok {
@@ -133,7 +137,7 @@ func (rs rangeStack) push(args ...Val) {
 	}
 }
 
-func (rs rangeStack) pop() {
+func (rs *rangeStack) pop() {
 	rs.sp--
 	c := rs.st[rs.sp]
 	rs.st[rs.sp] = nil
@@ -142,7 +146,7 @@ func (rs rangeStack) pop() {
 	}
 }
 
-func (rs rangeStack) clear() {
+func (rs *rangeStack) clear() {
 	for rs.sp > 0 {
 		rs.pop()
 	}
