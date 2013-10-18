@@ -11,6 +11,36 @@ import (
 	"github.com/PuerkitoBio/gocoro"
 )
 
+type valStack struct {
+	st []Val
+	sp int
+}
+
+func newValStack(sz int64) valStack {
+	return valStack{
+		st: make([]Val, 0, sz),
+	}
+}
+
+// Push a value onto the stack.
+func (vs *valStack) push(v Val) {
+	// Stack has to grow as needed, StackSz doesn't take into account the loops
+	if vs.sp == len(vs.st) {
+		vs.st = append(vs.st, v)
+	} else {
+		vs.st[vs.sp] = v
+	}
+	vs.sp++
+}
+
+// Pop a value from the stack.
+func (vs *valStack) pop() Val {
+	vs.sp--
+	v := vs.st[vs.sp]
+	vs.st[vs.sp] = Nil // free this reference for gc
+	return v
+}
+
 // An agoraFuncVM is a runnable instance of a function value. It holds the virtual machine
 // required to execute the instructions.
 type agoraFuncVM struct {
@@ -20,10 +50,9 @@ type agoraFuncVM struct {
 	debug bool
 
 	// Stacks and counters
-	pc    int   // program counter
-	stack []Val // function stack
-	sp    int
-	rng   rangeStack
+	pc  int // program counter
+	stk valStack
+	rng rangeStack
 
 	// Variables
 	vars map[string]Val
@@ -38,31 +67,9 @@ func newFuncVM(fv *agoraFuncVal) *agoraFuncVM {
 		val:   fv,
 		proto: p,
 		debug: p.ctx.Debug,
-		stack: make([]Val, 0, p.stackSz),
+		stk:   newValStack(p.stackSz),
 		vars:  make(map[string]Val, len(p.lTable)),
 	}
-}
-
-// Push a value onto the stack.
-func (f *agoraFuncVM) push(v Val) {
-	// Stack has to grow as needed, StackSz doesn't take into account the loops
-	if f.sp == len(f.stack) {
-		if f.debug && f.sp == cap(f.stack) {
-			fmt.Fprintf(f.proto.ctx.Stdout, "DEBUG expanding stack of func %s, current size: %d\n", f.val.name, len(f.stack))
-		}
-		f.stack = append(f.stack, v)
-	} else {
-		f.stack[f.sp] = v
-	}
-	f.sp++
-}
-
-// Pop a value from the stack.
-func (f *agoraFuncVM) pop() Val {
-	f.sp--
-	v := f.stack[f.sp]
-	f.stack[f.sp] = Nil // free this reference for gc
-	return v
 }
 
 // Get a value from *somewhere*, depending on the flag.
@@ -139,16 +146,16 @@ func (f *agoraFuncVM) dump() string {
 	}
 	// Stack
 	fmt.Fprintf(buf, "\n  Stack:\n")
-	i := int(math.Max(0, float64(f.sp-5)))
-	for i <= f.sp {
-		if i == f.sp {
+	i := int(math.Max(0, float64(f.stk.sp-5)))
+	for i <= f.stk.sp {
+		if i == f.stk.sp {
 			fmt.Fprint(buf, "sp->")
 		} else {
 			fmt.Fprint(buf, "    ")
 		}
 		v := Val(Nil)
-		if i < len(f.stack) {
-			v = f.stack[i]
+		if i < len(f.stk.st) {
+			v = f.stk.st[i]
 		}
 		fmt.Fprintf(buf, "[%3d] %s\n", i, dumpVal(v))
 		i++
@@ -232,7 +239,7 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 		if len(args) > 0 {
 			a0 = args[0]
 		}
-		f.push(a0)
+		f.stk.push(a0)
 	}
 
 	// Execute the instructions
@@ -248,77 +255,77 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			// End this function call, return the value on top of the stack and remove
 			// the vm if it was set on the value
 			f.val.coroState = nil
-			return Set1(f.pop())
+			return Set1(f.stk.pop())
 
 		case bytecode.OP_YLD:
 			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
 			clearRange = false // Keep active range coros, so that they can continue on a resume
-			return Set1(f.pop())
+			return Set1(f.stk.pop())
 
 		case bytecode.OP_PUSH:
-			f.push(f.getVal(flg, ix))
+			f.stk.push(f.getVal(flg, ix))
 
 		case bytecode.OP_POP:
-			if nm, v := f.proto.kTable[ix].String(), f.pop(); !f.proto.ctx.setVar(nm, v, f) {
+			if nm, v := f.proto.kTable[ix].String(), f.stk.pop(); !f.proto.ctx.setVar(nm, v, f) {
 				// Not found anywhere, panic
 				panic("unknown variable: " + nm)
 			}
 
 		case bytecode.OP_ADD:
-			y, x := f.pop(), f.pop()
-			f.push(arith.Add(x, y))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(arith.Add(x, y))
 
 		case bytecode.OP_SUB:
-			y, x := f.pop(), f.pop()
-			f.push(arith.Sub(x, y))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(arith.Sub(x, y))
 
 		case bytecode.OP_MUL:
-			y, x := f.pop(), f.pop()
-			f.push(arith.Mul(x, y))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(arith.Mul(x, y))
 
 		case bytecode.OP_DIV:
-			y, x := f.pop(), f.pop()
-			f.push(arith.Div(x, y))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(arith.Div(x, y))
 
 		case bytecode.OP_MOD:
-			y, x := f.pop(), f.pop()
-			f.push(arith.Mod(x, y))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(arith.Mod(x, y))
 
 		case bytecode.OP_NOT:
-			x := f.pop()
-			f.push(Bool(!x.Bool()))
+			x := f.stk.pop()
+			f.stk.push(Bool(!x.Bool()))
 
 		case bytecode.OP_UNM:
-			x := f.pop()
-			f.push(arith.Unm(x))
+			x := f.stk.pop()
+			f.stk.push(arith.Unm(x))
 
 		case bytecode.OP_EQ:
-			y, x := f.pop(), f.pop()
-			f.push(Bool(cmp.Cmp(x, y) == 0))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(Bool(cmp.Cmp(x, y) == 0))
 
 		case bytecode.OP_NEQ:
-			y, x := f.pop(), f.pop()
-			f.push(Bool(cmp.Cmp(x, y) != 0))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(Bool(cmp.Cmp(x, y) != 0))
 
 		case bytecode.OP_LT:
-			y, x := f.pop(), f.pop()
-			f.push(Bool(cmp.Cmp(x, y) < 0))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(Bool(cmp.Cmp(x, y) < 0))
 
 		case bytecode.OP_LTE:
-			y, x := f.pop(), f.pop()
-			f.push(Bool(cmp.Cmp(x, y) <= 0))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(Bool(cmp.Cmp(x, y) <= 0))
 
 		case bytecode.OP_GT:
-			y, x := f.pop(), f.pop()
-			f.push(Bool(cmp.Cmp(x, y) > 0))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(Bool(cmp.Cmp(x, y) > 0))
 
 		case bytecode.OP_GTE:
-			y, x := f.pop(), f.pop()
-			f.push(Bool(cmp.Cmp(x, y) >= 0))
+			y, x := f.stk.pop(), f.stk.pop()
+			f.stk.push(Bool(cmp.Cmp(x, y) >= 0))
 
 		case bytecode.OP_TEST:
-			if !f.pop().Bool() {
+			if !f.stk.pop().Bool() {
 				// Do the jump over ix instructions
 				f.pc += int(ix)
 			}
@@ -333,13 +340,13 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 		case bytecode.OP_NEW:
 			ob := NewObject()
 			for j := ix; j > 0; j-- {
-				key, val := f.pop(), f.pop()
+				key, val := f.stk.pop(), f.stk.pop()
 				ob.Set(key, val)
 			}
-			f.push(ob)
+			f.stk.push(ob)
 
 		case bytecode.OP_SFLD:
-			vr, k, vl := f.pop(), f.pop(), f.pop()
+			vr, k, vl := f.stk.pop(), f.stk.pop(), f.stk.pop()
 			if ob, ok := vr.(Object); ok {
 				ob.Set(k, vl)
 			} else {
@@ -347,24 +354,24 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			}
 
 		case bytecode.OP_GFLD:
-			vr, k := f.pop(), f.pop()
+			vr, k := f.stk.pop(), f.stk.pop()
 			if ob, ok := vr.(Object); ok {
-				f.push(ob.Get(k))
+				f.stk.push(ob.Get(k))
 			} else {
 				panic(NewTypeError(Type(vr), "", "object"))
 			}
 
 		case bytecode.OP_CFLD:
-			vr, k := f.pop(), f.pop()
+			vr, k := f.stk.pop(), f.stk.pop()
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
-				args[j-1] = f.pop()
+				args[j-1] = f.stk.pop()
 			}
 			if ob, ok := vr.(Object); ok {
 				vals := ob.callMethod(k, args...)
 				for _, v := range vals {
-					f.push(v)
+					f.stk.push(v)
 				}
 			} else {
 				panic(NewTypeError(Type(vr), "", "object"))
@@ -373,7 +380,7 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 		case bytecode.OP_CALL:
 			// ix is the number of args
 			// Pop the function itself, ensure it is a function
-			x := f.pop()
+			x := f.stk.pop()
 			fn, ok := x.(Func)
 			if !ok {
 				panic(NewTypeError(Type(x), "", "func"))
@@ -381,19 +388,19 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
-				args[j-1] = f.pop()
+				args[j-1] = f.stk.pop()
 			}
 			// Call the function, and store the return value(s) on the stack
 			vals := fn.Call(nil, args...)
 			for _, v := range vals {
-				f.push(v)
+				f.stk.push(v)
 			}
 
 		case bytecode.OP_RNGS:
 			// Pop the arguments in reverse order
 			args := make([]Val, ix)
 			for j := ix; j > 0; j-- {
-				args[j-1] = f.pop()
+				args[j-1] = f.stk.pop()
 			}
 			// Create the range coroutine
 			f.rng.push(args...)
@@ -411,16 +418,16 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			if e == nil {
 				for j := uint64(0); j < ix; j++ {
 					if j < uint64(len(vals)) {
-						f.push(vals[j].(Val))
+						f.stk.push(vals[j].(Val))
 					} else {
-						f.push(Nil)
+						f.stk.push(Nil)
 					}
 				}
 			} else if e != gocoro.ErrEndOfCoro {
 				panic(e)
 			}
 			// Push the condition
-			f.push(Bool(e == nil))
+			f.stk.push(Bool(e == nil))
 
 		case bytecode.OP_RNGE:
 			// Release the range coroutine
