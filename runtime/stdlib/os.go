@@ -38,28 +38,28 @@ func (o *OsMod) newFile(f *os.File) *file {
 	return of
 }
 
-func (of *file) closeFile(args ...runtime.Val) runtime.Val {
+func (of *file) closeFile(args ...runtime.Val) []runtime.Val {
 	e := of.f.Close()
 	if e != nil {
 		panic(e)
 	}
-	return runtime.Nil
+	return nil
 }
 
-func (of *file) readLine(args ...runtime.Val) runtime.Val {
+func (of *file) readLine(args ...runtime.Val) []runtime.Val {
 	if of.s == nil {
 		of.s = bufio.NewScanner(of.f)
 	}
 	if of.s.Scan() {
-		return runtime.String(of.s.Text())
+		return runtime.Set1(runtime.String(of.s.Text()))
 	}
 	if e := of.s.Err(); e != nil {
 		panic(e)
 	}
-	return runtime.Nil
+	return runtime.Set1(runtime.Nil)
 }
 
-func (of *file) seek(args ...runtime.Val) runtime.Val {
+func (of *file) seek(args ...runtime.Val) []runtime.Val {
 	off := int64(0)
 	if len(args) > 0 {
 		off = args[0].Int()
@@ -72,10 +72,10 @@ func (of *file) seek(args ...runtime.Val) runtime.Val {
 	if e != nil {
 		panic(e)
 	}
-	return runtime.Number(n)
+	return runtime.Set1(runtime.Number(n))
 }
 
-func (of *file) write(args ...runtime.Val) runtime.Val {
+func (of *file) write(args ...runtime.Val) []runtime.Val {
 	n := 0
 	for _, v := range args {
 		m, e := of.f.WriteString(v.String())
@@ -84,23 +84,23 @@ func (of *file) write(args ...runtime.Val) runtime.Val {
 		}
 		n += m
 	}
-	return runtime.Number(n)
+	return runtime.Set1(runtime.Number(n))
 }
 
-func (of *file) writeLine(args ...runtime.Val) runtime.Val {
-	n := of.write(args...)
+func (of *file) writeLine(args ...runtime.Val) []runtime.Val {
+	n := runtime.Get1(of.write(args...))
 	m, e := of.f.WriteString("\n")
 	if e != nil {
 		panic(e)
 	}
-	return runtime.Number(int(n.Int()) + m)
+	return runtime.Set1(runtime.Number(int(n.Int()) + m))
 }
 
 func (o *OsMod) ID() string {
 	return "os"
 }
 
-func (o *OsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
+func (o *OsMod) Run(_ ...runtime.Val) (v []runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if o.ob == nil {
 		// Prepare the object
@@ -123,48 +123,48 @@ func (o *OsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		o.ob.Set(runtime.String("Rename"), runtime.NewNativeFunc(o.ctx, "os.Rename", o.os_Rename))
 		o.ob.Set(runtime.String("ReadDir"), runtime.NewNativeFunc(o.ctx, "os.ReadDir", o.os_ReadDir))
 	}
-	return o.ob, nil
+	return runtime.Set1(o.ob), nil
 }
 
 func (o *OsMod) SetCtx(ctx *runtime.Ctx) {
 	o.ctx = ctx
 }
 
-func (o *OsMod) os_Exit(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Exit(args ...runtime.Val) []runtime.Val {
 	if len(args) == 0 {
 		os.Exit(0)
 	}
 	os.Exit(int(args[0].Int()))
-	return runtime.Nil
+	return nil
 }
 
-func (o *OsMod) os_Getenv(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Getenv(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.String(os.Getenv(args[0].String()))
+	return runtime.Set1(runtime.String(os.Getenv(args[0].String())))
 }
 
-func (o *OsMod) os_Getwd(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Getwd(args ...runtime.Val) []runtime.Val {
 	pwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	return runtime.String(pwd)
+	return runtime.Set1(runtime.String(pwd))
 }
 
-func (o *OsMod) os_Exec(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Exec(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	c := exec.Command(args[0].String(), toString(args[1:])...)
 	b, e := c.CombinedOutput()
 	if e != nil {
 		panic(e)
 	}
-	return runtime.String(b)
+	return runtime.Set1(runtime.String(b))
 }
 
-func (o *OsMod) os_Mkdir(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Mkdir(args ...runtime.Val) []runtime.Val {
 	// No-op if no arg
 	if len(args) == 0 {
-		return runtime.Nil
+		return nil
 	}
 	perm := os.FileMode(0777)
 	// Last args *may* be the permissions to use if it is a number
@@ -178,18 +178,18 @@ func (o *OsMod) os_Mkdir(args ...runtime.Val) runtime.Val {
 			panic(e)
 		}
 	}
-	return runtime.Nil
+	return nil
 }
 
-func createFileInfo(fi os.FileInfo) runtime.Val {
+func createFileInfo(fi os.FileInfo) []runtime.Val {
 	o := runtime.NewObject()
 	o.Set(runtime.String("Name"), runtime.String(fi.Name()))
 	o.Set(runtime.String("Size"), runtime.Number(fi.Size()))
 	o.Set(runtime.String("IsDir"), runtime.Bool(fi.IsDir()))
-	return o
+	return runtime.Set1(o)
 }
 
-func (o *OsMod) os_ReadDir(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_ReadDir(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	fis, e := ioutil.ReadDir(args[0].String())
 	if e != nil {
@@ -197,47 +197,47 @@ func (o *OsMod) os_ReadDir(args ...runtime.Val) runtime.Val {
 	}
 	ob := runtime.NewObject()
 	for i, fi := range fis {
-		ob.Set(runtime.Number(i), createFileInfo(fi))
+		ob.Set(runtime.Number(i), runtime.Get1(createFileInfo(fi)))
 	}
-	return ob
+	return runtime.Set1(ob)
 }
 
-func (o *OsMod) os_Remove(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Remove(args ...runtime.Val) []runtime.Val {
 	for _, v := range args {
 		if e := os.Remove(v.String()); e != nil {
 			panic(e)
 		}
 	}
-	return runtime.Nil
+	return nil
 }
 
-func (o *OsMod) os_RemoveAll(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_RemoveAll(args ...runtime.Val) []runtime.Val {
 	for _, v := range args {
 		if e := os.RemoveAll(v.String()); e != nil {
 			panic(e)
 		}
 	}
-	return runtime.Nil
+	return nil
 }
 
-func (o *OsMod) os_Rename(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Rename(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	if e := os.Rename(args[0].String(), args[1].String()); e != nil {
 		panic(e)
 	}
-	return runtime.Nil
+	return nil
 }
 
-func (o *OsMod) os_ReadFile(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_ReadFile(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	b, e := ioutil.ReadFile(args[0].String())
 	if e != nil {
 		panic(e)
 	}
-	return runtime.String(b)
+	return runtime.Set1(runtime.String(b))
 }
 
-func (o *OsMod) os_WriteFile(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_WriteFile(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	f, e := os.Create(args[0].String())
 	if e != nil {
@@ -252,20 +252,19 @@ func (o *OsMod) os_WriteFile(args ...runtime.Val) runtime.Val {
 		}
 		n += m
 	}
-	return runtime.Number(n)
+	return runtime.Set1(runtime.Number(n))
 }
 
-func (o *OsMod) os_TryOpen(args ...runtime.Val) (ret runtime.Val) {
+func (o *OsMod) os_TryOpen(args ...runtime.Val) (ret []runtime.Val) {
 	defer func() {
 		if e := recover(); e != nil {
-			ret = runtime.Nil
+			ret = runtime.Set1(runtime.Nil)
 		}
 	}()
-	ret = o.os_Open(args...)
-	return ret
+	return o.os_Open(args...)
 }
 
-func (o *OsMod) os_Open(args ...runtime.Val) runtime.Val {
+func (o *OsMod) os_Open(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	nm := args[0].String()
 	flg := "r" // defaults to read-only
@@ -300,7 +299,7 @@ func (o *OsMod) os_Open(args ...runtime.Val) runtime.Val {
 	if e != nil {
 		panic(e)
 	}
-	return o.newFile(f)
+	return runtime.Set1(o.newFile(f))
 }
 
 func toString(args []runtime.Val) []string {

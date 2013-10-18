@@ -12,24 +12,24 @@ func TestTimeConv(t *testing.T) {
 	tm := new(TimeMod)
 	tm.SetCtx(ctx)
 	nw := time.Now().UTC()
-	n := tm.time_Date(runtime.Number(nw.Year()),
+	n := runtime.Get1(tm.time_Date(runtime.Number(nw.Year()),
 		runtime.Number(nw.Month()),
 		runtime.Number(nw.Day()),
 		runtime.Number(nw.Hour()),
 		runtime.Number(nw.Minute()),
 		runtime.Number(nw.Second()),
-		runtime.Number(nw.Nanosecond()))
+		runtime.Number(nw.Nanosecond())))
 	ob := n.(runtime.Object)
 	cnv := ob.Get(runtime.String("__string"))
 	f := cnv.(runtime.Func)
-	ret := f.Call(nil)
+	ret := runtime.Get1(f.Call(nil))
 	exp := nw.Format(time.RFC3339)
 	if ret.String() != exp {
 		t.Errorf("expected string to return '%s', got '%s'", exp, ret)
 	}
 	cnv = ob.Get(runtime.String("__int"))
 	f = cnv.(runtime.Func)
-	ret = f.Call(nil)
+	ret = runtime.Get1(f.Call(nil))
 	{
 		exp := nw.Unix()
 		if ret.Int() != int64(exp) {
@@ -54,7 +54,7 @@ func TestTimeNow(t *testing.T) {
 	tm := new(TimeMod)
 	tm.SetCtx(ctx)
 	exp := time.Now()
-	ret := tm.time_Now()
+	ret := runtime.Get1(tm.time_Now())
 	ob := ret.(runtime.Object)
 	if yr := ob.Get(runtime.String("Year")); yr.Int() != int64(exp.Year()) {
 		t.Errorf("expected year %d, got %d", exp.Year(), yr.Int())
@@ -152,7 +152,7 @@ func TestTimeDate(t *testing.T) {
 	tm := new(TimeMod)
 	tm.SetCtx(ctx)
 	for i, c := range cases {
-		ret := tm.time_Date(c.args...)
+		ret := runtime.Get1(tm.time_Date(c.args...))
 		ob := ret.(runtime.Object)
 		if yr := ob.Get(runtime.String("Year")); yr.Int() != int64(c.exp.Year()) {
 			t.Errorf("[%d] - expected year %d, got %d", i, c.exp.Year(), yr.Int())

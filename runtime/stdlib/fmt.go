@@ -28,7 +28,7 @@ func (f *FmtMod) Run(_ ...runtime.Val) (v []runtime.Val, err error) {
 		f.ob.Set(runtime.String("Scanln"), runtime.NewNativeFunc(f.ctx, "fmt.Scanln", f.fmt_Scanln))
 		f.ob.Set(runtime.String("Scanint"), runtime.NewNativeFunc(f.ctx, "fmt.Scanint", f.fmt_Scanint))
 	}
-	return []runtime.Val{f.ob}, nil
+	return runtime.Set1(f.ob), nil
 }
 
 func (f *FmtMod) SetCtx(c *runtime.Ctx) {
@@ -53,7 +53,7 @@ func (f *FmtMod) fmt_Print(args ...runtime.Val) []runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return []runtime.Val{runtime.Number(n)}
+	return runtime.Set1(runtime.Number(n))
 }
 
 func (f *FmtMod) fmt_Println(args ...runtime.Val) []runtime.Val {
@@ -62,7 +62,7 @@ func (f *FmtMod) fmt_Println(args ...runtime.Val) []runtime.Val {
 	if err != nil {
 		panic(err)
 	}
-	return []runtime.Val{runtime.Number(n)}
+	return runtime.Set1(runtime.Number(n))
 }
 
 func (f *FmtMod) fmt_Scanln(args ...runtime.Val) []runtime.Val {
@@ -79,7 +79,7 @@ func (f *FmtMod) fmt_Scanln(args ...runtime.Val) []runtime.Val {
 		panic(e)
 	}
 	b = append(b, l...)
-	return []runtime.Val{runtime.String(b)}
+	return runtime.Set1(runtime.String(b))
 }
 
 func (f *FmtMod) fmt_Scanint(args ...runtime.Val) []runtime.Val {
@@ -87,5 +87,5 @@ func (f *FmtMod) fmt_Scanint(args ...runtime.Val) []runtime.Val {
 	if _, e := fmt.Fscanf(f.ctx.Stdin, "%d", &i); e != nil {
 		panic(e)
 	}
-	return []runtime.Val{runtime.Number(i)}
+	return runtime.Set1(runtime.Number(i))
 }

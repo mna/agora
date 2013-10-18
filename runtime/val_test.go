@@ -43,7 +43,7 @@ var (
 	ari   = defaultArithmetic{}
 	o     = NewObject()
 	oplus = NewObject()
-	fn    = NewNativeFunc(ctx, "", func(_ ...Val) Val { return Nil })
+	fn    = NewNativeFunc(ctx, "", func(_ ...Val) []Val { return nil })
 	cus   = cusType{}
 
 	// Common cases, same result regardless of operation
@@ -175,12 +175,12 @@ var (
 )
 
 func init() {
-	fRetArg := NewNativeFunc(ctx, "", func(args ...Val) Val {
+	fRetArg := NewNativeFunc(ctx, "", func(args ...Val) []Val {
 		ExpectAtLeastNArgs(2, args)
-		return args[0]
+		return Set1(args[0])
 	})
-	fRetUnm := NewNativeFunc(ctx, "", func(args ...Val) Val {
-		return Number(-1)
+	fRetUnm := NewNativeFunc(ctx, "", func(args ...Val) []Val {
+		return Set1(Number(-1))
 	})
 	oplus.Set(String("__add"), fRetArg)
 	oplus.Set(String("__sub"), fRetArg)

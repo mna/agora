@@ -29,7 +29,7 @@ func (fp *FilepathMod) Run(_ ...runtime.Val) (v []runtime.Val, err error) {
 		fp.ob.Set(runtime.String("IsAbs"), runtime.NewNativeFunc(fp.ctx, "filepath.IsAbs", fp.filepath_IsAbs))
 		fp.ob.Set(runtime.String("Join"), runtime.NewNativeFunc(fp.ctx, "filepath.Join", fp.filepath_Join))
 	}
-	return []runtime.Val{fp.ob}, nil
+	return runtime.Set1(fp.ob), nil
 }
 
 func (fp *FilepathMod) SetCtx(c *runtime.Ctx) {
@@ -42,31 +42,31 @@ func (fp *FilepathMod) filepath_Abs(args ...runtime.Val) []runtime.Val {
 	if e != nil {
 		panic(e)
 	}
-	return []runtime.Val{runtime.String(s)}
+	return runtime.Set1(runtime.String(s))
 }
 
 func (fp *FilepathMod) filepath_Base(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return []runtime.Val{runtime.String(filepath.Base(args[0].String()))}
+	return runtime.Set1(runtime.String(filepath.Base(args[0].String())))
 }
 
 func (fp *FilepathMod) filepath_Dir(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return runtime.Val{runtime.String(filepath.Dir(args[0].String()))}
+	return runtime.Set1(runtime.String(filepath.Dir(args[0].String())))
 }
 
 func (fp *FilepathMod) filepath_Ext(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return []runtime.Val{runtime.String(filepath.Ext(args[0].String()))}
+	return runtime.Set1(runtime.String(filepath.Ext(args[0].String())))
 }
 
 func (fp *FilepathMod) filepath_IsAbs(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
-	return []runtime.Val{runtime.Bool(filepath.IsAbs(args[0].String()))}
+	return runtime.Set1(runtime.Bool(filepath.IsAbs(args[0].String())))
 }
 
 func (fp *FilepathMod) filepath_Join(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	s := toString(args)
-	return []runtime.Val{runtime.String(filepath.Join(s...))}
+	return runtime.Set1(runtime.String(filepath.Join(s...)))
 }

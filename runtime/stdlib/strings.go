@@ -19,7 +19,7 @@ func (s *StringsMod) ID() string {
 	return "strings"
 }
 
-func (s *StringsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
+func (s *StringsMod) Run(_ ...runtime.Val) (v []runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if s.ob == nil {
 		// Prepare the object
@@ -41,7 +41,7 @@ func (s *StringsMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		s.ob.Set(runtime.String("Repeat"), runtime.NewNativeFunc(s.ctx, "strings.Repeat", s.strings_Repeat))
 		s.ob.Set(runtime.String("Trim"), runtime.NewNativeFunc(s.ctx, "strings.Trim", s.strings_Trim))
 	}
-	return s.ob, nil
+	return runtime.Set1(s.ob), nil
 }
 
 func (s *StringsMod) SetCtx(c *runtime.Ctx) {
@@ -53,7 +53,7 @@ func (s *StringsMod) SetCtx(c *runtime.Ctx) {
 // 0..n - The strings to convert to upper case and concatenate
 // Returns:
 // The uppercase string
-func (s *StringsMod) strings_ToUpper(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_ToUpper(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	buf := bytes.NewBuffer(nil)
 	for _, v := range args {
@@ -62,7 +62,7 @@ func (s *StringsMod) strings_ToUpper(args ...runtime.Val) runtime.Val {
 			panic(err)
 		}
 	}
-	return runtime.String(buf.String())
+	return runtime.Set1(runtime.String(buf.String()))
 }
 
 // Converts strings to lowercase, concatenating all strings.
@@ -70,7 +70,7 @@ func (s *StringsMod) strings_ToUpper(args ...runtime.Val) runtime.Val {
 // 0..n - The strings to convert to lower case and concatenate
 // Returns:
 // The lowercase string
-func (s *StringsMod) strings_ToLower(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_ToLower(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	buf := bytes.NewBuffer(nil)
 	for _, v := range args {
@@ -79,7 +79,7 @@ func (s *StringsMod) strings_ToLower(args ...runtime.Val) runtime.Val {
 			panic(err)
 		}
 	}
-	return runtime.String(buf.String())
+	return runtime.Set1(runtime.String(buf.String()))
 }
 
 // Returns true if the string at arg0 starts with any of the following strings.
@@ -88,15 +88,15 @@ func (s *StringsMod) strings_ToLower(args ...runtime.Val) runtime.Val {
 // 1..n - The prefixes to test
 // Returns:
 // true if the source string starts with any of the specified prefixes
-func (s *StringsMod) strings_HasPrefix(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_HasPrefix(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	for _, v := range args[1:] {
 		if strings.HasPrefix(src, v.String()) {
-			return runtime.Bool(true)
+			return runtime.Set1(runtime.Bool(true))
 		}
 	}
-	return runtime.Bool(false)
+	return runtime.Set1(runtime.Bool(false))
 }
 
 // Returns true if the string at arg0 ends with any of the following strings.
@@ -105,22 +105,22 @@ func (s *StringsMod) strings_HasPrefix(args ...runtime.Val) runtime.Val {
 // 1..n - The suffixes to test
 // Returns:
 // true if the source string ends with any of the specified suffixes
-func (s *StringsMod) strings_HasSuffix(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_HasSuffix(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	for _, v := range args[1:] {
 		if strings.HasSuffix(src, v.String()) {
-			return runtime.Bool(true)
+			return runtime.Set1(runtime.Bool(true))
 		}
 	}
-	return runtime.Bool(false)
+	return runtime.Set1(runtime.Bool(false))
 }
 
-func (s *StringsMod) strings_Repeat(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Repeat(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	n := int(args[1].Int())
-	return runtime.String(strings.Repeat(src, n))
+	return runtime.Set1(runtime.String(strings.Repeat(src, n)))
 }
 
 // Args:
@@ -136,7 +136,7 @@ func (s *StringsMod) strings_Repeat(args ...runtime.Val) runtime.Val {
 // start - the index of the start of the match
 // end - the end of the match
 // text - the string of the match
-func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Matches(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	rx := regexp.MustCompile(args[1].String())
@@ -146,7 +146,7 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 	}
 	strmtch := rx.FindAllStringSubmatch(src, n)
 	if strmtch == nil {
-		return runtime.Nil
+		return runtime.Set1(runtime.Nil)
 	}
 	ixmtch := rx.FindAllStringSubmatchIndex(src, n)
 	ob := runtime.NewObject()
@@ -161,7 +161,7 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 		}
 		ob.Set(runtime.Number(i), obch)
 	}
-	return ob
+	return runtime.Set1(ob)
 }
 
 // Args:
@@ -171,21 +171,21 @@ func (s *StringsMod) strings_Matches(args ...runtime.Val) runtime.Val {
 // Returns:
 // The character at that position, as a string, or an empty string if
 // the index is out of bounds.
-func (s *StringsMod) strings_ByteAt(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_ByteAt(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	at := int(args[1].Int())
 	if at < 0 || at >= len(src) {
-		return runtime.String("")
+		return runtime.Set1(runtime.String(""))
 	}
-	return runtime.String(src[at])
+	return runtime.Set1(runtime.String(src[at]))
 }
 
 // Args:
 // 0..n - the strings to concatenate
 // Returns:
 // The concatenated string
-func (s *StringsMod) strings_Concat(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Concat(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	buf := bytes.NewBuffer(nil)
 	for _, v := range args {
@@ -194,7 +194,7 @@ func (s *StringsMod) strings_Concat(args ...runtime.Val) runtime.Val {
 			panic(err)
 		}
 	}
-	return runtime.String(buf.String())
+	return runtime.Set1(runtime.String(buf.String()))
 }
 
 // Args:
@@ -202,15 +202,15 @@ func (s *StringsMod) strings_Concat(args ...runtime.Val) runtime.Val {
 // 1..n - the strings to test if they are found in the source string
 // Returns:
 // True if any of the strings are found in the source string, false otherwise.
-func (s *StringsMod) strings_Contains(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Contains(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	for _, v := range args[1:] {
 		if strings.Contains(src, v.String()) {
-			return runtime.Bool(true)
+			return runtime.Set1(runtime.Bool(true))
 		}
 	}
-	return runtime.Bool(false)
+	return runtime.Set1(runtime.Bool(false))
 }
 
 // Args:
@@ -219,7 +219,7 @@ func (s *StringsMod) strings_Contains(args ...runtime.Val) runtime.Val {
 // 2 (or 1) .. n - The substrings to search for in the source string.
 // Returns:
 // The index of the first found substring in source, if any is found, or -1
-func (s *StringsMod) strings_Index(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Index(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	start := 0
@@ -233,10 +233,10 @@ func (s *StringsMod) strings_Index(args ...runtime.Val) runtime.Val {
 	src = src[start:]
 	for _, v := range args[find:] {
 		if ix := strings.Index(src, v.String()); ix >= 0 {
-			return runtime.Number(ix)
+			return runtime.Set1(runtime.Number(ix))
 		}
 	}
-	return runtime.Number(-1)
+	return runtime.Set1(runtime.Number(-1))
 }
 
 // Args:
@@ -245,7 +245,7 @@ func (s *StringsMod) strings_Index(args ...runtime.Val) runtime.Val {
 // 2 (or 1) .. n - The substrings to search for in the source string.
 // Returns:
 // The last index of the first found substring in source, if any is found, or -1
-func (s *StringsMod) strings_LastIndex(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_LastIndex(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	start := 0
@@ -259,10 +259,10 @@ func (s *StringsMod) strings_LastIndex(args ...runtime.Val) runtime.Val {
 	src = src[start:]
 	for _, v := range args[find:] {
 		if ix := strings.LastIndex(src, v.String()); ix >= 0 {
-			return runtime.Number(ix)
+			return runtime.Set1(runtime.Number(ix))
 		}
 	}
-	return runtime.Number(-1)
+	return runtime.Set1(runtime.Number(-1))
 }
 
 // Slice a string to get a substring. Basically the same as slicing in Go.
@@ -272,7 +272,7 @@ func (s *StringsMod) strings_LastIndex(args ...runtime.Val) runtime.Val {
 // 2 [optional] - The high bound, such that the length of the resulting string is high-start
 // Results:
 // The sliced string.
-func (s *StringsMod) strings_Slice(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Slice(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	start := args[1].Int()
@@ -280,7 +280,7 @@ func (s *StringsMod) strings_Slice(args ...runtime.Val) runtime.Val {
 	if len(args) > 2 {
 		end = int(args[2].Int())
 	}
-	return runtime.String(src[start:end])
+	return runtime.Set1(runtime.String(src[start:end]))
 }
 
 // Args:
@@ -289,7 +289,7 @@ func (s *StringsMod) strings_Slice(args ...runtime.Val) runtime.Val {
 // 2 [optional] - the maximum number of splits, defaults to all
 // Returns:
 // An array-like object with splits as values and indices as keys.
-func (s *StringsMod) strings_Split(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Split(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	sep := args[1].String()
@@ -302,7 +302,7 @@ func (s *StringsMod) strings_Split(args ...runtime.Val) runtime.Val {
 	for i, v := range splits {
 		ob.Set(runtime.Number(i), runtime.String(v))
 	}
-	return ob
+	return runtime.Set1(ob)
 }
 
 // Args:
@@ -310,7 +310,7 @@ func (s *StringsMod) strings_Split(args ...runtime.Val) runtime.Val {
 // 1 - The separator, empty string by default
 // Returns:
 // The concatenated string of all the array-like indices of the source object.
-func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Join(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	ob := args[0].(runtime.Object)
 	sep := ""
@@ -330,7 +330,7 @@ func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 			}
 		}
 	}
-	return runtime.String(buf.String())
+	return runtime.Set1(runtime.String(buf.String()))
 }
 
 // Args:
@@ -341,7 +341,7 @@ func (s *StringsMod) strings_Join(args ...runtime.Val) runtime.Val {
 // considered the value of 3 and 2 is empty.
 // Returns:
 // The string with n occurrences of old replaced by new.
-func (s *StringsMod) strings_Replace(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Replace(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(2, args)
 	src := args[0].String()
 	old := args[1].String()
@@ -359,7 +359,7 @@ func (s *StringsMod) strings_Replace(args ...runtime.Val) runtime.Val {
 			}
 		}
 	}
-	return runtime.String(strings.Replace(src, old, nw, cnt))
+	return runtime.Set1(runtime.String(strings.Replace(src, old, nw, cnt)))
 }
 
 // Args:
@@ -368,12 +368,12 @@ func (s *StringsMod) strings_Replace(args ...runtime.Val) runtime.Val {
 // removed). Defaults to whitespace (space, \n, \t, \v and \r).
 // Returns:
 // The trimmed string.
-func (s *StringsMod) strings_Trim(args ...runtime.Val) runtime.Val {
+func (s *StringsMod) strings_Trim(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	src := args[0].String()
 	cut := " \n\t\v\r"
 	if len(args) > 1 {
 		cut = args[1].String()
 	}
-	return runtime.String(strings.Trim(src, cut))
+	return runtime.Set1(runtime.String(strings.Trim(src, cut)))
 }

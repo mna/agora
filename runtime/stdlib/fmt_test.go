@@ -34,7 +34,7 @@ func TestFmtPrint(t *testing.T) {
 		},
 		3: {
 			src: []runtime.Val{runtime.String("func:"),
-				runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) runtime.Val { return runtime.Nil })},
+				runtime.NewNativeFunc(ctx, "", func(args ...runtime.Val) []runtime.Val { return nil })},
 			exp:   "func:<func  (",
 			expln: "func: <func  (",
 			start: true,
@@ -60,9 +60,9 @@ func TestFmtPrint(t *testing.T) {
 				if !c.start {
 					c.exp += "\n"
 				}
-				res = fm.fmt_Println(c.src...)
+				res = runtime.Get1(fm.fmt_Println(c.src...))
 			} else {
-				res = fm.fmt_Print(c.src...)
+				res = runtime.Get1(fm.fmt_Print(c.src...))
 			}
 			if (c.start && !strings.HasPrefix(buf.String(), c.exp)) || (!c.start && c.exp != buf.String()) {
 				t.Errorf("[%d] - expected %s, got %s", i, c.exp, buf.String())
@@ -82,7 +82,7 @@ two lines
 	ctx.Stdin = buf
 	fm := new(FmtMod)
 	fm.SetCtx(ctx)
-	ret := fm.fmt_Scanln()
+	ret := runtime.Get1(fm.fmt_Scanln())
 	if ret.String() != "This is" {
 		t.Errorf("expected line 1 to be 'This is', got '%s'", ret)
 	}
@@ -94,7 +94,7 @@ func TestFmtScanint(t *testing.T) {
 	ctx.Stdin = buf
 	fm := new(FmtMod)
 	fm.SetCtx(ctx)
-	ret := fm.fmt_Scanint()
+	ret := runtime.Get1(fm.fmt_Scanint())
 	if ret.Int() != 12 {
 		t.Errorf("expected 12, got %d", ret.Int())
 	}

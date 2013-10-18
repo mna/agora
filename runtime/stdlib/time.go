@@ -17,7 +17,7 @@ func (t *TimeMod) ID() string {
 	return "time"
 }
 
-func (t *TimeMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
+func (t *TimeMod) Run(_ ...runtime.Val) (v []runtime.Val, err error) {
 	defer runtime.PanicToError(&err)
 	if t.ob == nil {
 		// Prepare the object
@@ -26,17 +26,17 @@ func (t *TimeMod) Run(_ ...runtime.Val) (v runtime.Val, err error) {
 		t.ob.Set(runtime.String("Now"), runtime.NewNativeFunc(t.ctx, "time.Now", t.time_Now))
 		t.ob.Set(runtime.String("Sleep"), runtime.NewNativeFunc(t.ctx, "time.Sleep", t.time_Sleep))
 	}
-	return t.ob, nil
+	return runtime.Set1(t.ob), nil
 }
 
 func (t *TimeMod) SetCtx(c *runtime.Ctx) {
 	t.ctx = c
 }
 
-func (t *TimeMod) time_Sleep(args ...runtime.Val) runtime.Val {
+func (t *TimeMod) time_Sleep(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	time.Sleep(time.Duration(args[0].Int()) * time.Millisecond)
-	return runtime.Nil
+	return nil
 }
 
 type _time struct {
@@ -44,16 +44,16 @@ type _time struct {
 	t time.Time
 }
 
-func (t *TimeMod) newTime(tm time.Time) runtime.Val {
+func (t *TimeMod) newTime(tm time.Time) []runtime.Val {
 	ob := &_time{
 		runtime.NewObject(),
 		tm,
 	}
-	ob.Set(runtime.String("__int"), runtime.NewNativeFunc(t.ctx, "time._time.__int", func(args ...runtime.Val) runtime.Val {
-		return runtime.Number(ob.t.Unix())
+	ob.Set(runtime.String("__int"), runtime.NewNativeFunc(t.ctx, "time._time.__int", func(args ...runtime.Val) []runtime.Val {
+		return runtime.Set1(runtime.Number(ob.t.Unix()))
 	}))
-	ob.Set(runtime.String("__string"), runtime.NewNativeFunc(t.ctx, "time._time.__string", func(args ...runtime.Val) runtime.Val {
-		return runtime.String(ob.t.Format(time.RFC3339))
+	ob.Set(runtime.String("__string"), runtime.NewNativeFunc(t.ctx, "time._time.__string", func(args ...runtime.Val) []runtime.Val {
+		return runtime.Set1(runtime.String(ob.t.Format(time.RFC3339)))
 	}))
 	ob.Set(runtime.String("Year"), runtime.Number(tm.Year()))
 	ob.Set(runtime.String("Month"), runtime.Number(tm.Month()))
@@ -62,14 +62,14 @@ func (t *TimeMod) newTime(tm time.Time) runtime.Val {
 	ob.Set(runtime.String("Minute"), runtime.Number(tm.Minute()))
 	ob.Set(runtime.String("Second"), runtime.Number(tm.Second()))
 	ob.Set(runtime.String("Nanosecond"), runtime.Number(tm.Nanosecond()))
-	return ob
+	return runtime.Set1(ob)
 }
 
-func (t *TimeMod) time_Now(args ...runtime.Val) runtime.Val {
+func (t *TimeMod) time_Now(args ...runtime.Val) []runtime.Val {
 	return t.newTime(time.Now())
 }
 
-func (t *TimeMod) time_Date(args ...runtime.Val) runtime.Val {
+func (t *TimeMod) time_Date(args ...runtime.Val) []runtime.Val {
 	runtime.ExpectAtLeastNArgs(1, args)
 	yr := int(args[0].Int())
 	mth := 1

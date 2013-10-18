@@ -17,14 +17,14 @@ func TestFilepathAbs(t *testing.T) {
 	if e != nil {
 		panic(e)
 	}
-	ret := fm.filepath_Abs(runtime.String(p))
+	ret := runtime.Get1(fm.filepath_Abs(runtime.String(p)))
 	if ret.String() != exp {
 		t.Errorf("expected '%s', got '%s'", exp, ret.String())
 	}
 	// IsAbs
 	{
 		exp := filepath.IsAbs(p)
-		ret := fm.filepath_IsAbs(runtime.String(p))
+		ret := runtime.Get1(fm.filepath_IsAbs(runtime.String(p)))
 		if ret.Bool() != exp {
 			t.Errorf("expected '%v', got '%v'", exp, ret.Bool())
 		}
@@ -41,19 +41,19 @@ func TestFilepathBaseDirExt(t *testing.T) {
 	}
 	// Base
 	exp := filepath.Base(p)
-	ret := fm.filepath_Base(runtime.String(p))
+	ret := runtime.Get1(fm.filepath_Base(runtime.String(p)))
 	if ret.String() != exp {
 		t.Errorf("expected base '%s', got '%s'", exp, ret.String())
 	}
 	// Dir
 	exp = filepath.Dir(p)
-	ret = fm.filepath_Dir(runtime.String(p))
+	ret = runtime.Get1(fm.filepath_Dir(runtime.String(p)))
 	if ret.String() != exp {
 		t.Errorf("expected dir '%s', got '%s'", exp, ret.String())
 	}
 	// Ext
 	exp = filepath.Ext(p)
-	ret = fm.filepath_Ext(runtime.String(p))
+	ret = runtime.Get1(fm.filepath_Ext(runtime.String(p)))
 	if ret.String() != exp {
 		t.Errorf("expected extension '%s', got '%s'", exp, ret.String())
 	}
@@ -69,7 +69,7 @@ func TestFilepathJoin(t *testing.T) {
 	for i, s := range parts {
 		vals[i] = runtime.String(s)
 	}
-	ret := fm.filepath_Join(vals...)
+	ret := runtime.Get1(fm.filepath_Join(vals...))
 	if ret.String() != exp {
 		t.Errorf("expected '%s', got '%s'", exp, ret.String())
 	}

@@ -15,13 +15,13 @@ func TestOsTryOpen(t *testing.T) {
 	om.SetCtx(ctx)
 	// With an unknown file
 	fn := "./testdata/unknown.txt"
-	ret := om.os_TryOpen(runtime.String(fn))
+	ret := runtime.Get1(om.os_TryOpen(runtime.String(fn)))
 	if ret != runtime.Nil {
 		t.Errorf("expected unknown file to return nil, got '%v'", ret)
 	}
 	// With an existing file
 	fn = "./testdata/readfile.txt"
-	ret = om.os_TryOpen(runtime.String(fn))
+	ret = runtime.Get1(om.os_TryOpen(runtime.String(fn)))
 	if fl, ok := ret.(*file); !ok {
 		t.Errorf("expected existing file to return *file, got '%T'", ret)
 	} else {
@@ -34,28 +34,28 @@ func TestOsOpen(t *testing.T) {
 	om := new(OsMod)
 	om.SetCtx(ctx)
 	fn := "./testdata/readfile.txt"
-	f := om.os_Open(runtime.String(fn))
+	f := runtime.Get1(om.os_Open(runtime.String(fn)))
 	fl := f.(*file)
 	ret := fl.Get(runtime.String("Name"))
 	if ret.String() != fn {
 		t.Errorf("expected Name to be '%s', got '%s'", fn, ret)
 	}
 	exp := "ok"
-	ret = fl.readLine()
+	ret = runtime.Get1(fl.readLine())
 	if ret.String() != exp {
 		t.Errorf("expected read line 1 to be '%s', got '%s'", exp, ret)
 	}
 	exp = ""
-	ret = fl.readLine()
+	ret = runtime.Get1(fl.readLine())
 	if ret.String() != exp {
 		t.Errorf("expected read line 2 to be '%s', got '%s'", exp, ret)
 	}
-	ret = fl.readLine()
+	ret = runtime.Get1(fl.readLine())
 	if ret != runtime.Nil {
 		t.Errorf("expected read line 3 to be nil, got '%v'", ret)
 	}
-	ret = fl.closeFile()
-	if ret != runtime.Nil {
+	ret = runtime.Get1(fl.closeFile())
+	if ret != nil {
 		t.Errorf("expected close file to be nil, got '%v'", ret)
 	}
 }
@@ -65,21 +65,21 @@ func TestOsWrite(t *testing.T) {
 	om := new(OsMod)
 	om.SetCtx(ctx)
 	fn := "./testdata/write.txt"
-	f := om.os_Open(runtime.String(fn), runtime.String("w+"))
+	f := runtime.Get1(om.os_Open(runtime.String(fn), runtime.String("w+")))
 	fl := f.(*file)
 	defer fl.closeFile()
 	// Write the first value
-	ret := fl.writeLine(runtime.Number(1))
+	ret := runtime.Get1(fl.writeLine(runtime.Number(1)))
 	if ret.Int() != 2 {
 		t.Errorf("expected 1st written length to be 2, got %d", ret.Int())
 	}
 	// Move back to start
-	ret = fl.seek()
+	ret = runtime.Get1(fl.seek())
 	if ret.Int() != 0 {
 		t.Errorf("expected seek to return to start, got offset %d", ret.Int())
 	}
 	// Write the second value
-	ret = fl.writeLine(runtime.Number(2))
+	ret = runtime.Get1(fl.writeLine(runtime.Number(2)))
 	if ret.Int() != 2 {
 		t.Errorf("expected 2nd written length to be 2, got %d", ret.Int())
 	}
@@ -94,7 +94,7 @@ func TestOsFields(t *testing.T) {
 		panic(err)
 	}
 	{
-		ob := ob.(runtime.Object)
+		ob := runtime.Get1(ob).(runtime.Object)
 		ret := ob.Get(runtime.String("PathSeparator"))
 		exp := string(os.PathSeparator)
 		if ret.String() != exp {
@@ -123,7 +123,7 @@ func TestOsExec(t *testing.T) {
 	om := new(OsMod)
 	om.SetCtx(ctx)
 	exp := "hello"
-	ret := om.os_Exec(runtime.String("echo"), runtime.String(exp))
+	ret := runtime.Get1(om.os_Exec(runtime.String("echo"), runtime.String(exp)))
 	// Shell adds a \n after output
 	if ret.String() != exp+"\n" {
 		t.Errorf("expected '%s', got '%s'", exp, ret)
@@ -139,7 +139,7 @@ func TestOsGetenv(t *testing.T) {
 	if e != nil {
 		panic(e)
 	}
-	ret := om.os_Getenv(runtime.String("TEST"))
+	ret := runtime.Get1(om.os_Getenv(runtime.String("TEST")))
 	if ret.String() != exp {
 		t.Errorf("expected '%s', got '%s'", exp, ret.String())
 	}
@@ -153,7 +153,7 @@ func TestOsGetwd(t *testing.T) {
 	if e != nil {
 		panic(e)
 	}
-	ret := om.os_Getwd()
+	ret := runtime.Get1(om.os_Getwd())
 	if ret.String() != exp {
 		t.Errorf("expected '%s', got '%s'", exp, ret.String())
 	}
@@ -168,7 +168,7 @@ func TestOsReadFile(t *testing.T) {
 		panic(e)
 	}
 	exp := string(b)
-	ret := om.os_ReadFile(runtime.String("./testdata/readfile.txt"))
+	ret := runtime.Get1(om.os_ReadFile(runtime.String("./testdata/readfile.txt")))
 	if ret.String() != exp {
 		t.Errorf("expected '%s', got '%s'", exp, ret.String())
 	}
@@ -198,7 +198,7 @@ func TestOsWriteFile(t *testing.T) {
 	om.SetCtx(ctx)
 	for i, c := range cases {
 		args := append([]runtime.Val{runtime.String(fn)}, c.src...)
-		ret := om.os_WriteFile(args...)
+		ret := runtime.Get1(om.os_WriteFile(args...))
 		b, e := ioutil.ReadFile(fn)
 		if e != nil {
 			panic(e)
@@ -235,7 +235,7 @@ func TestOsMkRemRenReadDir(t *testing.T) {
 	fn := filepath.Join(d2, "test.txt")
 	om.os_WriteFile(runtime.String(fn), runtime.String("hi"))
 	// Read the dir
-	ret := om.os_ReadDir(runtime.String(d2))
+	ret := runtime.Get1(om.os_ReadDir(runtime.String(d2)))
 	ob := ret.(runtime.Object)
 	if ob.Len().Int() != 1 {
 		t.Errorf("expected read dir to return 1 file, got %d", ob.Len().Int())

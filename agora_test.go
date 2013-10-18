@@ -120,7 +120,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	ctx.RegisterNativeModule(new(stdlib.TimeMod))
 
 	mod, err := ctx.Load(id)
-	var ret runtime.Val
+	var ret []runtime.Val
 	if err == nil {
 		var args []runtime.Val
 		if v, ok := m["args"]; ok {
@@ -148,7 +148,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		assert = true
 		v = strings.Replace(v, "\\n", "\n", -1)
 		v = strings.Replace(v, "\\t", "\t", -1)
-		switch retv := ret.(type) {
+		switch retv := runtime.Get1(ret).(type) {
 		case runtime.Object, runtime.Func:
 			str := fmt.Sprintf("%s", retv)
 			if str != v {
