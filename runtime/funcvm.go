@@ -41,6 +41,25 @@ func (vs *valStack) pop() Val {
 	return v
 }
 
+type bkmStack struct {
+	st []int
+	sp int
+}
+
+func (bs *bkmStack) push(i int) {
+	if bs.sp == len(bs.st) {
+		bs.st = append(bs.st, i)
+	} else {
+		bs.st[bs.sp] = i
+	}
+	bs.sp++
+}
+
+func (bs *bkmStack) pop() int {
+	bs.sp--
+	return bs.st[bs.sp]
+}
+
 // An agoraFuncVM is a runnable instance of a function value. It holds the virtual machine
 // required to execute the instructions.
 type agoraFuncVM struct {
@@ -53,6 +72,7 @@ type agoraFuncVM struct {
 	pc  int // program counter
 	stk valStack
 	rng rangeStack
+	bkm bkmStack
 
 	// Variables
 	vars map[string]Val
