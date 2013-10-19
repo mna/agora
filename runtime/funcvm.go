@@ -453,6 +453,21 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			// Release the range coroutine
 			f.rng.pop()
 
+		case bytecode.OP_BKMS:
+			// Push the current stack index on the bookmark stack
+			f.bkm.push(f.stk.sp)
+
+		case bytecode.OP_BKME:
+			// Leave exactly ix values on the stack, from the last bookmark
+			bkm := f.bkm.pop()
+			for got := uint64(f.stk.sp - bkm); got != ix; got = uint64(f.stk.sp - bkm) {
+				if got < ix {
+					f.stk.push(Nil)
+				} else {
+					f.stk.pop()
+				}
+			}
+
 		case bytecode.OP_DUMP:
 			if f.debug {
 				// Dumps `ix` number of stack traces
