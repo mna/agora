@@ -24,6 +24,14 @@ The multiple return values can be used in the following cases:
 
 * `call( returnTwoValues(), returnThreeValues(), 10 )` : in function and method calls, all values are used and passed to the function - extra arguments (all arguments) are always available via the `args` special identifier;
 
+* `sum := 2 + returnThreeValues() + 5` : only the first value is used, and it is nil if there is no return value.
+
+* `sum := 2 + yield + 5` : same as above.
+
+* `obj := {a: returnThreeValues(), b: yield}` : same as above.
+
+* `obj.a, obj.b = returnThreeValues()` : for this to work, required to push values, winnow to keep only the right number, then push b, then obj, then pop, then push a, then push obj, then pop again.
+
 Support a `var...` notation to collect all remaining values? As in:
 
 ```

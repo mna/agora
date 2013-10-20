@@ -221,6 +221,22 @@ func (vm *agoraFuncVM) createLocals() {
 	}
 }
 
+// Get all values on the stack up to the current top bookmark
+func (vm *agoraFuncVM) getUpToBkm() []Val {
+	bkm := vm.bkm.pop()
+	if bkm == vm.stk.sp {
+		// No value
+		return nil
+	}
+	j := vm.stk.sp - bkm
+	vals := make([]Val, j)
+	for vm.stk.sp != bkm {
+		vals[j-1] = vm.stk.pop()
+		j--
+	}
+	return vals
+}
+
 // run executes the instructions of the function. This is the actual implementation
 // of the Virtual Machine.
 func (f *agoraFuncVM) run(args ...Val) []Val {
@@ -275,13 +291,15 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			// End this function call, return the value on top of the stack and remove
 			// the vm if it was set on the value
 			f.val.coroState = nil
-			return Set1(f.stk.pop())
+			// Return all values on the stack up to the bookmark
+			return f.getUpToBkm()
 
 		case bytecode.OP_YLD:
 			// Yield n value(s), save the vm so it can be called back, and return
 			f.val.coroState = f
 			clearRange = false // Keep active range coros, so that they can continue on a resume
-			return Set1(f.stk.pop())
+			// Return all values on the stack up to the bookmark
+			return f.getUpToBkm()
 
 		case bytecode.OP_PUSH:
 			f.stk.push(f.getVal(flg, ix))
@@ -383,13 +401,12 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 
 		case bytecode.OP_CFLD:
 			vr, k := f.stk.pop(), f.stk.pop()
-			// Pop the arguments in reverse order
-			args := make([]Val, ix)
-			for j := ix; j > 0; j-- {
-				args[j-1] = f.stk.pop()
-			}
 			if ob, ok := vr.(Object); ok {
+				// Pop the arguments in reverse order, all values on the stack up to the bookmark
+				args := f.getUpToBkm()
+				// Call the method with the arguments
 				vals := ob.callMethod(k, args...)
+				// Push all return values on the stack
 				for _, v := range vals {
 					f.stk.push(v)
 				}
@@ -401,27 +418,21 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			// ix is the number of args
 			// Pop the function itself, ensure it is a function
 			x := f.stk.pop()
-			fn, ok := x.(Func)
-			if !ok {
+			if fn, ok := x.(Func); ok {
+				// Pop the arguments in reverse order, all values on the stack up to the bookmark
+				args := f.getUpToBkm()
+				// Call the function, and store the return value(s) on the stack
+				vals := fn.Call(nil, args...)
+				for _, v := range vals {
+					f.stk.push(v)
+				}
+			} else {
 				panic(NewTypeError(Type(x), "", "func"))
-			}
-			// Pop the arguments in reverse order
-			args := make([]Val, ix)
-			for j := ix; j > 0; j-- {
-				args[j-1] = f.stk.pop()
-			}
-			// Call the function, and store the return value(s) on the stack
-			vals := fn.Call(nil, args...)
-			for _, v := range vals {
-				f.stk.push(v)
 			}
 
 		case bytecode.OP_RNGS:
-			// Pop the arguments in reverse order
-			args := make([]Val, ix)
-			for j := ix; j > 0; j-- {
-				args[j-1] = f.stk.pop()
-			}
+			// Pop the arguments in reverse order, all values on the stack up to the bookmark
+			args := f.getUpToBkm()
 			// Create the range coroutine
 			f.rng.push(args...)
 
