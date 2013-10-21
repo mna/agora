@@ -1,0 +1,4 @@
+a := nil
+b := nil
+c := nil
+a, b = import("fmt")
