@@ -177,7 +177,7 @@ scan:
 		p.err.Add(pos, "unexpected token "+tok.String())
 		goto scan
 	}
-	p.tkn = o.clone()
+	p.tkn = o.copy()
 	p.tkn.Ar = ar
 	p.tkn.Val = lit
 	p.tkn.tok = tok
@@ -211,8 +211,8 @@ func (p *Parser) infix(id string, bp int, ledfn func(*Symbol, *Symbol) *Symbol) 
 		s.ledfn = ledfn
 	} else {
 		s.ledfn = func(sym, left *Symbol) *Symbol {
-			sym.First = left
-			sym.Second = p.expression(bp)
+			sym.setChild(left, 1)
+			sym.setChild(p.expression(bp), 2)
 			sym.Ar = ArBinary
 			return sym
 		}
@@ -226,8 +226,8 @@ func (p *Parser) infixr(id string, bp int, ledfn func(*Symbol, *Symbol) *Symbol)
 		s.ledfn = ledfn
 	} else {
 		s.ledfn = func(sym, left *Symbol) *Symbol {
-			sym.First = left
-			sym.Second = p.expression(bp - 1)
+			sym.setChild(left, 1)
+			sym.setChild(p.expression(bp-1), 2)
 			sym.Ar = ArBinary
 			return sym
 		}
@@ -242,7 +242,7 @@ func (p *Parser) prefix(id string, nudfn func(*Symbol) *Symbol) *Symbol {
 	} else {
 		s.nudfn = func(sym *Symbol) *Symbol {
 			p.scp.reserve(sym)
-			sym.First = p.expression(70)
+			sym.setChild(p.expression(70), 1)
 			sym.Ar = ArUnary
 			return sym
 		}
@@ -255,7 +255,7 @@ func (p *Parser) suffix(id string) *Symbol {
 		if left.Id != "." && left.Id != "[" && left.Ar != ArName {
 			p.error(left, "bad lvalue")
 		}
-		sym.First = left
+		sym.setChild(left, 1)
 		sym.asg = true
 		sym.Ar = ArStatement
 		return sym
@@ -270,8 +270,8 @@ func (p *Parser) assignment(id string) *Symbol {
 		if left.res {
 			p.error(left, "cannot assign to a reserved identifier")
 		}
-		sym.First = left
-		sym.Second = p.expression(9)
+		sym.setChild(left, 1)
+		sym.setChild(p.expression(9), 2)
 		sym.asg = true
 		sym.Ar = ArBinary
 		return sym
@@ -284,8 +284,8 @@ func (p *Parser) define(id string) *Symbol {
 			p.error(left, "expected variable name")
 		}
 		p.scp.define(left)
-		sym.First = left
-		sym.Second = p.expression(9)
+		sym.setChild(left, 1)
+		sym.setChild(p.expression(9), 2)
 		sym.Ar = ArBinary
 		return sym
 	})

@@ -68,40 +68,58 @@ type Symbol struct {
 	Val    interface{}
 	Name   string
 	Key    interface{}
-	lbp    int
 	Ar     Arity
-	res    bool
-	asg    bool
-	tok    token.Token
-	pos    token.Position
 	First  interface{} // May all be []*Symbol or *Symbol
 	Second interface{}
 	Third  interface{}
+	Parent *Symbol
+	Leg    int
+
+	lbp int
+	res bool
+	asg bool
+	tok token.Token
+	pos token.Position
 
 	nudfn func(*Symbol) *Symbol
 	ledfn func(*Symbol, *Symbol) *Symbol
 	stdfn func(*Symbol) interface{} // May return []*Symbol or *Symbol
 }
 
-func (s Symbol) clone() *Symbol {
+func (s *Symbol) setChild(ch interface{}, leg int) {
+	switch v := ch.(type) {
+	case []*Symbol:
+		for _, chs := range v {
+			chs.Parent = s
+			chs.Leg = leg
+		}
+	case *Symbol:
+		v.Parent = s
+		v.Leg = leg
+	default:
+		panic("unknown child type")
+	}
+	switch leg {
+	case 1:
+		s.First = ch
+	case 2:
+		s.Second = ch
+	case 3:
+		s.Third = ch
+	}
+}
+
+func (s *Symbol) copy() *Symbol {
 	return &Symbol{
-		s.p,
-		s.Id,
-		s.Val,
-		s.Name,
-		nil,
-		s.lbp,
-		s.Ar,
-		s.res,
-		s.asg,
-		s.tok,
-		s.pos,
-		nil,
-		nil,
-		nil,
-		s.nudfn,
-		s.ledfn,
-		s.stdfn,
+		p:     s.p,
+		Id:    s.Id,
+		Name:  s.Name,
+		lbp:   s.lbp,
+		res:   s.res,
+		asg:   s.asg,
+		nudfn: s.nudfn,
+		ledfn: s.ledfn,
+		stdfn: s.stdfn,
 	}
 }
 

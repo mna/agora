@@ -26,22 +26,22 @@ func (p *Parser) defineGrammar() {
 
 	// Ternary operator
 	p.infix("?", 20, func(sym, left *Symbol) *Symbol {
-		sym.First = left
-		sym.Second = p.expression(0)
+		sym.setChild(left, 1)
+		sym.setChild(p.expression(0), 2)
 		p.advance(":")
-		sym.Third = p.expression(0)
+		sym.setChild(p.expression(0), 3)
 		sym.Ar = ArTernary
 		return sym
 	})
 
 	// The dot (selector) operator
 	p.infix(".", 80, func(sym, left *Symbol) *Symbol {
-		sym.First = left
+		sym.setChild(left, 1)
 		if p.tkn.Ar != ArName {
 			p.error(p.tkn, "expected a field name")
 		}
 		p.tkn.Ar = ArLiteral
-		sym.Second = p.tkn
+		sym.setChild(p.tkn, 2)
 		sym.Ar = ArBinary
 		p.advance(_SYM_ANY)
 		return sym
@@ -49,8 +49,8 @@ func (p *Parser) defineGrammar() {
 
 	// The array-notation field selector operator
 	p.infix("[", 80, func(sym, left *Symbol) *Symbol {
-		sym.First = left
-		sym.Second = p.expression(0)
+		sym.setChild(left, 1)
+		sym.setChild(p.expression(0), 2)
 		sym.Ar = ArBinary
 		p.advance("]")
 		return sym
@@ -76,10 +76,10 @@ func (p *Parser) defineGrammar() {
 		// Is there an expression following the yield keyword?
 		if p.tkn.Id != ";" && p.tkn.Id != "," && p.tkn.Id != ")" && p.tkn.Id != "}" && p.tkn.Id != "]" {
 			e := p.expression(0)
-			sym.First = e
+			sym.setChild(e, 1)
 		} else {
 			// Equivalent of yield nil
-			sym.First = p.makeSymbol("nil", 0).clone()
+			sym.setChild(p.makeSymbol("nil", 0).copy(), 1)
 		}
 		return sym
 	})
@@ -96,7 +96,7 @@ func (p *Parser) defineGrammar() {
 			}
 			p.advance(",")
 		}
-		sym.First = args
+		sym.setChild(args, 1)
 		return sym
 	})
 
@@ -133,11 +133,11 @@ func (p *Parser) defineGrammar() {
 			p.isRange = false
 			f := p.expression(0)
 			if p.isRange {
-				sym.First = f
+				sym.setChild(f, 1)
 				sym.Id = "forr" // Different symbol ID for range notation
 			} else if p.tkn.Id == "{" {
 				// Single expression form (i.e. `while`)
-				sym.First = f
+				sym.setChild(f, 1)
 			} else {
 				// 3-part for (for stmt ; expr ; stmt {})
 				pt1 := f
@@ -146,10 +146,10 @@ func (p *Parser) defineGrammar() {
 				p.advance(";")
 				pt3 := p.expression(0)
 				// Special case for the 3-part for, each part is in a slice of interface{}
-				sym.First = []interface{}{pt1, pt2, pt3}
+				sym.setChild([]interface{}{pt1, pt2, pt3}, 1)
 			}
 		}
-		sym.Second = p.block()
+		sym.setChild(p.block(), 2)
 		p.advance(";")
 		sym.Ar = ArStatement
 		return sym
@@ -157,16 +157,16 @@ func (p *Parser) defineGrammar() {
 
 	// If statement
 	p.stmt("if", func(sym *Symbol) interface{} {
-		sym.First = p.expression(0)
-		sym.Second = p.block()
+		sym.setChild(p.expression(0), 1)
+		sym.setChild(p.block(), 2)
 		sym.Third = nil
 		if p.tkn.Id == "else" {
 			p.scp.reserve(p.tkn)
 			p.advance("else")
 			if p.tkn.Id == "if" {
-				sym.Third = p.statement()
+				sym.setChild(p.statement(), 3)
 			} else {
-				sym.Third = p.block()
+				sym.setChild(p.block(), 3)
 				p.advance(";")
 			}
 		} else {
@@ -201,7 +201,7 @@ func (p *Parser) defineGrammar() {
 			if p.tkn.Id != "(literal)" {
 				p.error(p.tkn, "expected number literal")
 			}
-			sym.First = p.tkn
+			sym.setChild(p.tkn, 1)
 			p.advance(_SYM_ANY)
 		}
 		p.advance(";")
@@ -213,9 +213,9 @@ func (p *Parser) defineGrammar() {
 	p.stmt("return", func(sym *Symbol) interface{} {
 		if p.tkn.Id == ";" {
 			// Empty return, treat as return nil
-			sym.First = p.makeSymbol("nil", 0).clone()
+			sym.setChild(p.makeSymbol("nil", 0).copy(), 1)
 		} else {
-			sym.First = p.expression(0)
+			sym.setChild(p.expression(0), 1)
 		}
 		p.advance(";")
 		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
@@ -260,13 +260,13 @@ func (p *Parser) defineGrammar() {
 		p.advance(")")
 		if left.Id == "." || left.Id == "[" {
 			sym.Ar = ArTernary
-			sym.First = left.First
-			sym.Second = left.Second
-			sym.Third = a
+			sym.setChild(left.First, 1)
+			sym.setChild(left.Second, 2)
+			sym.setChild(a, 3)
 		} else {
 			sym.Ar = ArBinary
-			sym.First = left
-			sym.Second = a
+			sym.setChild(left, 1)
+			sym.setChild(a, 2)
 			sym.Third = nil
 			if left.Ar != ArUnary && (left.Id != "func" || left.Name != "") &&
 				left.Ar != ArName && left.Id != "(" &&
@@ -314,7 +314,7 @@ func (p *Parser) defineGrammar() {
 			}
 		}
 		p.advance("}")
-		sym.First = a
+		sym.setChild(a, 1)
 		sym.Ar = ArUnary
 		return sym
 	})
@@ -349,12 +349,12 @@ func makeFuncParser(p *Parser, prefix bool) func(*Symbol) *Symbol {
 				p.advance(",")
 			}
 		}
-		sym.First = a
+		sym.setChild(a, 1)
 		p.advance(")")
 		p.advance("{")
 		stmts := p.statements()
 		stmts = p.appendReturnNil(stmts)
-		sym.Second = stmts
+		sym.setChild(stmts, 2)
 		p.advance("}")
 		if !prefix { // Don't consume the ending semicolon when func is an expression
 			p.advance(";")
@@ -375,9 +375,9 @@ func makeFuncParserIface(p *Parser, prefix bool) func(*Symbol) interface{} {
 func (p *Parser) appendReturnNil(s []*Symbol) []*Symbol {
 	// Make sure the function ends with a return statement, adding a return nil otherwise
 	if l := len(s); l == 0 || s[l-1].Id != "return" {
-		ret := p.makeSymbol("return", 0).clone()
+		ret := p.makeSymbol("return", 0).copy()
 		ret.Ar = ArStatement
-		ret.First = p.makeSymbol("nil", 0).clone()
+		ret.setChild(p.makeSymbol("nil", 0).copy(), 1)
 		s = append(s, ret)
 	}
 	return s
