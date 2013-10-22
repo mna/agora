@@ -78,7 +78,7 @@ To recap:
 
 * `return` statement : use BKMS to mark the origin of the stack position, then return (pop) all values on the stack from this point upward. No BKME needed, the RET opcode acts as the BKME.
 
-* `yield`, `range`, fuction and method arguments : use BKMS to mark the origin of the stack position for the arguments, then pop all values on the stack from this point upward in the corresponding YLD, RNGS, CALL or CFLD opcodes. No BKME needed.
+* `yield`, `range`, function and method arguments : use BKMS to mark the origin of the stack position for the arguments, then pop all values on the stack from this point upward in the corresponding YLD, RNGS, CALL or CFLD opcodes. No BKME needed.
 
 * `range` return values : a range can only be used in a `for`, as the rhs of a `=` or `:=` statement, so its return values will always be managed via the BKMS and BKME of the assignment operators.
 

@@ -1,0 +1,9 @@
+obj := {}
+obj["fn"] = func() {
+	return 1
+}
+func getName() {
+	return "fn"
+}
+
+return obj[getName()]()

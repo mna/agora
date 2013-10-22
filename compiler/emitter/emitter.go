@@ -193,7 +193,10 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		}
 	case ":=", "=":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
+		e.addInstr(fn, bytecode.OP_BKMS, bytecode.FLG__, 0)
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
+		// TODO : For now, always keep only one value
+		e.addInstr(fn, bytecode.OP_BKME, bytecode.FLG_An, 1)
 		at := atTrue
 		if sym.Id == ":=" {
 			at = atDefine
@@ -264,9 +267,8 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			parms = sym.Third.([]*parser.Symbol)
 			op = bytecode.OP_CFLD
 		}
-		for _, parm := range parms {
-			e.emitSymbol(f, fn, parm, atFalse)
-		}
+		e.addInstr(fn, bytecode.OP_BKMS, bytecode.FLG__, 0)
+		e.emitBlock(f, fn, parms)
 		// If ternary, push field (Second)
 		if sym.Ar == parser.ArTernary {
 			e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
@@ -274,7 +276,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Push function name (or parent object of the field if ternary)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Call
-		e.addInstr(fn, op, bytecode.FLG_An, uint64(len(parms)))
+		e.addInstr(fn, op, bytecode.FLG__, 0)
 	case "{":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
 		ln := 0
@@ -313,17 +315,17 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 			e.updateJumpfInstr(fn, jmpIx)
 		}
 	case "forr":
-		// For-range notation, distinct from regular for
+		// For-range notation, distinct from regular `for`
 		// First must be either a `=` or a `:=`
 		assign := sym.First.(*parser.Symbol)
 		e.assert(assign.Id == "=" || assign.Id == ":=", errors.New("left hand side of `for...range` must be `=` or `:=`"))
 		rng := assign.Second.(*parser.Symbol)
 		e.assert(rng.Id == "range", errors.New("right hand side of `for...range` must be the `range` keyword"))
 		// Push `range` args onto the stack
-		args := rng.First.([]*parser.Symbol)
-		e.emitBlock(f, fn, args)
+		e.addInstr(fn, bytecode.OP_BKMS, bytecode.FLG__, 0)
+		e.emitBlock(f, fn, rng.First.([]*parser.Symbol))
 		// Start the `range` coroutine
-		e.addInstr(fn, bytecode.OP_RNGS, bytecode.FLG_An, uint64(len(args)))
+		e.addInstr(fn, bytecode.OP_RNGS, bytecode.FLG__, 0)
 		// For loop officially starts here
 		start := len(fn.Is)
 		// Push one value from the coro (until multiple vals are supported), + condition
@@ -412,10 +414,12 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "yield":
 		e.assert(len(e.fnIx) > 1, errors.New("cannot yield from the top-level module function"))
 		// Push the value to yield
+		e.addInstr(fn, bytecode.OP_BKMS, bytecode.FLG__, 0)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Yield
 		e.addInstr(fn, bytecode.OP_YLD, bytecode.FLG__, 0)
 	case "return":
+		e.addInstr(fn, bytecode.OP_BKMS, bytecode.FLG__, 0)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
 	default:
@@ -426,6 +430,62 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Can be on name, literal, func call, any operator, hard to assert...
 		kix := e.registerK(fn, sym.Key, true, false)
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_K, kix)
+	}
+}
+
+func (e *Emitter) emitMretvalOpcode(fn *bytecode.Fn, op bytecode.Opcode, sym *parser.Symbol) {
+	if sym.Parent == nil {
+		// Return values are all ignored
+		e.addInstr(fn, op, bytecode.FLG_An, 0)
+		return
+	}
+	switch sym.Parent.Id {
+	case "if":
+		// If this is the condition, push only one value
+		if sym.Leg == 1 {
+			e.addInstr(fn, op, bytecode.FLG_An, 1)
+		} else {
+			// In leg 2 or 3, it is in the body of the if or the else,
+			// and if the `if` is the immediate parent, then it is a
+			// standalone statement, ignore all return values.
+			e.addInstr(fn, op, bytecode.FLG_An, 0)
+		}
+	case "for":
+		// TODO
+
+	case "{":
+		// Literal object, only one value to set the field of the object
+		fallthrough
+	case "+", "-", "*", "/", "%", "!", "==", ">", ">=", "<", "<=",
+		"&&", "||", "+=", "-=", "*=", "/=", "%=", "!=":
+		// Binary or unary ops, compare, self-assign, or boolean condition, push only one value
+		e.addInstr(fn, op, bytecode.FLG_An, 1)
+	case "(":
+		parms := 3
+		if sym.Parent.Ar == parser.ArBinary {
+			parms = 2
+		}
+		if sym.Leg == parms {
+			// Function call, push all values, they are all used in arguments to a function call
+			e.addInstr(fn, op, bytecode.FLG__, 0)
+		} else {
+			// Otherwise, function call in field resolution, push only one
+			e.addInstr(fn, op, bytecode.FLG_An, 1)
+		}
+	case "?":
+		// If in the first leg, only one value (the condition)
+		if sym.Leg == 1 {
+			e.addInstr(fn, op, bytecode.FLG_An, 1)
+		} else {
+			// Push all values?
+			e.addInstr(fn, op, bytecode.FLG__, 0)
+		}
+	case "yield", "return":
+		// Push all values, arguments to the yield or return
+		fallthrough
+	case ":=", "=":
+		// Stack controlled by BKMS/BKME, push all values
+		e.addInstr(fn, op, bytecode.FLG__, 0)
 	}
 }
 
