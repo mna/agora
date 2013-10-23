@@ -276,7 +276,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Push function name (or parent object of the field if ternary)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
 		// Call
-		e.addInstr(fn, op, bytecode.FLG__, 0)
+		e.emitMretvalOpcode(fn, op, sym)
 	case "{":
 		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
 		ln := 0
@@ -453,8 +453,8 @@ func (e *Emitter) emitMretvalOpcode(fn *bytecode.Fn, op bytecode.Opcode, sym *pa
 	case "for":
 		// TODO
 
-	case "{":
-		// Literal object, only one value to set the field of the object
+	case "{", "[":
+		// Literal object or field resolution, only one value to set the field of the object
 		fallthrough
 	case "+", "-", "*", "/", "%", "!", "==", ">", ">=", "<", "<=",
 		"&&", "||", "+=", "-=", "*=", "/=", "%=", "!=":
@@ -477,15 +477,17 @@ func (e *Emitter) emitMretvalOpcode(fn *bytecode.Fn, op bytecode.Opcode, sym *pa
 		if sym.Leg == 1 {
 			e.addInstr(fn, op, bytecode.FLG_An, 1)
 		} else {
-			// Push all values?
-			e.addInstr(fn, op, bytecode.FLG__, 0)
+			// Look at the parent of this parent
+			e.emitMretvalOpcode(fn, op, sym.Parent)
 		}
-	case "yield", "return":
-		// Push all values, arguments to the yield or return
+	case "yield", "return", "range":
+		// Push all values, arguments to the yield, range or return
 		fallthrough
 	case ":=", "=":
 		// Stack controlled by BKMS/BKME, push all values
 		e.addInstr(fn, op, bytecode.FLG__, 0)
+	default:
+		e.err = errors.New("unexpected parent symbol id " + sym.Id + " while emitting opcode " + op.String())
 	}
 }
 

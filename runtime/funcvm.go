@@ -406,9 +406,16 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 				args := f.getUpToBkm()
 				// Call the method with the arguments
 				vals := ob.callMethod(k, args...)
-				// Push all return values on the stack
-				for _, v := range vals {
-					f.stk.push(v)
+				// Push return values on the stack
+				if flg == bytecode.FLG__ {
+					ix = uint64(len(vals))
+				}
+				for j := uint64(0); j < ix; j++ {
+					if j < uint64(len(vals)) {
+						f.stk.push(vals[j])
+					} else {
+						f.stk.push(Nil)
+					}
 				}
 			} else {
 				panic(NewTypeError(Type(vr), "", "object"))
@@ -421,10 +428,18 @@ func (f *agoraFuncVM) run(args ...Val) []Val {
 			if fn, ok := x.(Func); ok {
 				// Pop the arguments in reverse order, all values on the stack up to the bookmark
 				args := f.getUpToBkm()
-				// Call the function, and store the return value(s) on the stack
+				// Call the function
 				vals := fn.Call(nil, args...)
-				for _, v := range vals {
-					f.stk.push(v)
+				// Push return values on the stack
+				if flg == bytecode.FLG__ {
+					ix = uint64(len(vals))
+				}
+				for j := uint64(0); j < ix; j++ {
+					if j < uint64(len(vals)) {
+						f.stk.push(vals[j])
+					} else {
+						f.stk.push(Nil)
+					}
 				}
 			} else {
 				panic(NewTypeError(Type(x), "", "func"))
