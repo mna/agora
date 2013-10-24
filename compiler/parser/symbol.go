@@ -74,6 +74,7 @@ type Symbol struct {
 	Third  interface{}
 	Parent *Symbol
 	Leg    int
+	LegIx  int
 
 	lbp int
 	res bool
@@ -89,13 +90,15 @@ type Symbol struct {
 func (s *Symbol) setChild(ch interface{}, leg int) {
 	switch v := ch.(type) {
 	case []*Symbol:
-		for _, chs := range v {
+		for i, chs := range v {
 			chs.Parent = s
 			chs.Leg = leg
+			chs.LegIx = i
 		}
 	case *Symbol:
 		v.Parent = s
 		v.Leg = leg
+		v.LegIx = -1
 	default:
 		panic("unknown child type")
 	}

@@ -440,6 +440,13 @@ func (e *Emitter) emitMretvalOpcode(fn *bytecode.Fn, op bytecode.Opcode, sym *pa
 		return
 	}
 	switch sym.Parent.Id {
+	case "func":
+		if sym.Leg == 2 {
+			// Function body, return values ignored
+			e.addInstr(fn, op, bytecode.FLG_An, 0)
+		} else {
+			e.err = errors.New("invalid opcode " + op.String() + " in a function arguments definition")
+		}
 	case "if":
 		// If this is the condition, push only one value
 		if sym.Leg == 1 {
