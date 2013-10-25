@@ -38,7 +38,9 @@ var (
 							},
 						},
 						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_BKMS, bytecode.FLG__, 0),
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
+							bytecode.NewInstr(bytecode.OP_BKME, bytecode.FLG_An, 1),
 							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 1),
 						},
 					},
@@ -54,6 +56,7 @@ var (
 				Fns: []*bytecode.Fn{
 					&bytecode.Fn{
 						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_BKMS, bytecode.FLG__, 0),
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_N, 0),
 							bytecode.NewInstr(bytecode.OP_RET, bytecode.FLG__, 0),
 						},
@@ -81,8 +84,10 @@ var (
 							},
 						},
 						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_BKMS, bytecode.FLG__, 0),
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
 							bytecode.NewInstr(bytecode.OP_NOT, bytecode.FLG__, 0),
+							bytecode.NewInstr(bytecode.OP_BKME, bytecode.FLG_An, 1),
 							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 1),
 						},
 					},
@@ -109,8 +114,10 @@ var (
 							},
 						},
 						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_BKMS, bytecode.FLG__, 0),
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
 							bytecode.NewInstr(bytecode.OP_UNM, bytecode.FLG__, 0),
+							bytecode.NewInstr(bytecode.OP_BKME, bytecode.FLG_An, 1),
 							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 1),
 						},
 					},
@@ -141,9 +148,11 @@ var (
 							},
 						},
 						Is: []bytecode.Instr{
+							bytecode.NewInstr(bytecode.OP_BKMS, bytecode.FLG__, 0),
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 0),
 							bytecode.NewInstr(bytecode.OP_PUSH, bytecode.FLG_K, 1),
 							bytecode.NewInstr(bytecode.OP_ADD, bytecode.FLG__, 0),
+							bytecode.NewInstr(bytecode.OP_BKME, bytecode.FLG_An, 1),
 							bytecode.NewInstr(bytecode.OP_POP, bytecode.FLG_V, 2),
 						},
 					},
