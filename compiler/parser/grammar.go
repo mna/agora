@@ -145,8 +145,7 @@ func (p *Parser) defineGrammar() {
 				pt2 := p.expression(0)
 				p.advance(";")
 				pt3 := p.expression(0)
-				// Special case for the 3-part for, each part is in a slice of interface{}
-				sym.setChild([]interface{}{pt1, pt2, pt3}, 1)
+				sym.setChild([]*Symbol{pt1, pt2, pt3}, 1)
 			}
 		}
 		sym.setChild(p.block(), 2)

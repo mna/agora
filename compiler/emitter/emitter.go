@@ -355,14 +355,14 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 
 	case "for":
 		var tstIx int
-		var parts []interface{}
+		var parts []*parser.Symbol
 		var ok bool
 		start := len(fn.Is)
 		empty := e.isEmpty(sym.First)
 		longForm := false
 		if !empty {
 			var cond interface{}
-			if parts, ok = sym.First.([]interface{}); ok {
+			if parts, ok = sym.First.([]*parser.Symbol); ok {
 				// 3-part form, render the init part
 				e.assert(len(parts) == 3, errors.New("expected 3-part `for` loop to have 3 parts, got "+strconv.Itoa(len(parts))))
 				longForm = true
@@ -458,7 +458,26 @@ func (e *Emitter) emitMretvalOpcode(fn *bytecode.Fn, op bytecode.Opcode, sym *pa
 			e.addInstr(fn, op, bytecode.FLG_An, 0)
 		}
 	case "for":
-		// TODO
+		if sym.Leg == 1 {
+			// May be the 3-form or 1-form
+			if sym.LegIx == -1 || sym.LegIx == 1 {
+				// This is the condition - only one return value
+				e.addInstr(fn, op, bytecode.FLG_An, 1)
+			} else {
+				// Init or post part, if the `for` is the direct parent, then the function
+				// is called solely for side-effects, no return value needed
+				e.addInstr(fn, op, bytecode.FLG_An, 0)
+			}
+		} else {
+			// Else, the parent is the for body, so no return value needed
+			e.addInstr(fn, op, bytecode.FLG_An, 0)
+		}
+
+	case "forr":
+		if sym.Leg == 2 {
+			// For body, no return value
+			e.addInstr(fn, op, bytecode.FLG_An, 0)
+		}
 
 	case "{", "[":
 		// Literal object or field resolution, only one value to set the field of the object

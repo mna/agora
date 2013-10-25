@@ -100,7 +100,7 @@ func (s *Symbol) setChild(ch interface{}, leg int) {
 		v.Leg = leg
 		v.LegIx = -1
 	default:
-		panic("unknown child type")
+		panic(fmt.Sprintf("unknown child type for symbol %s: %T", s.Id, v))
 	}
 	switch leg {
 	case 1:
