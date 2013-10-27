@@ -420,7 +420,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		e.addInstr(fn, bytecode.OP_YLD, bytecode.FLG__, 0)
 	case "return":
 		e.addInstr(fn, bytecode.OP_BKMS, bytecode.FLG__, 0)
-		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
+		e.emitBlock(f, fn, sym.First.([]*parser.Symbol))
 		e.addInstr(fn, bytecode.OP_RET, bytecode.FLG__, 0)
 	default:
 		e.err = errors.New("unexpected symbol id: " + sym.Id)

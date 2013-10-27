@@ -210,12 +210,15 @@ func (p *Parser) defineGrammar() {
 
 	// return statement
 	p.stmt("return", func(sym *Symbol) interface{} {
-		if p.tkn.Id == ";" {
-			// Empty return, treat as return nil
-			sym.setChild(p.makeSymbol("nil", 0).copy(), 1)
-		} else {
-			sym.setChild(p.expression(0), 1)
+		var a []*Symbol
+		for p.tkn.Id != ";" {
+			a = append(a, p.expression(0))
+			if p.tkn.Id != "," {
+				break
+			}
+			p.advance(",")
 		}
+		sym.setChild(a, 1)
 		p.advance(";")
 		if p.tkn.Id != "}" && p.tkn.Id != _SYM_END {
 			p.error(p.tkn, "unreachable statement")
