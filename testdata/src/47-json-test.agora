@@ -1,5 +1,4 @@
 fmt := import("fmt")
-conv := import("conv")
 json := import("./46-json")
 time := import("time")
 
@@ -49,5 +48,5 @@ prs[12] = `[10, true, "string", {"a": 3.1415, "b": "test"}]`
 l = len(prs)
 for i = 0; i < l; i++ {
 	ret := json.Parse(prs[i])
-	fmt.Println("Case", prs[i], ":", ret, "(" + conv.Type(ret) + ")")
+	fmt.Println("Case", prs[i], ":", ret, "(" + type(ret) + ")")
 }

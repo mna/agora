@@ -379,7 +379,7 @@ func (p *Parser) appendReturnNil(s []*Symbol) []*Symbol {
 	if l := len(s); l == 0 || s[l-1].Id != "return" {
 		ret := p.makeSymbol("return", 0).copy()
 		ret.Ar = ArStatement
-		ret.setChild(p.makeSymbol("nil", 0).copy(), 1)
+		ret.setChild([]*Symbol{p.makeSymbol("nil", 0).copy()}, 1)
 		s = append(s, ret)
 	}
 	return s

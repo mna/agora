@@ -1,5 +1,4 @@
 f := import("fmt")
-conv := import("conv")
 
 cases := {
 	empty: "",

@@ -1,4 +1,4 @@
-range := import("72-range-impl")
+rnge := import("72-range-impl")
 fmt := import("fmt")
 
 func forLoop(fn) {
@@ -12,18 +12,18 @@ func forLoop(fn) {
 }
 
 fmt.Println("range(6)")
-forLoop(range(6))
+forLoop(rnge(6))
 fmt.Println("range(0)")
-forLoop(range(0))
+forLoop(rnge(0))
 fmt.Println("range(2, 7)")
-forLoop(range(2, 7))
+forLoop(rnge(2, 7))
 fmt.Println("range(2, 7, 3)")
-forLoop(range(2, 7, 3))
+forLoop(rnge(2, 7, 3))
 fmt.Println("range(2, -4)")
-forLoop(range(2, -4))
+forLoop(rnge(2, -4))
 fmt.Println("range(2, -4, -1)")
-forLoop(range(2, -4, -1))
+forLoop(rnge(2, -4, -1))
 fmt.Println("range(-2, 4)")
-forLoop(range(-2, 4))
+forLoop(rnge(-2, 4))
 fmt.Println("range(-2, 4, -1)")
-forLoop(range(-2, 4, -1))
+forLoop(rnge(-2, 4, -1))
