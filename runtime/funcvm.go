@@ -455,9 +455,16 @@ func (f *agoraFuncVM) run(args ...Val) Val {
 
 		case bytecode.OP_NEW:
 			ob := NewObject()
-			for j := ix; j > 0; j-- {
-				key, val := f.pop(), f.pop()
-				ob.Set(key, val)
+			if flg == bytecode.FLG_Fn2 {
+				for j := ix; j > 0; j-- {
+					key, val := f.pop(), f.pop()
+					ob.Set(key, val)
+				}
+			} else if flg == bytecode.FLG_Fn {
+				for j := ix; j > 0; j-- {
+					val := f.pop()
+					ob.Set(Number(j-1), val)
+				}
 			}
 			f.push(ob)
 

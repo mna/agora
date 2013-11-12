@@ -1,0 +1,6 @@
+/*---
+output: {1:2,0:1}\n
+---*/
+fmt := import("fmt")
+a := [1, 2]
+fmt.Println(a)

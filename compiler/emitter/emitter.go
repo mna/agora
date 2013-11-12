@@ -182,7 +182,20 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 	case "args":
 		e.assert(asg == atFalse, errors.New("invalid assignment to the `args` keyword"))
 		e.addInstr(fn, bytecode.OP_PUSH, bytecode.FLG_A, 0)
-	case ".", "[":
+	case "[":
+		if sym.Ar == parser.ArLiteral {
+			// Array literal
+			ln := 0
+			if !e.isEmpty(sym.First) {
+				syms := sym.First.([]*parser.Symbol)
+				ln = len(syms)
+				e.emitBlock(f, fn, syms)
+			}
+			e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG_Fn, uint64(ln))
+			break
+		}
+		fallthrough
+	case ".":
 		e.assert(sym.Ar == parser.ArBinary, errors.New("expected `"+sym.Id+"` to have binary arity"))
 		e.emitSymbol(f, fn, sym.Second.(*parser.Symbol), atFalse)
 		e.emitSymbol(f, fn, sym.First.(*parser.Symbol), atFalse)
@@ -283,7 +296,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 		// Call
 		e.addInstr(fn, op, bytecode.FLG_An, uint64(len(parms)))
 	case "{":
-		e.assert(sym.Ar == parser.ArUnary, errors.New("expected `{` to have unary arity"))
+		e.assert(sym.Ar == parser.ArLiteral, errors.New("expected `{` to have literal arity"))
 		ln := 0
 		if !e.isEmpty(sym.First) {
 			e.emitAny(f, fn, sym, sym.First)
@@ -291,7 +304,7 @@ func (e *Emitter) emitSymbol(f *bytecode.File, fn *bytecode.Fn, sym *parser.Symb
 				ln = len(ar)
 			}
 		}
-		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG__, uint64(ln))
+		e.addInstr(fn, bytecode.OP_NEW, bytecode.FLG_Fn2, uint64(ln))
 	case "?":
 		// Similar to if, but yields a value
 		e.assert(sym.Ar == parser.ArTernary, errors.New("expected `?` to have ternary arity"))

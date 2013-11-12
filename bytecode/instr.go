@@ -21,40 +21,43 @@ const (
 	FLG_Jb               // Jump back over n instructions
 	FLG_Sn               // Dump n frames
 	FLG_Fn               // Set n fields
+	FLG_Fn2              // Set n field pairs
 	FLG_INVL Flag = 0xFF // Invalid flag
 )
 
 var (
 	// The lookup table of Flag values to literal flag names
 	FlagNames = [...]string{
-		FLG__:  "_",
-		FLG_K:  "K",
-		FLG_V:  "V",
-		FLG_F:  "F",
-		FLG_A:  "A",
-		FLG_N:  "N",
-		FLG_T:  "T",
-		FLG_An: "An",
-		FLG_Jf: "Jf",
-		FLG_Jb: "Jb",
-		FLG_Sn: "Sn",
-		FLG_Fn: "Fn",
+		FLG__:   "_",
+		FLG_K:   "K",
+		FLG_V:   "V",
+		FLG_F:   "F",
+		FLG_A:   "A",
+		FLG_N:   "N",
+		FLG_T:   "T",
+		FLG_An:  "An",
+		FLG_Jf:  "Jf",
+		FLG_Jb:  "Jb",
+		FLG_Sn:  "Sn",
+		FLG_Fn:  "Fn",
+		FLG_Fn2: "Fn2",
 	}
 
 	// The lookup table of literal flag names to Flag values
 	FlagLookup = map[string]Flag{
-		"_":  FLG__,
-		"K":  FLG_K,
-		"V":  FLG_V,
-		"F":  FLG_F,
-		"A":  FLG_A,
-		"N":  FLG_N,
-		"T":  FLG_T,
-		"An": FLG_An,
-		"Jf": FLG_Jf,
-		"Jb": FLG_Jb,
-		"Sn": FLG_Sn,
-		"Fn": FLG_Fn,
+		"_":   FLG__,
+		"K":   FLG_K,
+		"V":   FLG_V,
+		"F":   FLG_F,
+		"A":   FLG_A,
+		"N":   FLG_N,
+		"T":   FLG_T,
+		"An":  FLG_An,
+		"Jf":  FLG_Jf,
+		"Jb":  FLG_Jb,
+		"Sn":  FLG_Sn,
+		"Fn":  FLG_Fn,
+		"Fn2": FLG_Fn2,
 	}
 )
 

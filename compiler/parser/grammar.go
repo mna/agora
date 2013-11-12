@@ -55,6 +55,20 @@ func (p *Parser) defineGrammar() {
 		p.advance("]")
 		return sym
 	})
+	p.prefix("[", func(sym *Symbol) *Symbol {
+		var ar []*Symbol
+		for p.tkn.Id != "]" && p.tkn.Id != ";" {
+			ar = append(ar, p.expression(0))
+			if p.tkn.Id != "," {
+				break
+			}
+			p.advance(",")
+		}
+		p.advance("]")
+		sym.First = ar
+		sym.Ar = ArLiteral
+		return sym
+	})
 
 	// The logical operators
 	p.infixr("&&", 30, nil)
@@ -248,14 +262,12 @@ func (p *Parser) defineGrammar() {
 	// The function/method call parser
 	p.infix("(", 80, func(sym, left *Symbol) *Symbol {
 		var a []*Symbol
-		if p.tkn.Id != ")" {
-			for {
-				a = append(a, p.expression(0))
-				if p.tkn.Id != "," {
-					break
-				}
-				p.advance(",")
+		for p.tkn.Id != ")" && p.tkn.Id != ";" {
+			a = append(a, p.expression(0))
+			if p.tkn.Id != "," {
+				break
 			}
+			p.advance(",")
 		}
 		p.advance(")")
 		if left.Id == "." || left.Id == "[" {
@@ -293,29 +305,24 @@ func (p *Parser) defineGrammar() {
 	// The object literal notation
 	p.prefix("{", func(sym *Symbol) *Symbol {
 		var a []*Symbol
-		if p.tkn.Id != "}" {
-			for {
-				n := p.tkn
-				if n.Ar != ArName && n.Ar != ArLiteral {
-					p.error(n, "bad key")
-				}
-				p.advance(_SYM_ANY)
-				p.advance(":")
-				v := p.expression(0)
-				v.Key = n.Val
-				a = append(a, v)
-				if p.tkn.Id != "," {
-					break
-				}
-				p.advance(",")
-				if p.tkn.Id == "}" {
-					break
-				}
+		for p.tkn.Id != "}" && p.tkn.Id != ";" {
+			n := p.tkn
+			if n.Ar != ArName && n.Ar != ArLiteral {
+				p.error(n, "bad key")
 			}
+			p.advance(_SYM_ANY)
+			p.advance(":")
+			v := p.expression(0)
+			v.Key = n.Val
+			a = append(a, v)
+			if p.tkn.Id != "," {
+				break
+			}
+			p.advance(",")
 		}
 		p.advance("}")
 		sym.First = a
-		sym.Ar = ArUnary
+		sym.Ar = ArLiteral
 		return sym
 	})
 
