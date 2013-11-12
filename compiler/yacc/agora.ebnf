@@ -1,19 +1,20 @@
+float = . // http://golang.org/ref/spec#float_lit
+identifier = . // ASCII letters, digits, "_". No front digit.
+integer = . // http://golang.org/ref/spec#int_lit
+str = . // http://golang.org/ref/spec#string_lit
+boolean = "true" | "false" .
+
+unary_op = "!" | "-" .
+binary_op = "+" | "-" .
+
 Module = { Statement ";" } .
-Statement = SimpleStmt | ReturnStmt | YieldStmt | DebugStmt | IfStmt | ForStmt .
+Statement = SimpleStmt .
 
 SimpleStmt = ExpressionStmt | IncDecStmt | Assignment | ShortVarDecl .
 ExpressionStmt = Expression .
 IncDecStmt = Expression ( "++" | "--" ) .
-Assignment = ExpressionList assign_op ExpressionList .
+Assignment = ExpressionList "=" ExpressionList .
 ShortVarDecl = IdentifierList ":=" ExpressionList .
-
-ReturnStmt = "return" [ Expression ] .
-
-IfStmt = "if" Expression Block [ "else" ( IfStmt | Block ) ] .
-Block = "{" StmtList "}" .
-
-ForStmt = "for" RangeClause Block .
-RangeClause = ( ExpressionList "=" | IdentifierList ":=" ) "range" Expression .
 
 IdentifierList = identifier { "," identifier } .
 ExpressionList = Expression { "," Expression } .
@@ -26,13 +27,13 @@ PrimaryExpr = Operand |
 Operand = Literal | OperandName | "(" Expression ")" .
 
 Literal = BasicLit | CompositeLit | FunctionLit .
-BasicLit = num_lit | string_lit | bool_lit .
+BasicLit = integer | float | str | boolean .
 CompositeLit = LiteralValue .
 LiteralValue = "{" [ ElementList [ "," ] ] "}" .
 ElementList = Element { "," Element } .
 Element = Key ":" Value . // TODO : Eventually make key optional, implicit array index?
 Key = FieldName | ElementIndex .
-FiendName = identifier .
+FieldName = identifier .
 ElementIndex = Expression .
 Value = Expression | LiteralValue .
 FunctionLit = "func" Function .
@@ -50,3 +51,4 @@ Selector = "." identifier .
 IndexSelector = "[" Expression "]" .
 Call = "(" [ ArgumentList [ "," ] ] ")" .
 ArgumentList = ExpressionList .
+Block = "{" { Statement ";" } "}" .

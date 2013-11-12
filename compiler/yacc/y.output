@@ -1,0 +1,1075 @@
+
+state 0
+	$accept: .Start $end 
+	Module1: .    (49)
+
+	.  reduce 49 (src line 375)
+
+	Module  goto 2
+	Module1  goto 3
+	Start  goto 1
+
+state 1
+	$accept:  Start.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	Start:  Module.    (77)
+
+	.  reduce 77 (src line 517)
+
+
+state 3
+	Module:  Module1.    (48)
+	Module1:  Module1.Statement ; 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 14
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  reduce 48 (src line 369)
+
+	Assignment  goto 8
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 10
+	ExpressionList  goto 11
+	ExpressionStmt  goto 6
+	FunctionLit  goto 23
+	IdentifierList  goto 12
+	IncDecStmt  goto 7
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	ShortVarDecl  goto 9
+	SimpleStmt  goto 5
+	Statement  goto 4
+	UnaryExpr  goto 13
+
+state 4
+	Module1:  Module1 Statement.; 
+
+	;  shift 32
+	.  error
+
+
+state 5
+	Statement:  SimpleStmt.    (78)
+
+	.  reduce 78 (src line 523)
+
+
+state 6
+	SimpleStmt:  ExpressionStmt.    (73)
+
+	.  reduce 73 (src line 499)
+
+
+state 7
+	SimpleStmt:  IncDecStmt.    (74)
+
+	.  reduce 74 (src line 504)
+
+
+state 8
+	SimpleStmt:  Assignment.    (75)
+
+	.  reduce 75 (src line 508)
+
+
+state 9
+	SimpleStmt:  ShortVarDecl.    (76)
+
+	.  reduce 76 (src line 512)
+
+
+state 10
+	Expression:  Expression.BINARY_OP UnaryExpr 
+	ExpressionList:  Expression.ExpressionList1 
+	ExpressionStmt:  Expression.    (26)
+	IncDecStmt:  Expression.IncDecStmt1 
+	ExpressionList1: .    (24)
+
+	BINARY_OP  shift 33
+	TOK2  shift 37
+	TOK3  shift 36
+	;  reduce 26 (src line 251)
+	.  reduce 24 (src line 241)
+
+	ExpressionList1  goto 34
+	IncDecStmt1  goto 35
+
+state 11
+	Assignment:  ExpressionList.= ExpressionList 
+
+	=  shift 38
+	.  error
+
+
+state 12
+	ShortVarDecl:  IdentifierList.TOK1 ExpressionList 
+
+	TOK1  shift 39
+	.  error
+
+
+state 13
+	Expression:  UnaryExpr.    (21)
+
+	.  reduce 21 (src line 225)
+
+
+14: shift/reduce conflict (shift 41(0), red'n 54(0)) on .
+ 14: reduce/reduce conflict  (red'ns 54 and 32) on ,
+state 14
+	IdentifierList:  IDENTIFIER.IdentifierList1 
+	OperandName:  IDENTIFIER.    (54)
+	QualifiedIdent:  IDENTIFIER.. IDENTIFIER 
+	IdentifierList1: .    (32)
+
+	TOK1  reduce 32 (src line 287)
+	,  reduce 32 (src line 287)
+	.  shift 41
+	.  reduce 54 (src line 399)
+
+	IdentifierList1  goto 40
+
+state 15
+	PrimaryExpr:  PrimaryExpr.Selector 
+	PrimaryExpr:  PrimaryExpr.IndexSelector 
+	PrimaryExpr:  PrimaryExpr.Call 
+	UnaryExpr:  PrimaryExpr.    (79)
+
+	(  shift 47
+	[  shift 46
+	.  shift 45
+	.  reduce 79 (src line 529)
+
+	Call  goto 44
+	IndexSelector  goto 43
+	Selector  goto 42
+
+state 16
+	UnaryExpr:  UNARY_OP.UnaryExpr 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 48
+
+state 17
+	PrimaryExpr:  Operand.    (65)
+
+	.  reduce 65 (src line 457)
+
+
+state 18
+	Operand:  Literal.    (51)
+
+	.  reduce 51 (src line 385)
+
+
+state 19
+	Operand:  OperandName.    (52)
+
+	.  reduce 52 (src line 390)
+
+
+state 20
+	Operand:  (.Expression ) 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 50
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 21
+	Literal:  BasicLit.    (40)
+
+	.  reduce 40 (src line 329)
+
+
+state 22
+	Literal:  CompositeLit.    (41)
+
+	.  reduce 41 (src line 334)
+
+
+state 23
+	Literal:  FunctionLit.    (42)
+
+	.  reduce 42 (src line 338)
+
+
+state 24
+	OperandName:  QualifiedIdent.    (55)
+
+	.  reduce 55 (src line 404)
+
+
+state 25
+	BasicLit:  INTEGER.    (3)
+
+	.  reduce 3 (src line 131)
+
+
+state 26
+	BasicLit:  FLOAT.    (4)
+
+	.  reduce 4 (src line 136)
+
+
+state 27
+	BasicLit:  STR.    (5)
+
+	.  reduce 5 (src line 140)
+
+
+state 28
+	BasicLit:  BOOLEAN.    (6)
+
+	.  reduce 6 (src line 144)
+
+
+state 29
+	CompositeLit:  LiteralValue.    (15)
+
+	.  reduce 15 (src line 191)
+
+
+state 30
+	FunctionLit:  FUNC.Function 
+
+	(  shift 54
+	.  error
+
+	Function  goto 51
+	Parameters  goto 53
+	Signature  goto 52
+
+state 31
+	LiteralValue:  {.LiteralValue1 } 
+	LiteralValue1: .    (44)
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 61
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  reduce 44 (src line 349)
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Element  goto 57
+	ElementIndex  goto 60
+	ElementList  goto 56
+	Expression  goto 62
+	FieldName  goto 59
+	FunctionLit  goto 23
+	Key  goto 58
+	Literal  goto 18
+	LiteralValue  goto 29
+	LiteralValue1  goto 55
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 32
+	Module1:  Module1 Statement ;.    (50)
+
+	.  reduce 50 (src line 380)
+
+
+state 33
+	Expression:  Expression BINARY_OP.UnaryExpr 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 63
+
+34: shift/reduce conflict (shift 64(0), red'n 23(0)) on ,
+state 34
+	ExpressionList:  Expression ExpressionList1.    (23)
+	ExpressionList1:  ExpressionList1., Expression 
+
+	,  shift 64
+	.  reduce 23 (src line 235)
+
+
+state 35
+	IncDecStmt:  Expression IncDecStmt1.    (34)
+
+	.  reduce 34 (src line 297)
+
+
+state 36
+	IncDecStmt1:  TOK3.    (35)
+
+	.  reduce 35 (src line 303)
+
+
+state 37
+	IncDecStmt1:  TOK2.    (36)
+
+	.  reduce 36 (src line 308)
+
+
+state 38
+	Assignment:  ExpressionList =.ExpressionList 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 66
+	ExpressionList  goto 65
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 39
+	ShortVarDecl:  IdentifierList TOK1.ExpressionList 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 66
+	ExpressionList  goto 67
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 40
+	IdentifierList:  IDENTIFIER IdentifierList1.    (31)
+	IdentifierList1:  IdentifierList1., IDENTIFIER 
+
+	,  shift 68
+	.  reduce 31 (src line 281)
+
+
+state 41
+	QualifiedIdent:  IDENTIFIER ..IDENTIFIER 
+
+	IDENTIFIER  shift 69
+	.  error
+
+
+state 42
+	PrimaryExpr:  PrimaryExpr Selector.    (66)
+
+	.  reduce 66 (src line 462)
+
+
+state 43
+	PrimaryExpr:  PrimaryExpr IndexSelector.    (67)
+
+	.  reduce 67 (src line 466)
+
+
+state 44
+	PrimaryExpr:  PrimaryExpr Call.    (68)
+
+	.  reduce 68 (src line 470)
+
+
+state 45
+	Selector:  ..IDENTIFIER 
+
+	IDENTIFIER  shift 70
+	.  error
+
+
+state 46
+	IndexSelector:  [.Expression ] 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 71
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 47
+	Call:  (.Call1 ) 
+	Call1: .    (11)
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  reduce 11 (src line 171)
+
+	ArgumentList  goto 73
+	BasicLit  goto 21
+	Call1  goto 72
+	CompositeLit  goto 22
+	Expression  goto 66
+	ExpressionList  goto 74
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 48
+	UnaryExpr:  UNARY_OP UnaryExpr.    (80)
+
+	.  reduce 80 (src line 534)
+
+
+49: shift/reduce conflict (shift 41(0), red'n 54(0)) on .
+state 49
+	OperandName:  IDENTIFIER.    (54)
+	QualifiedIdent:  IDENTIFIER.. IDENTIFIER 
+
+	.  shift 41
+	.  reduce 54 (src line 399)
+
+
+state 50
+	Expression:  Expression.BINARY_OP UnaryExpr 
+	Operand:  ( Expression.) 
+
+	BINARY_OP  shift 33
+	)  shift 75
+	.  error
+
+
+state 51
+	FunctionLit:  FUNC Function.    (30)
+
+	.  reduce 30 (src line 275)
+
+
+state 52
+	Function:  Signature.FunctionBody 
+
+	{  shift 78
+	.  error
+
+	Block  goto 77
+	FunctionBody  goto 76
+
+state 53
+	Signature:  Parameters.    (72)
+
+	.  reduce 72 (src line 493)
+
+
+state 54
+	Parameters:  (.Parameters1 ) 
+	Parameters1: .    (61)
+
+	IDENTIFIER  shift 82
+	.  reduce 61 (src line 437)
+
+	Parameter  goto 81
+	ParameterList  goto 80
+	Parameters1  goto 79
+
+state 55
+	LiteralValue:  { LiteralValue1.} 
+
+	}  shift 83
+	.  error
+
+
+state 56
+	LiteralValue1:  ElementList.LiteralValue11 
+	LiteralValue11: .    (46)
+
+	,  shift 85
+	.  reduce 46 (src line 359)
+
+	LiteralValue11  goto 84
+
+state 57
+	ElementList:  Element.ElementList1 
+	ElementList1: .    (19)
+
+	.  reduce 19 (src line 215)
+
+	ElementList1  goto 86
+
+state 58
+	Element:  Key.: Value 
+
+	:  shift 87
+	.  error
+
+
+state 59
+	Key:  FieldName.    (38)
+
+	.  reduce 38 (src line 319)
+
+
+state 60
+	Key:  ElementIndex.    (39)
+
+	.  reduce 39 (src line 324)
+
+
+ 61: reduce/reduce conflict  (red'ns 27 and 54) on :
+61: shift/reduce conflict (shift 41(0), red'n 54(0)) on .
+state 61
+	FieldName:  IDENTIFIER.    (27)
+	OperandName:  IDENTIFIER.    (54)
+	QualifiedIdent:  IDENTIFIER.. IDENTIFIER 
+
+	:  reduce 27 (src line 257)
+	.  shift 41
+	.  reduce 54 (src line 399)
+
+
+state 62
+	ElementIndex:  Expression.    (17)
+	Expression:  Expression.BINARY_OP UnaryExpr 
+
+	BINARY_OP  shift 33
+	.  reduce 17 (src line 203)
+
+
+state 63
+	Expression:  Expression BINARY_OP UnaryExpr.    (22)
+
+	.  reduce 22 (src line 230)
+
+
+state 64
+	ExpressionList1:  ExpressionList1 ,.Expression 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 88
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 65
+	Assignment:  ExpressionList = ExpressionList.    (2)
+
+	.  reduce 2 (src line 125)
+
+
+state 66
+	Expression:  Expression.BINARY_OP UnaryExpr 
+	ExpressionList:  Expression.ExpressionList1 
+	ExpressionList1: .    (24)
+
+	BINARY_OP  shift 33
+	.  reduce 24 (src line 241)
+
+	ExpressionList1  goto 34
+
+state 67
+	ShortVarDecl:  IdentifierList TOK1 ExpressionList.    (71)
+
+	.  reduce 71 (src line 487)
+
+
+state 68
+	IdentifierList1:  IdentifierList1 ,.IDENTIFIER 
+
+	IDENTIFIER  shift 89
+	.  error
+
+
+state 69
+	QualifiedIdent:  IDENTIFIER . IDENTIFIER.    (69)
+
+	.  reduce 69 (src line 475)
+
+
+state 70
+	Selector:  . IDENTIFIER.    (70)
+
+	.  reduce 70 (src line 481)
+
+
+state 71
+	Expression:  Expression.BINARY_OP UnaryExpr 
+	IndexSelector:  [ Expression.] 
+
+	BINARY_OP  shift 33
+	]  shift 90
+	.  error
+
+
+state 72
+	Call:  ( Call1.) 
+
+	)  shift 91
+	.  error
+
+
+state 73
+	Call1:  ArgumentList.Call11 
+	Call11: .    (13)
+
+	,  shift 93
+	.  reduce 13 (src line 181)
+
+	Call11  goto 92
+
+state 74
+	ArgumentList:  ExpressionList.    (1)
+
+	.  reduce 1 (src line 119)
+
+
+state 75
+	Operand:  ( Expression ).    (53)
+
+	.  reduce 53 (src line 394)
+
+
+state 76
+	Function:  Signature FunctionBody.    (28)
+
+	.  reduce 28 (src line 263)
+
+
+state 77
+	FunctionBody:  Block.    (29)
+
+	.  reduce 29 (src line 269)
+
+
+state 78
+	Block:  {.Block1 } 
+	Block1: .    (8)
+
+	.  reduce 8 (src line 155)
+
+	Block1  goto 94
+
+state 79
+	Parameters:  ( Parameters1.) 
+
+	)  shift 95
+	.  error
+
+
+state 80
+	Parameters1:  ParameterList.Parameters11 
+	Parameters11: .    (63)
+
+	,  shift 97
+	.  reduce 63 (src line 447)
+
+	Parameters11  goto 96
+
+state 81
+	ParameterList:  Parameter.ParameterList1 
+	ParameterList1: .    (58)
+
+	.  reduce 58 (src line 421)
+
+	ParameterList1  goto 98
+
+state 82
+	Parameter:  IDENTIFIER.    (56)
+
+	.  reduce 56 (src line 409)
+
+
+state 83
+	LiteralValue:  { LiteralValue1 }.    (43)
+
+	.  reduce 43 (src line 343)
+
+
+state 84
+	LiteralValue1:  ElementList LiteralValue11.    (45)
+
+	.  reduce 45 (src line 354)
+
+
+state 85
+	LiteralValue11:  ,.    (47)
+
+	.  reduce 47 (src line 364)
+
+
+86: shift/reduce conflict (shift 99(0), red'n 18(0)) on ,
+state 86
+	ElementList:  Element ElementList1.    (18)
+	ElementList1:  ElementList1., Element 
+
+	,  shift 99
+	.  reduce 18 (src line 209)
+
+
+state 87
+	Element:  Key :.Value 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 49
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 101
+	FunctionLit  goto 23
+	Literal  goto 18
+	LiteralValue  goto 102
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+	Value  goto 100
+
+state 88
+	Expression:  Expression.BINARY_OP UnaryExpr 
+	ExpressionList1:  ExpressionList1 , Expression.    (25)
+
+	BINARY_OP  shift 33
+	.  reduce 25 (src line 246)
+
+
+state 89
+	IdentifierList1:  IdentifierList1 , IDENTIFIER.    (33)
+
+	.  reduce 33 (src line 292)
+
+
+state 90
+	IndexSelector:  [ Expression ].    (37)
+
+	.  reduce 37 (src line 313)
+
+
+state 91
+	Call:  ( Call1 ).    (10)
+
+	.  reduce 10 (src line 165)
+
+
+state 92
+	Call1:  ArgumentList Call11.    (12)
+
+	.  reduce 12 (src line 176)
+
+
+state 93
+	Call11:  ,.    (14)
+
+	.  reduce 14 (src line 186)
+
+
+state 94
+	Block:  { Block1.} 
+	Block1:  Block1.Statement ; 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 14
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	}  shift 103
+	(  shift 20
+	.  error
+
+	Assignment  goto 8
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Expression  goto 10
+	ExpressionList  goto 11
+	ExpressionStmt  goto 6
+	FunctionLit  goto 23
+	IdentifierList  goto 12
+	IncDecStmt  goto 7
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	ShortVarDecl  goto 9
+	SimpleStmt  goto 5
+	Statement  goto 104
+	UnaryExpr  goto 13
+
+state 95
+	Parameters:  ( Parameters1 ).    (60)
+
+	.  reduce 60 (src line 431)
+
+
+state 96
+	Parameters1:  ParameterList Parameters11.    (62)
+
+	.  reduce 62 (src line 442)
+
+
+state 97
+	Parameters11:  ,.    (64)
+
+	.  reduce 64 (src line 452)
+
+
+98: shift/reduce conflict (shift 105(0), red'n 57(0)) on ,
+state 98
+	ParameterList:  Parameter ParameterList1.    (57)
+	ParameterList1:  ParameterList1., Parameter 
+
+	,  shift 105
+	.  reduce 57 (src line 415)
+
+
+state 99
+	ElementList1:  ElementList1 ,.Element 
+
+	BOOLEAN  shift 28
+	FLOAT  shift 26
+	IDENTIFIER  shift 61
+	INTEGER  shift 25
+	STR  shift 27
+	UNARY_OP  shift 16
+	FUNC  shift 30
+	{  shift 31
+	(  shift 20
+	.  error
+
+	BasicLit  goto 21
+	CompositeLit  goto 22
+	Element  goto 106
+	ElementIndex  goto 60
+	Expression  goto 62
+	FieldName  goto 59
+	FunctionLit  goto 23
+	Key  goto 58
+	Literal  goto 18
+	LiteralValue  goto 29
+	Operand  goto 17
+	OperandName  goto 19
+	PrimaryExpr  goto 15
+	QualifiedIdent  goto 24
+	UnaryExpr  goto 13
+
+state 100
+	Element:  Key : Value.    (16)
+
+	.  reduce 16 (src line 197)
+
+
+state 101
+	Expression:  Expression.BINARY_OP UnaryExpr 
+	Value:  Expression.    (81)
+
+	BINARY_OP  shift 33
+	.  reduce 81 (src line 539)
+
+
+ 102: reduce/reduce conflict  (red'ns 15 and 82) on }
+ 102: reduce/reduce conflict  (red'ns 15 and 82) on ,
+state 102
+	CompositeLit:  LiteralValue.    (15)
+	Value:  LiteralValue.    (82)
+
+	.  reduce 15 (src line 191)
+
+
+state 103
+	Block:  { Block1 }.    (7)
+
+	.  reduce 7 (src line 149)
+
+
+state 104
+	Block1:  Block1 Statement.; 
+
+	;  shift 107
+	.  error
+
+
+state 105
+	ParameterList1:  ParameterList1 ,.Parameter 
+
+	IDENTIFIER  shift 82
+	.  error
+
+	Parameter  goto 108
+
+state 106
+	ElementList1:  ElementList1 , Element.    (20)
+
+	.  reduce 20 (src line 220)
+
+
+state 107
+	Block1:  Block1 Statement ;.    (9)
+
+	.  reduce 9 (src line 160)
+
+
+state 108
+	ParameterList1:  ParameterList1 , Parameter.    (59)
+
+	.  reduce 59 (src line 426)
+
+Rule not reduced: Value:  LiteralValue 
+
+25 terminals, 52 nonterminals
+83 grammar rules, 109/2000 states
+6 shift/reduce, 4 reduce/reduce conflicts reported
+101 working sets used
+memory: parser 325/30000
+51 extra closures
+157 shift entries, 5 exceptions
+68 goto entries
+130 entries saved by goto default
+Optimizer space used: output 138/30000
+138 table entries, 0 zero
+maximum spread: 25, maximum offset: 105
