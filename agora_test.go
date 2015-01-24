@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -142,7 +143,13 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		v = strings.Replace(v, "\\n", "\n", -1)
 		v = strings.Replace(v, "\\t", "\t", -1)
 		switch retv := ret.(type) {
-		case runtime.Object, runtime.Func:
+		// comapre runtime.Object with special function
+		case runtime.Object:
+			if compareStringifiedObjects(retv.String(), v) {
+				str := fmt.Sprintf("%s", retv)
+				t.Errorf("[%s] - expected result '%s', got '%s'", id, v, str)
+			}
+		case runtime.Func:
 			str := fmt.Sprintf("%s", retv)
 			if str != v {
 				t.Errorf("[%s] - expected result '%s', got '%s'", id, v, str)
@@ -157,13 +164,179 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		assert = true
 		v = strings.Replace(v, "\\n", "\n", -1)
 		v = strings.Replace(v, "\\t", "\t", -1)
-		if got := buf.String(); got != v {
+		// compare output with special function
+		if got := buf.String(); compareOutputsWithObjects(got, v) {
 			t.Errorf("[%s] - expected output '%s', got '%s'", id, v, got)
 		}
 	}
 	if !assert {
 		t.Errorf("[%s] - no assert", id)
 	}
+}
+
+/*
+# Reason
+--------------------------------------------------------------------------------
+$ go test
+--- FAIL: TestSourceFiles (38.34s)
+        agora_test.go:161: [66-yield-complex] - expected output '1
+                nil
+                nil
+                {f:test,e:7,d:4,c:3,b:2,a:1}    <--------------+
+                ', got '1                                      |
+                nil                                            |  just the same
+                nil                                            |
+                {c:3,b:2,a:1,f:test,e:7,d:4}    <--------------+
+                '
+--------------------------------------------------------------------------------
+$ go test
+--- FAIL: TestSourceFiles (42.53s)
+        agora_test.go:148: [37-literal-obj] - expected result '{_:_-value!!,4:4-value!,s:s-value,i:i-value,4:int-4-value,5:int-5-value-via-i-var,string:int-s-value-via-s-var}', got '{4:4-value!,s:s-value,i:i-value,4:int-4-value,5:int-5-value-via-i-var,string:int-s-value-via-s-var,_:_-value!!}'
+--------------------------------------------------------------------------------
+"abc" and "abc"                                          //=> should be true
+"abc, {a:1,b:2,c:3}" and "abc, {b:2,c:3,a:1}"            //=> should be true too
+--------------------------------------------------------------------------------
+Because runtime.Object is map[Val]Val, but map doesn't support ordering.
+Playground implementation: http://play.golang.org/p/ENgKLm798i
+*/
+// res = result of script (runtime.Object.String())
+// fmr  = front matter result
+// return: false if equal, otherwise true
+func compareStringifiedObjects(res string /*(runtime.Object).String()*/, fmr string) bool {
+	type item struct {
+		key, value string
+	}
+	parse_string_to_object := func(out string) ([]item, bool /*success*/) {
+		// out: "{i:i-string,_:_-string,4:4-string}"
+		out = strings.TrimPrefix(out, "{")
+		// out: "i:i-string,_:_-string,4:4-string}"
+		out = strings.TrimSuffix(out, "}")
+		// out: "i:i-string,_:_-string,4:4-string"
+		outs := strings.FieldsFunc(out, func(r rune) bool {
+			return r == ','
+		})
+		// outs: [ "i:i-string", "_:_-string", "4:4-string" ]
+		out_obj := make([]item, 0, len(outs))
+		// fill out_obj
+		for _, o := range outs {
+			// o: "i:i-string"
+			okv := strings.FieldsFunc(o, func(r rune) bool {
+				return r == ':'
+			})
+			// okv: [ "i", "i-string" ]
+			// check okv length
+			if len(okv) != 2 {
+				return nil, false
+			}
+			out_obj = append(out_obj, item{okv[0], okv[1]})
+			// out_obj: [item{"i", "i-string"}, item{"4","4-string"}]
+		}
+		return out_obj, true
+	}
+	// front matter
+	fm, ok := parse_string_to_object(fmr)
+	if !ok {
+		if testing.Verbose() {
+			fmt.Println("unrecognized front matter object")
+		}
+		return true // not equal
+	}
+	// script result
+	sr, ok := parse_string_to_object(res) // obj.String())
+	if !ok {
+		if testing.Verbose() {
+			fmt.Println("unrecognized script object")
+		}
+		return true // not equal
+	}
+	// len(fm) == len(sr) ?
+	if len(fm) != len(sr) {
+		if testing.Verbose() {
+			fmt.Printf(
+				"improper length of the object, expected: %d, got: %d\n",
+				len(fm),
+				len(sr),
+			)
+		}
+		return true // not equal
+	}
+	// compare objects
+	for _, fmi := range fm {
+		for i := 0; i < len(sr); i++ {
+			if sr[i].key == fmi.key && sr[i].value == fmi.value {
+				// delete item from sr slice
+				sr = append(sr[:i], sr[i+1:]...)
+				break
+			}
+		}
+	}
+	if len(sr) != 0 {
+		return true // not equal
+	}
+	// all right
+	return false // equal
+}
+
+// out = ouput of script
+// fm  = front matter output
+// return: false if equal, otherwise true
+func compareOutputsWithObjects(out, fm string) bool {
+	type slices struct {
+		even bool
+		body []string
+	}
+	// object regexp: {a:value,b:value-of-b!!!}
+	rxp := regexp.MustCompile(`\{([^:}]+\:[^,}]+,)*([^:}]+\:[^,}]+)\}`)
+	// func example: http://play.golang.org/p/fqzoSzaZqb
+	cut := func(s string) (*slices, bool /*cuted*/) {
+		ix := rxp.FindAllStringIndex(s, -1)
+		if ix == nil {
+			return nil, false
+		}
+		var ss []string
+		var cur int
+		for _, ixx := range ix {
+			if cur != ixx[0] {
+				ss = append(ss, s[cur:ixx[0]])
+			}
+			ss = append(ss, s[ixx[0]:ixx[1]])
+			cur = ixx[1]
+		}
+		if cur != len(s) {
+			ss = append(ss, s[cur:len(s)])
+		}
+		even := ix[0][0] != 0
+		return &slices{
+			even: even,
+			body: ss,
+		}, true
+	}
+	// cut out and fm
+	outs, cuted := cut(out)
+	if !cuted {
+		// outs not cuted
+		return out != fm // simple string cmp
+	}
+	fms, cuted := cut(fm)
+	// check all
+	if !cuted || outs.even != fms.even || len(outs.body) != len(fms.body) {
+		return true // not equal
+	}
+	// loop
+	for i := 0; i < len(outs.body); i++ {
+		// if (ous.even and even) or (not outs.even and not even)
+		if (outs.even && i%2 != 0) || (!outs.even && i%2 == 0) {
+			if compareStringifiedObjects(outs.body[i], fms.body[i]) {
+				return true // not equal
+			}
+		} else {
+			if outs.body[i] != fms.body[i] {
+				return true // not equal
+			}
+		}
+	}
+	// all right
+	return false // equal
 }
 
 func readFrontMatter(s *bufio.Scanner) map[string]string {
