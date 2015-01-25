@@ -143,9 +143,9 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		v = strings.Replace(v, "\\n", "\n", -1)
 		v = strings.Replace(v, "\\t", "\t", -1)
 		switch retv := ret.(type) {
-		// comapre runtime.Object with special function
+		// compare runtime.Object with special function
 		case runtime.Object:
-			if compareStringifiedObjects(retv.String(), v) {
+			if !objectsAreEqual(retv.String(), v) {
 				str := fmt.Sprintf("%s", retv)
 				t.Errorf("[%s] - expected result '%s', got '%s'", id, v, str)
 			}
@@ -165,7 +165,7 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 		v = strings.Replace(v, "\\n", "\n", -1)
 		v = strings.Replace(v, "\\t", "\t", -1)
 		// compare output with special function
-		if got := buf.String(); compareOutputsWithObjects(got, v) {
+		if got := buf.String(); !outputIsEqual(got, v) {
 			t.Errorf("[%s] - expected output '%s', got '%s'", id, v, got)
 		}
 	}
@@ -174,39 +174,17 @@ func runAndAssertFile(t *testing.T, id string, r io.Reader, m map[string]string)
 	}
 }
 
-/*
-# Reason
---------------------------------------------------------------------------------
-$ go test
---- FAIL: TestSourceFiles (38.34s)
-        agora_test.go:161: [66-yield-complex] - expected output '1
-                nil
-                nil
-                {f:test,e:7,d:4,c:3,b:2,a:1}    <--------------+
-                ', got '1                                      |
-                nil                                            |  just the same
-                nil                                            |
-                {c:3,b:2,a:1,f:test,e:7,d:4}    <--------------+
-                '
---------------------------------------------------------------------------------
-$ go test
---- FAIL: TestSourceFiles (42.53s)
-        agora_test.go:148: [37-literal-obj] - expected result '{_:_-value!!,4:4-value!,s:s-value,i:i-value,4:int-4-value,5:int-5-value-via-i-var,string:int-s-value-via-s-var}', got '{4:4-value!,s:s-value,i:i-value,4:int-4-value,5:int-5-value-via-i-var,string:int-s-value-via-s-var,_:_-value!!}'
---------------------------------------------------------------------------------
-"abc" and "abc"                                          //=> should be true
-"abc, {a:1,b:2,c:3}" and "abc, {b:2,c:3,a:1}"            //=> should be true too
---------------------------------------------------------------------------------
-Because runtime.Object is map[Val]Val, but map doesn't support ordering.
-Playground implementation: http://play.golang.org/p/ENgKLm798i
-*/
 // res = result of script (runtime.Object.String())
 // fmr  = front matter result
-// return: false if equal, otherwise true
-func compareStringifiedObjects(res string /*(runtime.Object).String()*/, fmr string) bool {
+// return: true if equal, otherwise false
+func objectsAreEqual(res string, fmr string) bool {
 	type item struct {
 		key, value string
 	}
-	parse_string_to_object := func(out string) ([]item, bool /*success*/) {
+
+	// TODO : should simplify that, sort keys and stringify instead of parsing
+	// because that won't work if values have commas and such.
+	strToObj := func(out string) ([]item, bool) {
 		// out: "{i:i-string,_:_-string,4:4-string}"
 		out = strings.TrimPrefix(out, "{")
 		// out: "i:i-string,_:_-string,4:4-string}"
@@ -233,23 +211,25 @@ func compareStringifiedObjects(res string /*(runtime.Object).String()*/, fmr str
 		}
 		return out_obj, true
 	}
+
 	// front matter
-	fm, ok := parse_string_to_object(fmr)
+	fm, ok := strToObj(fmr)
 	if !ok {
 		if testing.Verbose() {
 			fmt.Println("unrecognized front matter object")
 		}
-		return true // not equal
+		return false
 	}
+
 	// script result
-	sr, ok := parse_string_to_object(res) // obj.String())
+	sr, ok := strToObj(res)
 	if !ok {
 		if testing.Verbose() {
 			fmt.Println("unrecognized script object")
 		}
-		return true // not equal
+		return false
 	}
-	// len(fm) == len(sr) ?
+
 	if len(fm) != len(sr) {
 		if testing.Verbose() {
 			fmt.Printf(
@@ -258,8 +238,9 @@ func compareStringifiedObjects(res string /*(runtime.Object).String()*/, fmr str
 				len(sr),
 			)
 		}
-		return true // not equal
+		return false
 	}
+
 	// compare objects
 	for _, fmi := range fm {
 		for i := 0; i < len(sr); i++ {
@@ -270,17 +251,13 @@ func compareStringifiedObjects(res string /*(runtime.Object).String()*/, fmr str
 			}
 		}
 	}
-	if len(sr) != 0 {
-		return true // not equal
-	}
-	// all right
-	return false // equal
+	return len(sr) == 0
 }
 
 // out = ouput of script
 // fm  = front matter output
-// return: false if equal, otherwise true
-func compareOutputsWithObjects(out, fm string) bool {
+// return: true if equal, otherwise false
+func outputIsEqual(out, fm string) bool {
 	type slices struct {
 		even bool
 		body []string
@@ -288,7 +265,7 @@ func compareOutputsWithObjects(out, fm string) bool {
 	// object regexp: {a:value,b:value-of-b!!!}
 	rxp := regexp.MustCompile(`\{([^:}]+\:[^,}]+,)*([^:}]+\:[^,}]+)\}`)
 	// func example: http://play.golang.org/p/fqzoSzaZqb
-	cut := func(s string) (*slices, bool /*cuted*/) {
+	cut := func(s string) (*slices, bool) {
 		ix := rxp.FindAllStringIndex(s, -1)
 		if ix == nil {
 			return nil, false
@@ -315,28 +292,27 @@ func compareOutputsWithObjects(out, fm string) bool {
 	outs, cuted := cut(out)
 	if !cuted {
 		// outs not cuted
-		return out != fm // simple string cmp
+		return out == fm // simple string cmp
 	}
 	fms, cuted := cut(fm)
 	// check all
 	if !cuted || outs.even != fms.even || len(outs.body) != len(fms.body) {
-		return true // not equal
+		return false
 	}
 	// loop
 	for i := 0; i < len(outs.body); i++ {
 		// if (ous.even and even) or (not outs.even and not even)
 		if (outs.even && i%2 != 0) || (!outs.even && i%2 == 0) {
-			if compareStringifiedObjects(outs.body[i], fms.body[i]) {
-				return true // not equal
+			if !objectsAreEqual(outs.body[i], fms.body[i]) {
+				return false
 			}
 		} else {
 			if outs.body[i] != fms.body[i] {
-				return true // not equal
+				return false
 			}
 		}
 	}
-	// all right
-	return false // equal
+	return true
 }
 
 func readFrontMatter(s *bufio.Scanner) map[string]string {
